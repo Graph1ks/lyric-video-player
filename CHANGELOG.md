@@ -1,31 +1,24 @@
 # Changelog
 
-This file records meaningful product, behavior, compatibility, security, data, and release changes.
-
-Git history remains the complete technical history. Do not copy every commit into this file.
+Git history remains the complete technical history. This file records meaningful product, compatibility, licensing, and architecture changes.
 
 ## Unreleased
 
 ### Added
 
+- v0.3 E-MOE-CHAIN alpha engine foundation.
+- Local MP3/M4A/AAC playback and drag/drop ingestion.
+- Enhanced LRC parsing with line timing, word timing, offsets, and line-only fallback word timing.
+- PixiJS realtime lyric renderer with Poster, Neon, and Vortex visual families.
+- Deterministic Auto Director, virtual camera impulses, audio-reactive particles/geometry, manual sync trim, and Cinema/Performance modes.
+- Full player HUD with fullscreen controls and `Ctrl + Shift + H` hide/show behavior.
+- Source-available licensing files aligned with the Graph1ks RhymeLab model.
+
 ### Changed
 
-### Fixed
+- Primary lyric entry and word-punch motion is evaluated analytically from lyric timestamps so seek behavior does not depend on a second animation timeline.
+- GSAP was removed from the architecture after license review because the planned visual-editor direction could intersect its visual-animation-builder restriction.
 
-### Security
+### Security / Privacy
 
-Use only sections that contain meaningful entries. Remove empty sections when preparing a release if that improves readability.
-
-When releasing, move relevant entries from `Unreleased` under a version/date heading, for example:
-
-```text
-## 1.2.0 — 2026-09-19
-```
-
-Rules:
-
-- record user-visible or operationally meaningful changes;
-- record important compatibility, migration, security, data/provenance, and behavior changes;
-- do not record trivial refactors, formatting-only edits, noisy commit-by-commit history, or abandoned experiments;
-- do not paste chat transcripts, prompts, sensitive conversation content, secrets, private data, or unnecessary internal detail;
-- summarize the durable project consequence rather than the conversation that led to it.
+- Core runtime remains local-first with no required uploads, accounts, telemetry, or hosted service.

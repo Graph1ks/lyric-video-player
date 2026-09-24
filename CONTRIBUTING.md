@@ -1,69 +1,49 @@
-# Contribution Policy
+# Contributing to Graph1ks Lyric Video Player / E-MOE-CHAIN
 
-This document defines whether and how outside contributions are accepted.
+This is a public **owner-controlled / solo-dev** project. Public source visibility is not an invitation for unsolicited code contributions or community governance.
 
-## Before starting
+## Feedback and outside contributions
 
-Read:
+Issues may be used for reproducible bug reports, suggestions, compatibility reports, documentation defects, and other product feedback when enabled.
 
-- `AGENTS.md`
-- `PROJECT.md`
-- `SECURITY.md`
-- `docs/LICENSING.md`
+Outside users should not open unsolicited pull requests. Code or documentation contributions are accepted only when the project owner explicitly invites or authorizes that contribution.
 
-Project-specific rules in `PROJECT.md` override generic template defaults when they are explicit.
+Issues and community feedback are input channels, not roadmap authority and not an automatic AI-agent work queue.
 
-## Is this project accepting outside code contributions?
+## Contributor License Agreement
 
-Check `PROJECT.md`.
+Any explicitly authorized external code or documentation contribution requires acceptance of `CLA.md` before merge. The contributor must post this exact statement in the pull request discussion:
 
-The default public mode for repositories created from this template is **owner-controlled source**. In that mode, outside code contributions are not accepted unless the project explicitly opts in.
+    I have read and agree to CLA.md for this contribution.
 
-If `PROJECT.md` says:
+This preserves Graph1ks' ability to maintain the public source-available licensing model and offer separate commercial licenses for Graph1ks Material.
 
-- **owner-controlled**: do not open unsolicited pull requests; Issues may still be used for bug reports or suggestions when enabled;
-- **community**: outside contributions are accepted under the documented review and contributor-rights rules.
+## License boundary
 
-Public visibility alone is not an invitation to contribute code.
+E-MOE-CHAIN is source-available, not OSI Open Source. Graph1ks Material is governed by `LICENSE`, `COMMERCIAL_LICENSE.md`, and `COPYRIGHT`. Third-party material keeps its own license and attribution requirements.
 
-Issues and Discussions may still be available for bug reports, suggestions, Q&A, and feedback. Their presence does not guarantee implementation, roadmap priority, or maintainer response.
+## Third-party material
 
-See `docs/REPOSITORY_VISIBILITY.md`.
+Do not add copied code, fonts, media, lyrics, recordings, datasets, shaders, model outputs, or other third-party material without documenting source, canonical URL, version/snapshot, applicable license/terms, attribution, and redistribution/modification rights in `THIRD_PARTY_NOTICES.md` or the appropriate project documentation.
 
-## Engineering expectations
+## Privacy and secrets
 
-Keep changes focused and production-quality.
+Never commit credentials, tokens, private keys, user media, raw private conversations, machine-specific personal paths, generated private data, or unneeded personal identifiers.
 
-A contribution should normally:
+## Engineering rules
 
-- solve a concrete problem;
-- follow existing architecture unless the change intentionally improves it;
-- include relevant tests;
-- avoid unrelated rewrites;
-- introduce no secret/private-path leakage;
-- introduce no paid required dependency;
-- introduce no license-incompatible dependency or asset;
-- update affected documentation.
+- Keep the audio clock authoritative for synced visuals.
+- Preserve local-first file handling unless the owner explicitly changes the architecture.
+- Preserve `Ctrl + Shift + H` as the full-HUD hide/show shortcut.
+- Keep frame-critical rendering independent from any future editor UI framework.
+- Do not introduce required paid software, APIs, subscriptions, telemetry, or hosted services.
+- Review cost and licensing before adding dependencies or assets.
+- Add tests/verification appropriate to the changed behavior.
 
-## Dependencies
+## Validation
 
-Do not add a dependency solely for convenience without checking:
+Before an authorized merge, run at minimum:
 
-- whether the current stack already solves the problem;
-- production cost;
-- license;
-- transitive impact;
-- maintenance health;
-- size/complexity.
-
-Include the reasoning in the pull request when the dependency is non-trivial.
-
-## Contributor rights
-
-The project's contribution mechanism is defined in `PROJECT.md`.
-
-If it is still marked undecided, the project owner should decide whether no additional mechanism, DCO, CLA, or another contributor-rights model is appropriate before actively soliciting substantial outside contributions.
-
-## Security issues
-
-Do not publish exploitable vulnerability details in a public issue. Follow `SECURITY.md`.
+    npm run typecheck
+    npm run build
+    python scripts/repo_audit.py
