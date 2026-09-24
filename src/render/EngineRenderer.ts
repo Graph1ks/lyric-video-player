@@ -6,6 +6,7 @@ import { CinematicBackground } from "../effects/backgrounds/CinematicBackground"
 import { KineticLyrics } from "../effects/typography/KineticLyrics";
 import type { LineCue } from "../lyrics/ELRCParser";
 import { CameraRig } from "./CameraRig";
+import { CinematicPostFX } from "./CinematicPostFX";
 
 export class EngineRenderer {
   readonly app = new Application();
@@ -16,6 +17,7 @@ export class EngineRenderer {
   private lyrics = new KineticLyrics();
   private director = new SceneDirector();
   private cameraRig = new CameraRig(this.camera);
+  private postFX = new CinematicPostFX();
   private activeMode: SceneMode = "neon";
   private lastLineIndex = -1;
   private intensity = 1;
@@ -47,6 +49,7 @@ export class EngineRenderer {
     this.app.stage.addChild(this.root);
     this.root.addChild(this.camera);
     this.camera.addChild(this.background.container, this.lyrics.container);
+    this.camera.filters = [this.postFX.filter];
     this.applyMode("neon", false);
     this.resize();
     window.addEventListener("resize", () => this.resize());
@@ -75,10 +78,12 @@ export class EngineRenderer {
     this.background.setIntensity(this.intensity);
     this.lyrics.setIntensity(this.intensity);
     this.cameraRig.setIntensity(this.intensity);
+    this.postFX.setIntensity(this.intensity);
   }
 
   setQuality(quality: QualityMode) {
     this.background.setQuality(quality);
+    this.postFX.setQuality(quality);
     if (this.app.renderer) {
       this.app.renderer.resolution = quality === "cinema" ? Math.min(devicePixelRatio, 2) : Math.min(devicePixelRatio, 1.25);
       this.resize();
@@ -109,6 +114,7 @@ export class EngineRenderer {
     const rootScale = 1 + this.sceneTransition * 0.045;
     this.root.scale.set(rootScale);
 
+    this.postFX.update(time, audio);
     this.background.update(time, audio);
     this.lyrics.update(lyricTime, audio);
     this.cameraRig.update(time, audio);
@@ -124,6 +130,7 @@ export class EngineRenderer {
     this.background.setMode(mode);
     this.lyrics.setMode(mode);
     this.cameraRig.setMode(mode);
+    this.postFX.setMode(mode);
     this.host?.setAttribute("data-scene", mode);
 
     if (animate) this.sceneTransition = 1;

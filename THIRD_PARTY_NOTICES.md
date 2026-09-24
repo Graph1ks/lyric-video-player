@@ -24,7 +24,7 @@ License: MIT License.
 
 Upstream: https://github.com/vitejs/vite
 
-### TypeScript 5.9.0
+### TypeScript 5.9.3
 
 Purpose: language compiler/type checker.
 

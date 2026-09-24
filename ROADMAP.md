@@ -26,15 +26,16 @@
 - timestamp-derived lyric entry and punch motion
 - GSAP removed to avoid future visual-editor licensing constraints
 
-## Milestone 0.4 — Render Graph + Post FX — next
-- RenderTexture composition
-- FX chain interface
-- chromatic split / channel offsets
-- directional velocity smear
-- displacement
-- glow / bloom treatment
-- frame-feedback buffer
-- per-effect quality budgets
+## Milestone 0.4 — Render Graph + Post FX — active
+- first custom GPU filter pass: chromatic split / channel offsets — complete baseline
+- audio/transient-directed multi-tap smear — complete baseline
+- local glow approximation, barrel warp, scanline, grain and vignette — complete baseline
+- RenderTexture composition — next
+- FX chain interface — next
+- true displacement pass — next
+- multi-pass glow / bloom treatment — next
+- frame-feedback ping-pong buffer — next
+- per-effect quality budgets — partial
 
 ## Milestone 0.5 — Typography Engine
 - line / word / glyph hierarchy

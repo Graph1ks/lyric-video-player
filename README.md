@@ -24,6 +24,7 @@ Implemented:
 - audio-reactive particles, rings, beams, geometry and scene palettes
 - deterministic Auto Director based on lyric structure and repeated hook lines
 - dedicated camera rig with line hits, word hits, drift, bass zoom and transient rotation
+- first custom GPU post-FX pass: scene-aware chromatic split, transient smear, local glow, barrel warp, scanlines, grain and vignette
 - Poster / Neon / Vortex visual families
 - responsive glass/HUD player shell
 - fullscreen mode
@@ -82,6 +83,8 @@ PixiJS render graph ← CameraRig┘
         ↓
 KineticLyrics + CinematicBackground
         ↓
+CinematicPostFX
+        ↓
 E-MOE timestamp motion + audio reactions
 ```
 
@@ -89,8 +92,8 @@ The HTML audio element is the timing source of truth. Lyric entry and word-punch
 
 ## Near-term build plan
 
-1. RenderTexture composition and post-FX graph
-2. chromatic displacement, smear, feedback and bloom passes
+1. RenderTexture composition graph and feedback ping-pong buffers
+2. dedicated displacement / velocity-smear / bloom passes (the first single-pass cinematic shader is already in)
 3. selector system inspired by After Effects text animators
 4. additional background families: fluid/noise, star tunnel, ribbons, typography feedback
 5. scene JSON project format

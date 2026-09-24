@@ -21,7 +21,7 @@ Current dependency decisions for E-MOE-CHAIN. Version authority is `package.json
 **License:** MIT License, verified from the upstream `vitejs/vite` repository.  
 **Decision:** approved.
 
-## TypeScript 5.9.0 — approved build dependency
+## TypeScript 5.9.3 — approved build dependency
 
 **Purpose:** static typing/compiler.  
 **Cost:** zero.  
