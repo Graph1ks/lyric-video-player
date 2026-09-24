@@ -1,105 +1,39 @@
 # Security Policy
 
-## Security posture
+## Scope and posture
 
-This template targets a practical, risk-proportionate security baseline for solo developers and small teams.
+Graph1ks Lyric Video Player / E-MOE-CHAIN is currently a local-first browser application. The core runtime does not require accounts, telemetry, cloud uploads, hosted processing, or application secrets.
 
-The goal is strong everyday engineering hygiene without unnecessary enterprise complexity.
+Local audio and LRC files are still untrusted input. File content must be parsed as data and must never be executed.
 
-## Never commit or publish
+## Supported version
 
-- passwords;
-- API keys;
-- OAuth/client secrets;
-- personal access tokens;
-- private keys or certificates containing private material;
-- production connection strings with credentials;
-- real customer/user private data;
-- session cookies/tokens;
-- private database dumps;
-- unredacted crash dumps containing sensitive data.
-
-If a secret is committed, assume exposure and rotate/revoke it. Removing it from the latest commit alone is not sufficient.
-
-## Local paths and personal identifiers
-
-Public artifacts should not expose machine-specific paths or unnecessary personal identifiers.
-
-Avoid publishing paths such as:
-
-```text
-C:\Users\real-user\project
-/Users/real-user/project
-/home/real-user/project
-```
-
-Use:
-
-```text
-<repo-root>/
-<user-home>/
-./data/
-```
-
-Apply this to documentation, logs, test snapshots, generated reports, benchmark output, screenshots, exceptions, and support bundles.
-
-## Configuration
-
-- Keep secrets in environment variables or ignored local secret stores/configuration.
-- Commit only sanitized examples such as `.env.example`.
-- Fail clearly when required secret configuration is absent.
-- Do not print secrets during startup or error reporting.
-
-## Dependencies
-
-Before adoption:
-
-- confirm license compatibility;
-- confirm zero-cost production use;
-- avoid abandoned/high-risk packages when a reasonable alternative exists;
-- keep dependency count proportionate to value;
-- use ecosystem lockfiles when applicable.
-
-Security updates should be evaluated based on exploitability and project exposure, not ignored solely because the application is small.
-
-## Input and boundary handling
-
-Validate data at trust boundaries, including:
-
-- network requests;
-- file imports;
-- command-line input used in shell/process calls;
-- archive extraction;
-- database queries;
-- plugin/extensions;
-- deserialization;
-- external data feeds.
-
-Use parameterized database queries and safe process invocation APIs.
-
-## Filesystem safety
-
-- Normalize and validate externally supplied paths where relevant.
-- Prevent unintended traversal outside allowed roots.
-- Avoid destructive recursive operations without explicit target validation.
-- Treat archive extraction paths as untrusted.
-
-## Network exposure
-
-Do not expose a service publicly when local-only binding satisfies the product.
-
-When network access is required, document:
-
-- bind interface;
-- authentication model;
-- trusted/untrusted clients;
-- TLS expectations;
-- data transmitted.
+The current `main` branch and the latest published alpha are the supported development line. Older unreleased snapshots are not maintained as separate security branches.
 
 ## Reporting a vulnerability
 
-**TEMPLATE BLOCKER:** Before a public production release, replace this section with the project's actual private reporting channel or an explicitly chosen GitHub private-vulnerability-reporting workflow where available.
+Do not publish exploitable vulnerability details in a public Issue.
 
-Do not claim the public security setup is complete while this template text remains.
+Use GitHub's private vulnerability-reporting/security-advisory interface for this repository when it is available. If the interface is not available, contact Graph1ks through a contact channel publicly listed on the Graph1ks GitHub profile and initially provide only enough information to establish a private reporting path.
 
-Do not ask reporters to post exploitable security issues publicly before a fix is available.
+Non-sensitive bugs that do not expose users, files, credentials, or execution boundaries may be reported through normal Issues.
+
+## Project security rules
+
+Never commit or intentionally log:
+
+- API keys, access tokens, passwords, cookies, private keys, or credentials;
+- user-loaded audio, lyric files, or other private media;
+- private local paths or unnecessary personal identifiers;
+- raw private conversations or unrelated sensitive content.
+
+The project should:
+
+- keep imported media local unless the owner explicitly changes the architecture;
+- avoid hidden network requests, tracking, telemetry, or uploads;
+- validate file types and parser boundaries;
+- keep dependencies minimal and reviewed for maintenance, cost, and licensing;
+- avoid executing user-supplied lyric/metadata content as HTML or code;
+- sanitize future exported filenames/paths where filesystem APIs are introduced.
+
+If a secret is ever committed, assume exposure and revoke/rotate it; deleting only the latest copy is insufficient.

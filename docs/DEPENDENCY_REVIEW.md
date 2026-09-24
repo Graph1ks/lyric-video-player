@@ -1,53 +1,42 @@
 # Dependency Review
 
-Use this for any dependency that is non-trivial, externally distributed with the product, legally unusual, operationally significant, or difficult to remove.
+Current dependency decisions for E-MOE-CHAIN. Version authority is `package.json`; a lockfile should be committed once dependency installation is available in the development environment.
 
-## Candidate
+## PixiJS 8.21.0 — approved
 
-**Name:**  
-**Version:**  
-**Purpose:**  
-**Alternatives considered:**  
-**Why the existing stack is insufficient:**
+**Purpose:** realtime WebGL scene graph, text, graphics, particles, render-texture/compositing foundation.  
+**Alternatives considered:** Canvas2D/in-house renderer, Three.js for all rendering.  
+**Why existing platform APIs are insufficient:** implementing performant scene graph, text batching, masking, filters, texture lifecycle, and GPU abstraction from scratch is disproportionate.
 
-## Cost gate
+**Cost:** no required paid account/service.  
+**License:** MIT License, verified from the upstream `pixijs/pixijs` repository.  
+**Commercial use / redistribution:** allowed under MIT conditions.  
+**Notices:** preserve upstream copyright/license notice as required.  
+**Decision:** approved.
 
-- [ ] Free to obtain/use for development.
-- [ ] Free to build/package.
-- [ ] Free for the intended production use.
-- [ ] No required metered API/service.
-- [ ] No required paid account/subscription.
-- [ ] No realistic mandatory cost hidden behind a "free tier".
+## Vite 7.1.0 — approved build dependency
 
-**Cost notes:**
+**Purpose:** local dev server and production bundling.  
+**Cost:** zero required production/development fee.  
+**License:** MIT License, verified from the upstream `vitejs/vite` repository.  
+**Decision:** approved.
 
-## License gate
+## TypeScript 5.9.3 — approved build dependency
 
-**License:**  
-**Authoritative license source checked:**  
-**Commercial use allowed for this project model:** yes / no / unclear  
-**Redistribution allowed as intended:** yes / no / unclear  
-**Attribution/NOTICE obligations:**  
-**Copyleft/source-sharing implications:**  
-**Transitive license concerns:**  
-**Redistributed/shipped transitive components accounted for:** yes / no / not-applicable
+**Purpose:** static typing/compiler.  
+**Cost:** zero.  
+**License:** Apache License 2.0, verified from the upstream `microsoft/TypeScript` repository.  
+**Decision:** approved.
 
-- [ ] Compatible with project license/distribution model.
-- [ ] Required notices can be satisfied.
-- [ ] No non-commercial/research-only/field-of-use restriction conflicts with the project.
+## GSAP 3.15.0 — rejected for this product scope
 
-## Engineering gate
+**Purpose considered:** high-level animation/timeline/easing utilities.  
+**Cost:** the current Standard "No Charge" License permits commercial projects at no charge for permitted uses.  
+**License:** Webflow/GSAP Standard "No Charge" License; the package itself points to `https://gsap.com/standard-license/`.  
+**Scope concern:** the license defines prohibited uses involving tools that enable visual animation building without code in competition with Webflow's visual animation capabilities. The E-MOE-CHAIN roadmap includes a visual scene/effect editor, so adopting GSAP would create an unnecessary future product-scope constraint.  
+**Decision:** rejected. Use small in-house timestamp/easing/impulse primitives instead.
 
-- [ ] Maintained enough for our risk level.
-- [ ] Security posture acceptable.
-- [ ] Dependency weight is justified.
-- [ ] Performance impact acceptable.
-- [ ] Lock-in/migration risk acceptable.
-- [ ] In-house implementation is not clearly better overall.
-- [ ] Required third-party notices/source obligations are known for shipped components.
+## Three.js — deferred
 
-## Decision
-
-**Approved / rejected / needs clarification:**  
-**Reason:**  
-**Reviewer/date:**
+**Purpose considered:** true 3D scenes.  
+**Decision:** not a dependency until a concrete 3D scene requires it. Review the then-current version/license before adoption.
