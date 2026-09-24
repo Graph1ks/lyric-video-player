@@ -12,7 +12,7 @@ Implemented:
 - drag-and-drop ingestion for audio + `.lrc`
 - Enhanced LRC parsing
   - `[mm:ss.xxx]` line timestamps
-  - `<mm:ss.xxx>` word timestamps
+  - angle-bracket word timestamps with minute/second/millisecond precision
   - `[offset:+/-ms]`
   - fallback word timing for line-only LRC
 - audio as the single master clock

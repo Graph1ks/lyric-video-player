@@ -6,7 +6,7 @@
 
 ## Current objective
 
-Get pull request #1 green under the repository's required `validate` check while continuing the first serious GPU post-processing layer. After merge, build the RenderTexture composition/feedback graph.
+Get pull request #1 fully green under the repository's required `validate` check, merge the baseline, then continue the RenderTexture composition/feedback graph.
 
 ## Current state
 
@@ -21,19 +21,19 @@ Get pull request #1 green under the repository's required `validate` check while
 
 ## Last verified checks
 
-- Strict TypeScript source was checked locally with a temporary Pixi API stub — passed.
+- Latest dependency-backed GitHub Actions run successfully installed dependencies.
+- `npm run typecheck` passed against the real PixiJS 8.21.0 types.
+- `npm run build` passed with Vite 7.1.0; 734 modules transformed and production assets emitted successfully.
+- Publication audit found one README false positive because the Enhanced LRC word-timestamp example used angle brackets that matched the template-placeholder scanner. The README wording has now been changed to avoid that scanner collision.
 - Source/dependency scan confirmed no GSAP or Three.js runtime import remains.
-- GitHub repository settings were read through authenticated tooling and match the public owner-controlled model.
-- GitHub Actions run #1 reached dependency installation and failed because `typescript@5.9.0` does not exist. The pin has been corrected to the published stable `5.9.3`.
-- The dependency-backed PixiJS typecheck/Vite build must now be re-evaluated by the next CI run.
 
 ## Current blocker
 
-No unresolved architectural blocker. The immediate gate is the next `validate` CI result. The current execution environment cannot reliably reach npm, so GitHub Actions is the authoritative dependency-backed build environment.
+Only CI revalidation remains after the README audit fix. No current TypeScript or production-build blocker is known.
 
 ## Next concrete action
 
-Inspect the newest `validate` run on pull request #1. Fix any real PixiJS API/type/build issue it exposes. Once green, merge the bootstrap and continue with RenderTexture composition plus ping-pong feedback.
+Inspect the newest `validate` run on pull request #1. If green, merge the bootstrap. Then implement RenderTexture composition plus ping-pong feedback; if it fails, fix only the concrete reported issue before expanding the effect stack.
 
 ## Do not redo
 

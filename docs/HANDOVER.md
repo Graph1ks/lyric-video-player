@@ -6,7 +6,7 @@
 
 ## Current objective
 
-Get pull request #1 through the mandatory `validate` check, then move directly into a RenderTexture composition graph and feedback pipeline.
+Get pull request #1 fully green under the mandatory `validate` check, merge the v0.3 baseline, then move directly into a RenderTexture composition graph and feedback pipeline.
 
 ## What was just completed
 
@@ -19,9 +19,10 @@ Get pull request #1 through the mandatory `validate` check, then move directly i
 - Added the high-end glass/HUD player shell, fullscreen, keyboard transport, Cinema/Performance modes, and `Ctrl + Shift + H` full-HUD visibility control.
 - Mirrored the Graph1ks RhymeLab source-available/public-noncommercial plus separate-commercial-license structure.
 - Reviewed dependencies and rejected GSAP for this product scope rather than inheriting a visual-animation-builder licensing constraint.
-- Added a GitHub Actions `validate` job required by repository rules.
-- The first CI run exposed a bad TypeScript pin (`5.9.0`); it is corrected to published stable `5.9.3`.
-- Started milestone 0.4 with `CinematicPostFX`: a custom WebGL filter for scene-aware RGB split, audio/transient smear, glow sampling, barrel warp, scanlines, grain, and vignette.
+- Added the repository-required GitHub Actions `validate` job.
+- Corrected the TypeScript pin from nonexistent `5.9.0` to published stable `5.9.3`.
+- Added `CinematicPostFX`: a custom WebGL filter for scene-aware RGB split, audio/transient smear, glow sampling, barrel warp, scanlines, grain, and vignette.
+- Real CI now passes dependency installation, strict TypeScript checking, and the Vite production build. The only remaining prior failure was a publication-audit false positive in README wording, now fixed.
 
 ## Current implementation state
 
@@ -59,7 +60,6 @@ The first background and typography systems are procedural and audio-reactive. A
 
 ## Known problems / risks
 
-- The first CI run did not reach TypeScript/build because `typescript@5.9.0` was invalid. The correction to `5.9.3` needs a fresh CI result.
 - No `package-lock.json` exists yet because dependency installation was unavailable in the current local environment; create and commit one once a dependency install is available.
 - Stateful particle/camera impulses are deterministic enough for live playback but are not yet fully reconstructible from an arbitrary timestamp. Primary lyric motion is timestamp-derived. Future export-grade seeking should make all seek-sensitive effects reproducible from scene seed + time.
 - Safari/M4A codec behavior requires real-device testing.
@@ -67,7 +67,7 @@ The first background and typography systems are procedural and audio-reactive. A
 
 ## Next concrete work
 
-1. Get pull request #1 green under the required `validate` status check.
+1. Confirm pull request #1 is green under the required `validate` status check and merge it.
 2. Implement a RenderTexture composition graph separating background, typography, foreground, and post-FX stages.
 3. Add ping-pong feedback buffers and true displacement.
 4. Split/extend the current shader into quality-budgeted velocity-smear and bloom passes only where the visual gain justifies extra render targets.
@@ -84,7 +84,14 @@ npm run build
 python scripts/repo_audit.py
 ```
 
-Browser smoke test after build:
+Latest real CI result before this documentation fix:
+
+- dependency install: pass;
+- strict TypeScript check: pass;
+- Vite production build: pass;
+- publication audit: one README angle-bracket/template-placeholder false positive; wording now fixed.
+
+Browser smoke test after merge:
 
 - load MP3 or M4A and Enhanced LRC;
 - play/pause/seek repeatedly;
@@ -95,10 +102,6 @@ Browser smoke test after build:
 - verify `Ctrl + Shift + H` hides and restores the entire HUD;
 - verify drag/drop of audio + LRC;
 - verify post-FX responds to bass/transients without destroying text readability.
-
-### Expected result
-
-No type/build/audit errors, stable playback after seeks, visually continuous scene changes, post-FX active in all scene modes, and no loss of HUD control when hidden.
 
 ## Important context / traps
 
