@@ -1,37 +1,39 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good implementation commit:** `82bf437328143c2a2173abfb2e34c85928d96b94`  
-**Current phase/milestone:** v0.3.0 alpha bootstrap / repository validation
+**Last known good implementation commit:** `dd8e9fdfd5efd9dd75c9ca907fd07401a9c250c0`  
+**Current phase/milestone:** v0.3.0 alpha bootstrap / milestone 0.4 post-FX
 
 ## Current objective
 
-Land the first real E-MOE-CHAIN player/renderer baseline through the repository's required pull-request workflow, then continue with the RenderTexture/post-FX graph.
+Get pull request #1 green under the repository's required `validate` check while continuing the first serious GPU post-processing layer. After merge, build the RenderTexture composition/feedback graph.
 
 ## Current state
 
-- v0.3 engine source exists on branch `build/emoe-chain-v0.3`.
+- v0.3 engine source exists on branch `build/emoe-chain-v0.3` and pull request #1 is open.
 - Audio playback, Enhanced LRC parsing, timestamp-driven glyph motion, Auto Director, virtual camera, audio-reactive backgrounds, drag/drop, sync trim, fullscreen, and the high-end HUD are implemented.
 - `Ctrl + Shift + H` hides/shows the full player HUD and is a preserved product shortcut.
+- The first custom PixiJS/WebGL post-FX pass is implemented: scene-aware RGB split, audio/transient smear, glow taps, barrel warp, scanlines, procedural grain, and vignette.
 - PixiJS 8.21.0 is the only runtime package dependency.
 - GSAP was deliberately rejected after license review because the planned visual-editor scope could intersect its visual-animation-builder restriction.
 - The RhymeLab source-available / separate-commercial-license model is mirrored in the repository license files.
-- A `validate` GitHub Actions job is being added because repository rules require PR-based changes plus the `validate` status check.
+- Repository rules require all main-branch changes through a pull request and a required check named `validate`.
 
 ## Last verified checks
 
-- TypeScript source was checked with strict compiler settings and a temporary local Pixi API stub — passed.
+- Strict TypeScript source was checked locally with a temporary Pixi API stub — passed.
 - Source/dependency scan confirmed no GSAP or Three.js runtime import remains.
 - GitHub repository settings were read through authenticated tooling and match the public owner-controlled model.
-- Full `npm install` / `npm run build` has not yet been verified in the local execution environment because package-registry access timed out; CI is the next authoritative dependency-backed build check.
+- GitHub Actions run #1 reached dependency installation and failed because `typescript@5.9.0` does not exist. The pin has been corrected to the published stable `5.9.3`.
+- The dependency-backed PixiJS typecheck/Vite build must now be re-evaluated by the next CI run.
 
 ## Current blocker
 
-Local package installation is blocked by network timeout in the current execution environment. The repository PR/CI path must perform the real dependency-backed typecheck and Vite production build.
+No unresolved architectural blocker. The immediate gate is the next `validate` CI result. The current execution environment cannot reliably reach npm, so GitHub Actions is the authoritative dependency-backed build environment.
 
 ## Next concrete action
 
-Run the new pull request through the required `validate` check. If it passes, merge the bootstrap and begin the RenderTexture/post-FX composition layer; if it fails, fix the concrete CI/build error before adding more effects.
+Inspect the newest `validate` run on pull request #1. Fix any real PixiJS API/type/build issue it exposes. Once green, merge the bootstrap and continue with RenderTexture composition plus ping-pong feedback.
 
 ## Do not redo
 
@@ -39,11 +41,12 @@ Run the new pull request through the required `validate` check. If it passes, me
 - Do not move frame-critical rendering or the audio master clock into React.
 - Do not replace audio time with an independent wall-clock animation timeline.
 - Do not redo the repository visibility/collaboration-mode decision; public + owner-controlled + collaborator-only PR creation is already verified.
+- Do not revert TypeScript to 5.9.0; that version is not published.
 
 ## Important context
 
-- The main branch is rule-protected: changes must go through a pull request and the required status check is named `validate`.
 - No commercial media, lyric corpus, or font pack is bundled.
-- A package lockfile is still absent because package installation was unavailable in the current execution environment.
+- A package lockfile is still absent because package installation was unavailable in the current local execution environment.
+- Current post-FX is a single filter pass. True feedback, displacement, multi-pass bloom, and render-target composition are still pending.
 
 For deeper continuation context, read `docs/HANDOVER.md`.

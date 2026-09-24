@@ -1,12 +1,12 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Implementation baseline commit:** `82bf437328143c2a2173abfb2e34c85928d96b94`  
-**Current phase/milestone:** v0.3.0 alpha bootstrap / CI validation
+**Implementation baseline commit:** `dd8e9fdfd5efd9dd75c9ca907fd07401a9c250c0`  
+**Current phase/milestone:** v0.3.0 alpha bootstrap / milestone 0.4 post-FX
 
 ## Current objective
 
-Establish the first production-shaped E-MOE-CHAIN renderer/player baseline in GitHub, validate it through the repository's mandatory PR check, then proceed directly into the RenderTexture/post-FX graph.
+Get pull request #1 through the mandatory `validate` check, then move directly into a RenderTexture composition graph and feedback pipeline.
 
 ## What was just completed
 
@@ -19,7 +19,9 @@ Establish the first production-shaped E-MOE-CHAIN renderer/player baseline in Gi
 - Added the high-end glass/HUD player shell, fullscreen, keyboard transport, Cinema/Performance modes, and `Ctrl + Shift + H` full-HUD visibility control.
 - Mirrored the Graph1ks RhymeLab source-available/public-noncommercial plus separate-commercial-license structure.
 - Reviewed dependencies and rejected GSAP for this product scope rather than inheriting a visual-animation-builder licensing constraint.
-- Added a GitHub Actions `validate` job to satisfy repository rules and run the real dependency-backed typecheck/build/audit.
+- Added a GitHub Actions `validate` job required by repository rules.
+- The first CI run exposed a bad TypeScript pin (`5.9.0`); it is corrected to published stable `5.9.3`.
+- Started milestone 0.4 with `CinematicPostFX`: a custom WebGL filter for scene-aware RGB split, audio/transient smear, glow sampling, barrel warp, scanlines, grain, and vignette.
 
 ## Current implementation state
 
@@ -27,7 +29,7 @@ The browser application is Vite + TypeScript with PixiJS as the single runtime p
 
 The UI is a lightweight DOM/CSS shell. React is intentionally absent from the frame-critical renderer. A future editor may use React for panels/timeline/project state while calling stable imperative engine APIs.
 
-The first background and typography systems are procedural and audio-reactive, but the actual multi-pass post-processing/render-texture graph is not implemented yet. That is the next visual-quality step.
+The first background and typography systems are procedural and audio-reactive. A first single-pass custom GPU post-FX shader is implemented. The actual multi-pass RenderTexture composition/feedback graph is not implemented yet.
 
 ## Important files / entry points
 
@@ -40,6 +42,7 @@ The first background and typography systems are procedural and audio-reactive, b
 | `src/core/SceneDirector.ts` | deterministic scene selection |
 | `src/render/EngineRenderer.ts` | Pixi root/render orchestration |
 | `src/render/CameraRig.ts` | camera impulses/drift/audio reactions |
+| `src/render/CinematicPostFX.ts` | first custom GPU post-processing pass |
 | `src/effects/typography/KineticLyrics.ts` | glyph/word kinetic typography |
 | `src/effects/backgrounds/CinematicBackground.ts` | current procedural backgrounds |
 | `src/core/math.ts` | in-house easing/interpolation/seed primitives |
@@ -56,19 +59,19 @@ The first background and typography systems are procedural and audio-reactive, b
 
 ## Known problems / risks
 
-- Full dependency-backed `npm run typecheck` and `npm run build` were not available locally because npm package installation timed out. Treat GitHub CI as the next authoritative build result.
-- No `package-lock.json` exists yet for the same reason; create and commit one once dependency installation is available.
+- The first CI run did not reach TypeScript/build because `typescript@5.9.0` was invalid. The correction to `5.9.3` needs a fresh CI result.
+- No `package-lock.json` exists yet because dependency installation was unavailable in the current local environment; create and commit one once a dependency install is available.
 - Stateful particle/camera impulses are deterministic enough for live playback but are not yet fully reconstructible from an arbitrary timestamp. Primary lyric motion is timestamp-derived. Future export-grade seeking should make all seek-sensitive effects reproducible from scene seed + time.
 - Safari/M4A codec behavior requires real-device testing.
-- The current screen bloom/grain treatment is CSS overlay; true post-FX need RenderTextures/filters.
+- Current post-FX is a single filter pass; true frame feedback and multi-pass bloom require render targets.
 
 ## Next concrete work
 
-1. Get the bootstrap PR green under the required `validate` status check and merge it.
+1. Get pull request #1 green under the required `validate` status check.
 2. Implement a RenderTexture composition graph separating background, typography, foreground, and post-FX stages.
-3. Add first post-FX modules: RGB split, displacement, directional/velocity smear, feedback echo, bloom/glow.
-4. Add effect quality budgets and verify 1080p Performance/Cinema behavior.
-5. Continue selector-based typography only after the composition graph is stable.
+3. Add ping-pong feedback buffers and true displacement.
+4. Split/extend the current shader into quality-budgeted velocity-smear and bloom passes only where the visual gain justifies extra render targets.
+5. Verify 1080p Performance/Cinema behavior before expanding the effect catalog.
 
 ## Verification
 
@@ -90,11 +93,12 @@ Browser smoke test after build:
 - switch Performance/Cinema;
 - verify fullscreen;
 - verify `Ctrl + Shift + H` hides and restores the entire HUD;
-- verify drag/drop of audio + LRC.
+- verify drag/drop of audio + LRC;
+- verify post-FX responds to bass/transients without destroying text readability.
 
 ### Expected result
 
-No type/build/audit errors, stable playback after seeks, visually continuous scene changes, and no loss of HUD control when hidden.
+No type/build/audit errors, stable playback after seeks, visually continuous scene changes, post-FX active in all scene modes, and no loss of HUD control when hidden.
 
 ## Important context / traps
 
@@ -103,6 +107,7 @@ No type/build/audit errors, stable playback after seeks, visually continuous sce
 - Keep imported media local; there is no upload backend in the core architecture.
 - Do not bundle commercial fonts/audio/lyrics without explicit provenance/license review.
 - The repository requires changes through pull requests and expects a status check named `validate`.
+- `typescript@5.9.0` is nonexistent; current pin is `5.9.3`.
 
 ## Local / generated state
 
@@ -117,6 +122,6 @@ A new agent/user should:
 2. read `PROJECT.md`;
 3. read `STATUS.md`;
 4. read this file;
-5. inspect the current branch/PR and `validate` result;
+5. inspect pull request #1 and the latest `validate` result;
 6. read `docs/DECISIONS.md` and `docs/DEPENDENCY_REVIEW.md` before changing architecture/dependencies;
 7. reconcile stale documentation against repository state and reproducible checks before continuing.
