@@ -107,6 +107,18 @@ Before adding Three.js, prototype those with Pixi `Mesh`/custom shaders and comp
 4. memory overhead;
 5. renderer/compositor integration risk.
 
+## Website renderer benchmark
+
+The user's `Graph1ks/website` background stack was used as an internal quality benchmark after WORLD_05/06 failed visual acceptance.
+
+Relevant implementation patterns from that repository:
+
+- the Circuit Grid owns a real world graph, per-node relief, a 3D camera projection and perspective scaling;
+- fullscreen WebGL effects use custom shaders for structure, depth and raymarched/volumetric material rather than simply distorting a flat image;
+- visual motion is autonomous and continuous, with effects controlling geometry/material intentionally.
+
+The resulting E-MO rule is stricter: a reference that visually depends on depth must use one of **projected 3D geometry, raymarched volume/surface, or a true 3D renderer**. A 2D domain warp is not an acceptable substitute.
+
 ## Motion/audio-reactivity finding
 
 The visual renderer is not the only fidelity boundary: **motion semantics matter as much as shading**.
@@ -187,33 +199,44 @@ The original candidate incorrectly multiplied absolute time by raw bass in sever
 
 This is a direct fit for a Pixi custom Filter; a 3D scene graph adds no useful capability for the supplied target.
 
-### WORLD_05 Fractal Hex Spiral Mosaic
+### WORLD_05 Fractal Hex Spiral Mosaic — rebuilt after rejection
 
-Technique: **full-screen analytic hex-grid + recursive domain-warp shader**.
+Rejected technique: **flat fullscreen hex-grid + domain warp**.
 
-The shader combines:
+Accepted candidate technique: **projected 3D moving hex-prism vortex**.
 
-- exact reusable hex-cell coordinates and thick graphic cell borders;
-- three slowly moving vortex domains;
-- sink-dependent cell-density compression so cells recursively subdivide toward spiral centers;
-- rainbow screen-print palette logic;
-- inset center hexes and beveled/extruded edge shading.
+The current renderer now owns:
 
-Audio does not drive geometry. It adds local color/light accents only, following `docs/WORLD_MOTION_AUDIO_REACTIVITY.md`.
+- deterministic world-space prism instances;
+- three independent spiral sinks;
+- real z-depth per tile;
+- perspective scale and parallax;
+- back-to-front depth sorting;
+- visible extruded side faces;
+- independent autonomous tile travel into the sinks;
+- slow camera orbit;
+- inset cap geometry and graphic rainbow treatment.
 
-### WORLD_06 Soft Hex Cell Field
+Audio does not drive prism geometry. It is smoothed and affects lighting/specular accents only.
 
-Technique: **layered analytic variable-size hex fields**.
+### WORLD_06 Soft Hex Cell Field — rebuilt after rejection
 
-The shader combines:
+Rejected technique: **layered screen-space analytic hex masks**.
 
-- near/far hex layers at different frequencies;
-- per-cell size variation that preserves black gaps;
-- slow parallax and subtle domain warp;
-- pastel color variation plus deliberately muted/dark cells;
-- soft bevel shading and selective white facet glints.
+Accepted candidate technique: **packed axial 3D hex-prism surface**.
 
-The field remains mechanically smooth; audio changes illumination/highlights rather than cell size/position.
+The current renderer now owns:
+
+- mathematically correct pointy-top axial hex placement;
+- narrow controlled footprint variance so gaps remain small;
+- autonomous per-cell relief;
+- explicit look-at camera and perspective projection;
+- depth sorting and six visible prism side faces;
+- pastel/muted material palette;
+- bevel rings and selective facet highlights;
+- slow camera/field motion independent from music.
+
+Audio changes illumination/highlights only; it never changes the grid topology or spacing.
 
 ## Rule for the remaining 7 worlds
 
