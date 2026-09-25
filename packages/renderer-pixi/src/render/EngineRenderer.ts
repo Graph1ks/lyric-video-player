@@ -5,6 +5,7 @@ import {
   clamp,
   createVisualPalette,
   evaluateCinematicCameraPlan,
+  resolveManifestoPageScope,
   SceneDirector,
 } from "@graph1ks/emo-engine-core";
 import type {
@@ -600,10 +601,26 @@ export class EngineRenderer {
       grammar = this.typographySequence;
     }
 
+    let scopeStart = direction?.phraseStartLine ?? Math.max(0, this.lastLineIndex);
+    let scopeEnd = direction?.phraseEndLine ?? Math.max(-1, this.lastLineIndex);
+
+    // Explicit/manual Manifesto is a continuing book/page treatment, not a
+    // four-line Director phrase. Keep writing one page for a longer chapter,
+    // then turn to a fresh page at a deterministic boundary.
+    if (this.typographySequence === "manifesto-wall") {
+      const page = resolveManifestoPageScope(
+        Math.max(0, this.lastLineIndex),
+        this.lines.length,
+        12,
+      );
+      scopeStart = page.startLine;
+      scopeEnd = page.endLine;
+    }
+
     this.sequenceLyrics.setSequence(
       grammar,
-      direction?.phraseStartLine ?? Math.max(0, this.lastLineIndex),
-      direction?.phraseEndLine ?? Math.max(-1, this.lastLineIndex),
+      scopeStart,
+      scopeEnd,
     );
     const persistent = Boolean(grammar);
     this.sequenceLyrics.container.visible = persistent;

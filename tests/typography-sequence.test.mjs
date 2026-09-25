@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   deriveTypographySequenceWindow,
   planTypographySequence,
+  resolveManifestoPageScope,
   spatialBoxFor,
   spatialBoxesOverlap,
   typographyWordId,
@@ -453,4 +454,12 @@ test("Ribbon Path preserves motion continuity across active-word handoff", () =>
   const travel = Math.hypot(a.x - b.x, a.y - b.y);
   assert.ok(travel < 100, `ribbon handoff travel was ${travel}px`);
   assert.ok(Math.abs(a.scale - b.scale) < 0.2);
+});
+
+
+test("manual Manifesto page scope continues across ordinary four-line Director phrases", () => {
+  assert.deepEqual(resolveManifestoPageScope(0, 28), { startLine: 0, endLine: 11 });
+  assert.deepEqual(resolveManifestoPageScope(7, 28), { startLine: 0, endLine: 11 });
+  assert.deepEqual(resolveManifestoPageScope(12, 28), { startLine: 12, endLine: 23 });
+  assert.deepEqual(resolveManifestoPageScope(27, 28), { startLine: 24, endLine: 27 });
 });

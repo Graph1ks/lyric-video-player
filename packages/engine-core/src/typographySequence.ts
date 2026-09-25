@@ -167,3 +167,21 @@ function compareNewest(a: SequenceWordRef, b: SequenceWordRef) {
 function compareChronological(a: SequenceWordRef, b: SequenceWordRef) {
   return a.start - b.start || a.lineIndex - b.lineIndex || a.wordIndex - b.wordIndex;
 }
+
+
+export function resolveManifestoPageScope(
+  lineIndex: number,
+  totalLineCount: number,
+  linesPerPage = 12,
+) {
+  const total = Math.max(0, Math.floor(totalLineCount));
+  if (!total) return { startLine: 0, endLine: -1 };
+
+  const pageSize = Math.max(4, Math.floor(linesPerPage));
+  const safeLine = Math.max(0, Math.min(total - 1, Math.floor(lineIndex)));
+  const startLine = Math.floor(safeLine / pageSize) * pageSize;
+  return {
+    startLine,
+    endLine: Math.min(total - 1, startLine + pageSize - 1),
+  };
+}

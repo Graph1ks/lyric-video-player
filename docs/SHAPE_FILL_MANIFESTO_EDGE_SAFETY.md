@@ -96,6 +96,8 @@ The composer lays chronological words into an editorial shelf/page model. It sca
 
 At runtime, the visible plan contains only words whose LRC time has arrived. The visual result therefore starts empty and progressively becomes a written page.
 
+Manual Director selection extends Manifesto across deterministic 12-line page chapters so the writing can continue substantially longer than the ordinary four-line Director phrase. At the chapter boundary the engine turns to a fresh empty page. AUTO Manifesto remains phrase-scoped so automatic art direction can still transition into other grammars.
+
 ### Arrival grammar
 
 The active word receives a short rigid snap/slotted entry:

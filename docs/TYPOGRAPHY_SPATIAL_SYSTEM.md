@@ -214,6 +214,8 @@ The page composer:
 
 At time zero the page can be visually empty. Words appear one by one in their pre-reserved locations and remain there.
 
+When Manifesto is selected explicitly in the Director, the renderer uses a longer **12-line page chapter** instead of the generic Director phrase boundary (which is normally at most four lines). Crossing that deterministic page boundary turns to a fresh page. AUTO-authored Manifesto remains phrase-scoped so the automatic Director can still change visual grammar.
+
 Arrival is a short rigid snap from slightly smaller than final scale. It never grows beyond its collision-solved final box.
 
 ## Spiral Depth
