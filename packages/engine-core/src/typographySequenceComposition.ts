@@ -7,6 +7,7 @@ import {
   type TypographyPackingSlot,
 } from "./typographyShapePacking.js";
 import {
+  fitSpatialScale,
   normalizeSpatialMetrics,
   spatialBoxFor,
   spatialBoxesOverlap,
@@ -199,30 +200,54 @@ function planHeroEcho(input: TypographySequencePlanInput): TypographySequencePla
 
   const echoes = started.filter(word => word.id !== hero.id);
   const echoCount = Math.max(1, echoes.length);
-  const spacing = Math.min(height * 0.105, height * 0.66 / echoCount);
-  const startY = -spacing * (echoes.length - 1) * 0.5;
+  const heroMetrics = normalizeSpatialMetrics(input.metricsById?.[hero.id], hero.text);
+  const heroScale = fitSpatialScale(
+    heroMetrics,
+    width * 0.52,
+    height * 0.62,
+    0,
+    1.52,
+    0.42,
+    1.52,
+  );
 
   const placements: TypographySequencePlacement[] = [{
     id: hero.id,
     role: hero.role,
-    x: width * 0.15,
+    x: width * 0.16,
     y: 0,
-    scale: 1.52,
+    scale: heroScale,
     rotation: 0,
     alpha: 1,
     zIndex: echoCount + 2,
     treatment: "solid",
   }];
 
+  const echoAreaHeight = height * 0.72;
+  const rowHeight = echoAreaHeight / echoCount;
+  const startY = -echoAreaHeight * 0.5 + rowHeight * 0.5;
+
   echoes.forEach((word, index) => {
     const recency = 1 - index / Math.max(1, echoes.length - 1);
+    const metrics = normalizeSpatialMetrics(input.metricsById?.[word.id], word.text);
+    const desired = 0.62 + recency * 0.12;
+    const scale = fitSpatialScale(
+      metrics,
+      width * 0.37,
+      rowHeight * 0.82,
+      0,
+      desired,
+      0.09,
+      desired,
+    );
+
     placements.push({
       id: word.id,
       role: word.role,
-      x: -width * 0.225 + index * width * 0.003,
-      y: startY + index * spacing,
-      scale: 0.62 + recency * 0.12,
-      rotation: (index - echoes.length * 0.5) * 0.004,
+      x: -width * 0.235,
+      y: startY + index * rowHeight,
+      scale,
+      rotation: 0,
       alpha: clamp(0.12 + recency * 0.22, 0.1, 0.38),
       zIndex: echoCount - index,
       treatment: "outline",

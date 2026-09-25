@@ -1070,6 +1070,27 @@ export class KineticLyrics {
     }
   }
 
+  private spatialMotionEnvelope() {
+    const preset = this.resolvedPreset;
+    const base = preset === "tunnel"
+      ? { x: 1.18, y: 1.18 }
+      : preset === "elastic"
+        ? { x: 1.14, y: 1.12 }
+        : preset === "wave"
+          ? { x: 1.08, y: 1.16 }
+          : preset === "glitch"
+            ? { x: 1.12, y: 1.08 }
+            : preset === "scatter"
+              ? { x: 1.1, y: 1.1 }
+              : { x: 1.055, y: 1.055 };
+
+    const sceneBoost = this.mode === "vortex" ? 1.045 : 1;
+    return {
+      x: base.x * sceneBoost,
+      y: base.y * sceneBoost,
+    };
+  }
+
   private layout() {
     if (!this.words.length) return;
 
@@ -1079,9 +1100,9 @@ export class KineticLyrics {
       width: this.w,
       height: this.h,
       lineIndex: this.lineIndex,
-      wordWidths: this.words.map(word => word.width),
-      wordHeights: this.words.map(word => word.height),
-      wordHeight: this.fontSize,
+      wordWidths: this.words.map(word => word.width * this.spatialMotionEnvelope().x),
+      wordHeights: this.words.map(word => word.height * this.spatialMotionEnvelope().y),
+      wordHeight: this.fontSize * this.spatialMotionEnvelope().y,
       wordTexts: this.words.map(word => word.cue.text),
     });
     this.resolvedLayout = plan.layout;
