@@ -31,7 +31,7 @@ test("directional stage creates mixed orientations and independent entrances", (
   assert.ok(plan.words.some(word => word.entryScale < 0.4));
 });
 
-test("vertical accent rotates the dominant word and keeps placements inside the stage budget", () => {
+test("vertical accent keeps the dominant word emphasized while rotating only a logical edge cue", () => {
   const plan = planTypographyComposition({
     preset: "vertical-accent",
     scene: "poster",
@@ -42,7 +42,13 @@ test("vertical accent rotates the dominant word and keeps placements inside the 
   });
 
   assert.equal(plan.anchorIndex, 1);
-  assert.ok(Math.abs(plan.words[1].rotation) > 1.5);
+  assert.equal(plan.words[1].emphasis, 1);
+  const vertical = plan.words
+    .map((word, index) => ({ index, rotation: Math.abs(word.rotation) }))
+    .filter(word => word.rotation > 1.5);
+  assert.equal(vertical.length, 1);
+  assert.ok(vertical[0].index === 0 || vertical[0].index === plan.words.length - 1);
+
   for (const word of plan.words) {
     assert.ok(Number.isFinite(word.x));
     assert.ok(Number.isFinite(word.y));
