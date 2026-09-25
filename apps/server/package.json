@@ -1,12 +1,18 @@
 {
   "name": "@graph1ks/emo-server",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "type": "module",
   "main": "dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./src/server.ts",
+      "import": "./dist/server.js"
+    }
+  },
   "dependencies": {
-    "@graph1ks/emo-app-contracts": "0.4.0",
-    "@graph1ks/emo-platform-node": "0.4.0"
+    "@graph1ks/emo-app-contracts": "0.5.0",
+    "@graph1ks/emo-platform-node": "0.5.0"
   },
   "scripts": {
     "build": "tsc -b",

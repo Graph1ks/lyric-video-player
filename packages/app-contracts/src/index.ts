@@ -29,3 +29,13 @@ export interface RuntimeCapabilities {
   canReadProjectRoot: boolean;
   canWriteProjectRoot: boolean;
 }
+
+export interface RuntimeInfo {
+  product: "E-MO-Engine";
+  rootLabel: string;
+  capabilities: RuntimeCapabilities;
+}
+
+export interface DesktopBridge {
+  chooseProjectRoot(): Promise<ProjectListResponse | null>;
+}

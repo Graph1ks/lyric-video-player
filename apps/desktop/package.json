@@ -1,0 +1,23 @@
+{
+  "name": "@graph1ks/emo-desktop",
+  "version": "0.5.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/main.js",
+  "dependencies": {
+    "@graph1ks/emo-app-contracts": "0.5.0",
+    "@graph1ks/emo-server": "0.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.4",
+    "electron": "44.3.0",
+    "electron-builder": "26.15.3",
+    "typescript": "5.9.3"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b --pretty false",
+    "start": "electron dist/main.js",
+    "dist": "electron-builder --config electron-builder.yml"
+  }
+}
