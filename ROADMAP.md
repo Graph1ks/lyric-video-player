@@ -181,20 +181,20 @@ See `docs/OPERATOR_OUTPUT_LOWER_THIRDS.md`.
 
 See `docs/SHAPE_FILL_MANIFESTO_EDGE_SAFETY.md`.
 
-## Cross-cutting v0.11.1 — Spatial Typography — active
+## Cross-cutting v0.11.1 — Spatial Typography — complete baseline
 
-- shared renderer-independent typography spatial metrics — active candidate
-- Pixi CanvasTextMetrics + native ink-bound measurement — active candidate
-- stable complete phrase-scope reservation — active candidate
-- rotated AABB collision/envelope helpers — active candidate
-- measured Shape Fill occupancy packing + deterministic shrink/retry — active candidate
-- progressive editorial Manifesto page composer — active candidate
-- persistent full-phrase Manifesto/Shape history without lyric omission — active candidate
-- per-word width + height in ordinary composition collision solver — active candidate
-- Spiral Depth measured screen-space separation — active candidate
-- Ribbon Path measured screen-space separation — active candidate
-- revealed-page-aware Manifesto camera framing + subtle angled skew — active candidate
-- cached static phrase geometry — active candidate
+- shared renderer-independent typography spatial metrics — complete baseline
+- Pixi CanvasTextMetrics + native ink-bound measurement — complete baseline
+- stable complete phrase-scope reservation — complete baseline
+- rotated AABB collision/envelope helpers — complete baseline
+- measured Shape Fill occupancy packing + deterministic shrink/retry — complete baseline
+- progressive editorial Manifesto page composer — complete baseline
+- persistent full-phrase Manifesto/Shape history without lyric omission — complete baseline
+- per-word width + height in ordinary composition collision solver — complete baseline
+- Spiral Depth measured screen-space separation — complete baseline
+- Ribbon Path measured screen-space separation — complete baseline
+- revealed-page-aware Manifesto camera framing + subtle angled skew — complete baseline
+- cached static phrase geometry — complete baseline
 - pixel-mask / glyph-alpha exact collision — future only if conservative boxes prove too sparse
 
 See `docs/SHAPE_FILL_MANIFESTO_EDGE_SAFETY.md`.

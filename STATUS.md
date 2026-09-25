@@ -1,13 +1,13 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `40a5f29a078f1983285dea984ef468f98efa23ec`  
-**Active candidate:** `feat/spatial-typography-v0.11.1` / PR #51  
-**Current phase/milestone:** spatial typography + progressive Manifesto acceptance
+**Last known good merged baseline:** `f217908125be62c4a9ab848eb7f4008ee0813da8`  
+**Active candidate:** none  
+**Current phase/milestone:** spatial typography + progressive Manifesto visual acceptance
 
 ## Current objective
 
-Land PR #51's shared spatial typography model, replacing heuristic word size assumptions with real renderer metrics and correcting Manifesto Wall into a progressive editorial page that remains spatially framed.
+Visually accept the merged spatial typography baseline on real tracks/displays: collision-free Shape Fill, Spiral/Ribbon separation, progressive Manifesto page writing and page-aware camera framing.
 
 ## Current state
 
@@ -48,9 +48,9 @@ Land PR #51's shared spatial typography model, replacing heuristic word size ass
 - Merged PR #48 adds **Shape Fill**: phrase-stable packed silhouettes using Tree, Star and Human/Figure masks. Words occupy interior slots rather than tracing a border.
 - Shape Fill slots expose explicit text-fit boxes so Pixi can respect actual font metrics while the layout remains pure and deterministic.
 - Legacy `shape-build` remains an internal compatibility alias, but Director/AUTO use `shape-fill`.
-- PR #51 corrects **Manifesto Wall** from the initial masonry interpretation into a progressive editorial/book-page build: the page begins empty and words reveal into immutable pre-reserved positions.
+- Merged PR #51 corrects **Manifesto Wall** from the initial masonry interpretation into a progressive editorial/book-page build: the page begins empty and words reveal into immutable pre-reserved positions.
 - Manifesto is mostly horizontal with occasional ±90° editorial brackets and moderate anchor hierarchy; old words persist rather than aging out.
-- PR #51 introduces shared measured typography geometry (width/height/advance/ascent/descent/padding) plus rotated spatial boxes and collision helpers.
+- Merged PR #51 introduces shared measured typography geometry (width/height/advance/ascent/descent/padding) plus rotated spatial boxes and collision helpers.
 - Spatial ownership and non-regression rules are documented in `docs/TYPOGRAPHY_SPATIAL_SYSTEM.md`.
 - Shape Fill uses real measured extents, occupied-space collision checks and deterministic shrink/retry rather than anonymous slots.
 - Current-line composition consumes per-word measured width **and height**, improving collision resolution across ordinary/Vortex layouts.
@@ -155,13 +155,15 @@ Land PR #51's shared spatial typography model, replacing heuristic word size ass
 - Operator Output + Lower Thirds (PR #46): Windows Node 22/24 launcher smokes + full build/NSIS/portable/artifact upload — passed.
 - Shape Fill + Manifesto Wall + Edge Safety (PR #48): Linux typecheck/build/tests/publication audit — passed.
 - Shape Fill + Manifesto Wall + Edge Safety (PR #48): Windows Node 22/24 launcher smokes + full build/NSIS/portable/artifact upload — passed.
+- Spatial Typography + Progressive Manifesto (PR #51): Linux typecheck/build/tests/publication audit — passed.
+- Spatial Typography + Progressive Manifesto (PR #51): Windows Node 22/24 launcher smokes + full build/NSIS/portable/artifact upload — passed.
 
 ## Next concrete action
 
-1. Get PR #51 green on Linux validation and Windows packaging.
-2. Visually verify Shape Fill collision-free packing with short/long words plus the previously failing Vortex/Spiral overlaps.
-3. Check progressive Manifesto reveal, page stability and camera reading flow at 1080p/1440p/4K.
-4. Re-test edge guards under the original fullscreen/CRT/smear failure cases.
+1. Visually verify Shape Fill collision-free packing with short/long words plus the previously failing Vortex/Spiral overlaps.
+2. Check progressive Manifesto reveal, 12-line manual page chapters, page stability and camera reading flow at 1080p/1440p/4K.
+3. Re-test edge guards under the original fullscreen/CRT/smear failure cases.
+4. Stress-test Rapid/Burst passages and narrow/mobile viewports for conservative AABB spacing.
 5. Continue section-level tension/release + shot-size sequencing after spatial typography is accepted.
 
 ## Do not redo
