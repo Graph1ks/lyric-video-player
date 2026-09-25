@@ -107,13 +107,12 @@ float cloudField(vec2 p, float t) {
     fbm(p * 0.78 + vec2(t * 0.045, -t * 0.021)),
     fbm(rot(0.73) * p * 0.82 + vec2(-t * 0.028, t * 0.038) + 8.4)
   );
-  vec2 warp = vec2(
-    fbm(p * 1.16 + q * 1.55 + vec2(2.7, -1.3)),
-    fbm(rot(-0.41) * p * 1.09 + q.yx * 1.38 + vec2(-4.1, 6.8))
+  float warped = fbm(
+    rot(-0.19) * p * 1.19
+      + (q - 0.5) * 1.82
+      + vec2(t * 0.016, -t * 0.011)
   );
-  float broad = fbm(p * 0.72 + (q - 0.5) * 1.38 + (warp - 0.5) * 0.62);
-  float fine = fbm(rot(0.31) * p * 1.82 + (warp - 0.5) * 1.75);
-  return broad * 0.72 + fine * 0.28;
+  return warped * 0.76 + (q.x + q.y) * 0.12;
 }
 
 vec3 finish(vec3 color, vec2 uv) {
