@@ -141,7 +141,7 @@ void main(void) {
   // Nothing here is made from geometric circles or alpha blobs.
   float d0 = cloudField(p * 1.12 + vec2(-0.18, 0.06), t);
   float d1 = cloudField(rot(-0.19) * p * 1.55 + vec2(0.72, -0.31), t * 0.73 + 9.0);
-  float d2 = cloudField(rot(0.27) * p * 2.08 + vec2(-1.13, 0.84), t * 0.51 + 18.0);
+  float d2 = fbm(rot(0.27) * p * 2.08 + vec2(-1.13 + t * 0.012, 0.84 - t * 0.008));
 
   float body = smoothstep(0.39, 0.72, d0 * 0.68 + d1 * 0.22 + d2 * 0.10);
   float inner = smoothstep(0.53, 0.82, d0 * 0.55 + d1 * 0.31 + d2 * 0.14);
@@ -152,12 +152,12 @@ void main(void) {
   float filaments = smoothstep(0.57, 0.91, ridgeA * 0.63 + ridgeB * 0.37);
   filaments *= smoothstep(0.22, 0.64, body + inner);
 
-  // Cheap density-gradient lighting gives the gas actual folded volume.
-  vec2 e = vec2(0.010 + (1.0 - detail) * 0.008, 0.0);
-  float dx = cloudField((p + e.xy) * 1.12 + vec2(-0.18, 0.06), t)
-           - cloudField((p - e.xy) * 1.12 + vec2(-0.18, 0.06), t);
-  float dy = cloudField((p + e.yx) * 1.12 + vec2(-0.18, 0.06), t)
-           - cloudField((p - e.yx) * 1.12 + vec2(-0.18, 0.06), t);
+  // Local turbulence gradient gives the gas folded-volume lighting without
+  // re-evaluating the full domain-warp field four more times per pixel.
+  vec2 e = vec2(0.018 + (1.0 - detail) * 0.010, 0.0);
+  vec2 gradientP = p * 3.1 + vec2(t * 0.025, -t * 0.017);
+  float dx = noise2(gradientP + e.xy) - noise2(gradientP - e.xy);
+  float dy = noise2(gradientP + e.yx) - noise2(gradientP - e.yx);
   vec3 normal = normalize(vec3(-dx * 16.0, -dy * 16.0, 1.0));
   vec3 lightDir = normalize(vec3(-0.48, 0.62, 0.86));
   float diffuse = 0.48 + 0.52 * max(0.0, dot(normal, lightDir));
