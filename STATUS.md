@@ -1,8 +1,8 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `0370659e5807c290414959cd32a44f15068054a8`  
-**Active candidate:** `feat/director-workspace-v0.10` / PR #44  
+**Last known good merged baseline:** `da1def09667a4c87a91240bfcf996705e2b424ef`  
+**Active candidate:** none  
 **Current phase/milestone:** cinematic sequence direction + temporal readability
 
 ## Current objective
@@ -27,7 +27,7 @@ Upgrade the control plane into a professional Visual Director workspace with rec
 - Ordinary and persistent typography expose deterministic focus points. Current-line focus begins handing off toward the next word near cue end.
 - CameraRig now treats bass/transient drift as bounded micro-response layered over the directed shot rather than the primary framing source.
 - Shape Build deliberately stays wider and follows focus less; Hero/Spiral/Ribbon receive stronger eye-trace following.
-- Active candidate replaces the legacy tiny-button Visual Director with preview cards and six task-oriented sections: Scene, Type, Motion, World, Color and System.
+- The Visual Director now uses preview cards and six task-oriented sections: Scene, Type, Motion, World, Color and System.
 - Effect cards expose a semantic miniature, name, short behavioral explanation, selected state and AUTO-resolved LIVE state.
 - The resolved live stack is continuously visible above the Director controls.
 - Main player and detached Director use the same `VisualDirector` component and shared control state.
@@ -125,11 +125,13 @@ Upgrade the control plane into a professional Visual Director workspace with rec
 - Shape Build + Ribbon Path (PR #40): Windows Node 22/24 launcher smokes + full build/NSIS/portable/artifact upload — passed.
 - Elastic Tether + Camera Continuity (PR #42): Linux typecheck/build/tests/publication audit — passed.
 - Elastic Tether + Camera Continuity (PR #42): Windows Node 22/24 launcher smokes + full build/NSIS/portable/artifact upload — passed.
+- Visual Director Workspace (PR #44): Linux typecheck/build/tests/publication audit — passed.
+- Visual Director Workspace (PR #44): Windows Node 22/24 launcher smokes + full build/NSIS/portable/artifact upload — passed.
 
 ## Next concrete action
 
-1. Get PR #44 Visual Director + second-screen workspace green in Linux and Windows packaging.
-2. Visually accept the new docked and detached Director at 1080p/1440p/4K plus narrow desktop widths.
+1. Visually accept the new docked and detached Director at 1080p/1440p/4K plus narrow desktop widths.
+2. Run multi-monitor/Desktop acceptance of live synchronization and popout reopen/focus behavior.
 3. Return to real-track cinematic acceptance for tether/camera and the four persistent grammars.
 4. Add section-level tension/release + shot-size sequencing.
 5. Attach Director PLAN persistence/runtime execution to the later serialized scene/project format, then map that contract per song when playlist support lands.
