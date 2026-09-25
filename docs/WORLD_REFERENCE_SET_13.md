@@ -1,6 +1,6 @@
 # Visualizer World Reference Set — 13 Worlds
 
-**Status:** active implementation set — WORLD_01 + WORLD_02 merged in PR #59  
+**Status:** active implementation set — WORLD_01–04 implemented; WORLD_03/04 candidate in progress  
 **Reference origin:** user-supplied visual references. The reference images are intentionally **not committed** to this public repository because their redistribution/license status is unknown. A local reference ZIP uses the filenames below.
 
 The goal is not literal screenshot recreation. Each reference defines a **rendering identity, depth language, motion grammar, audio-reactive behavior and fidelity floor**.
@@ -31,8 +31,8 @@ Interpretation of controls:
 | --- | --- | --- | --- | --- | --- | --- |
 | 01 | Prism Stage Beams | `01_prism_stage_beams.png` | Central stage-light hub emitting thick volumetric rainbow/RGB shafts through haze; strong bloom and dark negative space. | shader beam density, haze/gobo complexity, fixture apertures | bass→beam width+bloom; energy→brightness; transient→flare surge | **Implemented — GPU shader v2** |
 | 02 | Laser Canopy Grid | `02_laser_canopy_grid.png` | Thin crisp red/cyan/green lasers from overhead rig to floor hit-points; geometric canopy, black room, minimal haze. | analytic ray count, emitter count, floor/detail density | bass→canopy spread/floor glow; treble→shimmer; transient→burst brightness | **Implemented — GPU shader v2** |
-| 03 | Disco Mirrorball Room | `03_disco_mirrorball_room.png` | Central mirrored disco ball inside an enclosed dark room with hundreds of colored square reflections on walls/floor/ceiling. | mirror facets, reflected tiles, room light spots | bass→room pulse; highs→sparkle/twinkle; transient→ball flare | Planned |
-| 04 | Neon Energy Burst Tunnel | `04_neon_energy_burst_tunnel.png` | Explosive central neon warp tunnel with outward speed streaks and electric scribble lines in magenta/blue/gold. | streak count, electric filaments, trail layers | bass→rush/line thickness; highs→scribble detail; transient→burst spikes | Planned |
+| 03 | Disco Mirrorball Room | `03_disco_mirrorball_room.png` | Central mirrored disco ball inside an enclosed dark room with hundreds of colored square reflections on walls/floor/ceiling. | spherical facet density, reflection-grid density, room depth layers | bass→room pulse; highs→facet sparkle/twinkle; transient→ball flare | **Implemented — GPU shader candidate** |
+| 04 | Neon Energy Burst Tunnel | `04_neon_energy_burst_tunnel.png` | Explosive central neon warp tunnel with outward speed streaks and electric scribble lines in magenta/blue/gold. | radial streak density, tunnel ribs, electric filaments, ejecta | bass→rush speed/depth; highs→scribble detail; transient→burst spikes | **Implemented — GPU shader candidate** |
 | 05 | Fractal Hex Spiral Mosaic | `05_fractal_hex_spiral_mosaic.png` | Graphic cellular/hex tessellation recursively spiraling into multiple sinks; thick dark outlines and rainbow cells. | cell subdivision, spiral depth, secondary sinks | bass→field pulse; mids/highs→color ripple; transient→spiral accent | Planned |
 | 06 | Soft Hex Cell Field | `06_soft_hex_cell_field.png` | Large pastel hex cells over black gaps, soft bevel/shading, foreground/background depth. | cell count, depth layers, highlight facets | bass→breathing scale; highs→glints; transient→depth pop | Planned |
 | 07 | Particle Spiral Vortex | `07_particle_spiral_vortex.png` | Glowing circular particles forming several spiral arms and a clear inward vortex center on black. | particle count, arm count, depth layers | bass→particle size/pull; highs→sparkle; transient→burst density | Planned |
@@ -99,24 +99,87 @@ Required:
 
 The initial CPU Graphics line prototype was replaced by a full-screen analytic GPU shader. Segment-distance fields create the laser cores/glow, while the same pass renders rig apertures, floor impacts, perspective depth and restrained haze.
 
-## Research notes for the first two builds
 
-The implementation direction was cross-checked against real concert/light-show imagery: broad stage-light beams rely on atmospheric volume and a visible source region, while laser shows read through thin geometric lines, ceiling/rig origin and depth-defining intersections/hit points.
+## WORLD_03 — Disco Mirrorball Room
+
+### Visual identity
+
+This world must read as an **enclosed mirrored-light room**, not a generic particle field with a sphere pasted on top.
+
+Required:
+
+- one dominant faceted mirrorball with visible tile structure;
+- dark room depth with floor/ceiling/side-wall separation;
+- hundreds of small square/rectangular colored reflections distributed through that room volume;
+- reflections that feel projected and mobile rather than static confetti;
+- cool metallic facet shading with selective magenta/cyan/gold/violet light pickup;
+- bright but controlled specular glints on transient peaks;
+- enough negative space that lyrics remain readable.
+
+### Motion
+
+- mirrorball rotation is slow and continuous;
+- projected reflection fields drift with the ball rather than teleporting;
+- bass breathes room light and reflection scale subtly;
+- treble drives facet sparkle/twinkle;
+- transients produce brief specular/halo lifts, not full-screen white flashes.
+
+### Current implementation
+
+`packages/renderer-pixi/src/effects/backgrounds/DiscoMirrorballRoomWorld.ts`
+
+The candidate is a single full-screen custom GPU shader. It analytically shades a sphere, quantizes spherical coordinates into mirror facets, layers several perspective-biased square reflection fields across the room, and adds metallic Fresnel/specular response, a hanging cable, restrained dust and filmic exposure compression.
+
+Three.js was explicitly evaluated for this world. The current reference does not require physically correct scene reflections or arbitrary camera movement, so the shader prototype is materially simpler and lower-risk. If local fidelity acceptance shows the room still reads too flat, WORLD_03 remains the first candidate for a true 3D renderer comparison.
+
+## WORLD_04 — Neon Energy Burst Tunnel
+
+### Visual identity
+
+This world is a **high-velocity neon warp event**, not a circular spectrum or radial gradient.
+
+Required:
+
+- a deep bright central aperture;
+- compressed perspective tunnel ribs;
+- dense outward photographic speed streaks;
+- broken electric/scribble filaments that are visibly less regular than the streak field;
+- magenta / electric blue / cyan / gold light language;
+- center bloom plus restrained anamorphic flare;
+- high-detail operation that can become intentionally overwhelming at 200–300%.
+
+### Motion
+
+- bass accelerates the perceived rush and depth cadence;
+- energy thickens/brights the tunnel and streak field;
+- treble increases fine streaks and electric filament complexity;
+- transients create hot center spikes, filament surges and ejecta flashes.
+
+### Current implementation
+
+`packages/renderer-pixi/src/effects/backgrounds/NeonEnergyBurstTunnelWorld.ts`
+
+The candidate uses logarithmic radial depth, polar-coordinate tunnel ribs, dense stable angular streak cells, fBm/noise modulation, signed angular-distance electric filaments, broken arc sparks, central aperture bloom and filmic compression. It is intentionally one GPU pass so detail scales without allocating per-streak display objects.
+
+## Research notes
+
+The implementation direction is cross-checked against GPU rendering practice rather than treated as a tracing exercise. WORLD_01/02 use continuous shader fields instead of primitive drawing; WORLD_03 uses spherical/facet coordinate quantization plus layered reflection fields; WORLD_04 uses polar/logarithmic depth and procedural noise to create high-density motion without allocating hundreds of scene objects.
 
 No third-party image asset or code is bundled. The worlds are original procedural implementations using the existing PixiJS stack. Rendering-technology research and the current decision not to add Three.js prematurely are documented in `docs/WORLD_RENDERING_TECH_RESEARCH.md`.
 
 ## Integration status
 
-WORLD_01 and WORLD_02 are registered as first-class `BackgroundPresetId` values:
+WORLD_01–04 are registered as first-class `BackgroundPresetId` values:
 
 - `prism-stage-beams`
 - `laser-canopy-grid`
+- `disco-mirrorball-room`
+- `neon-energy-burst-tunnel`
 
 They are:
 
 - selectable manually in Director → World;
 - represented by dedicated Director miniatures;
 - available to unrestricted AUTO routing;
-- included in energetic curated presets;
 - driven by the shared World Power / World Detail controls;
 - rendered as specialized worlds that suppress generic legacy background layers.
