@@ -38,6 +38,9 @@ uniform float uMid;
 uniform float uTreble;
 uniform float uEnergy;
 uniform float uTransient;
+uniform float uBurst;
+uniform float uBurstAge;
+uniform float uTravel;
 uniform float uAspect;
 uniform float uQuality;
 
@@ -113,7 +116,7 @@ void main(void) {
 
     float tunnelNoise = fbm(vec2(
         angle * 1.35 + uTime * 0.035,
-        log(radius + 0.055) * 2.3 - uTime * (0.24 + uBass * 0.18)
+        log(radius + 0.055) * 2.3 - uTravel * 0.24
     ));
     float angularNoise = noise2(vec2(angle * 11.0, floor(uTime * 0.18) * 0.2));
 
@@ -125,7 +128,7 @@ void main(void) {
     // the center, creating a much stronger sense of depth than flat circles.
     float depth = -log(radius + 0.035);
     float ribPhase = depth * (6.5 + uDetail * 1.7)
-        - uTime * (2.4 + uBass * 1.8 + power * 0.28)
+        - uTravel * (2.4 + power * 0.28)
         + tunnelNoise * 1.5;
     float ribWave = abs(fract(ribPhase) - 0.5);
     float ribs = 1.0 - smoothstep(0.045, 0.13, ribWave);
@@ -144,7 +147,7 @@ void main(void) {
 
     float travel = fract(
         radius * (1.7 + spokeSeed * 2.1)
-        - uTime * (0.72 + spokeSeed * 1.15 + uBass * 0.42)
+        - uTravel * (0.72 + spokeSeed * 1.15)
         + spokeSeed * 7.0
     );
     float streakHead = smoothstep(0.92, 1.0, travel);
@@ -170,7 +173,7 @@ void main(void) {
     float fine = (1.0 - smoothstep(0.18, 0.49, fineLocal))
         * smoothstep(0.88, 0.985, fineSeed)
         * radialFade
-        * (0.4 + 0.6 * noise2(vec2(radius * 12.0 - uTime * 2.2, fineSeed * 20.0)));
+        * (0.4 + 0.6 * noise2(vec2(radius * 12.0 - uTravel * 2.2, fineSeed * 20.0)));
     color += burstColor(fineSeed + 0.2) * fine * (0.035 + uTreble * 0.07 + power * 0.014);
 
     // Electric scribbles: angular SDF filaments whose target angle meanders as
@@ -182,11 +185,11 @@ void main(void) {
         float active = step(fi + 0.5, filamentCount);
         float seed = hash11(fi * 15.71 + 3.4);
         float baseAngle = (seed - 0.5) * TAU;
-        float wiggle = sin(radius * (13.0 + seed * 17.0) - uTime * (1.1 + seed * 1.4) + seed * 22.0)
+        float wiggle = sin(radius * (13.0 + seed * 17.0) - uTravel * (1.1 + seed * 1.4) + seed * 22.0)
             * (0.10 + uTreble * 0.055);
-        wiggle += sin(radius * (31.0 + seed * 25.0) + uTime * (0.52 + seed * 0.9))
+        wiggle += sin(radius * (31.0 + seed * 25.0) + uTravel * (0.52 + seed * 0.9))
             * (0.035 + uTreble * 0.025);
-        wiggle += (noise2(vec2(radius * (8.0 + seed * 5.0) - uTime * 0.4, seed * 19.0)) - 0.5)
+        wiggle += (noise2(vec2(radius * (8.0 + seed * 5.0) - uTravel * 0.4, seed * 19.0)) - 0.5)
             * (0.16 + uTreble * 0.08);
 
         float angularDistance = wrappedAngle(angle - baseAngle - wiggle);
@@ -240,6 +243,18 @@ void main(void) {
         * (1.0 - smoothstep(0.80, 1.18, radius));
     color += burstColor(ejectSeed) * eject * (0.08 + uTransient * 0.20 + uTreble * 0.08);
 
+    // One-way burst shock front. The CPU resets uBurstAge only on a new
+    // transient edge; it then travels OUTWARD and decays. There is no inhale
+    // phase, no bipolar radius modulation and no audio-controlled reversal.
+    float shockRadius = min(1.55, uBurstAge * (1.55 + power * 0.10));
+    float shockWidth = 0.035 + uBurstAge * 0.020;
+    float shock = exp(-pow((radius - shockRadius) / max(0.012, shockWidth), 2.0))
+        * (1.0 - smoothstep(0.0, 1.35, uBurstAge))
+        * uBurst;
+    vec3 shockColor = mix(vec3(1.0, 0.24, 0.72), vec3(0.24, 0.74, 1.0), smoothstep(0.1, 1.0, radius));
+    color += shockColor * shock * (0.28 + power * 0.18);
+    color += vec3(1.0, 0.92, 0.78) * shock * shock * (0.16 + uTransient * 0.28);
+
     // Power drives the whole show from authored 100% into deliberate excess.
     color *= 0.72 + power * 0.42;
     color = 1.0 - exp(-max(color, vec3(0.0)) * (1.20 + uEnergy * 0.36 + uTransient * 0.16));
@@ -258,6 +273,9 @@ type Uniforms = {
   uTreble: number;
   uEnergy: number;
   uTransient: number;
+  uBurst: number;
+  uBurstAge: number;
+  uTravel: number;
   uAspect: number;
   uQuality: number;
 };
@@ -272,6 +290,12 @@ export class NeonEnergyBurstTunnelWorld {
   private intensity = 1;
   private detail = 1;
   private quality: QualityMode = "cinema";
+  private lastTime = Number.NaN;
+  private travel = 0;
+  private burst = 0;
+  private burstAge = 10;
+  private burstCooldown = 0;
+  private previousTransient = 0;
 
   constructor() {
     this.filter = new Filter({
@@ -286,6 +310,9 @@ export class NeonEnergyBurstTunnelWorld {
           uTreble: { value: 0, type: "f32" },
           uEnergy: { value: 0, type: "f32" },
           uTransient: { value: 0, type: "f32" },
+          uBurst: { value: 0, type: "f32" },
+          uBurstAge: { value: 10, type: "f32" },
+          uTravel: { value: 0, type: "f32" },
           uAspect: { value: 16 / 9, type: "f32" },
           uQuality: { value: 1, type: "f32" },
         },
@@ -318,7 +345,46 @@ export class NeonEnergyBurstTunnelWorld {
   }
 
   update(time: number, audio: AudioBands) {
-    if (!this.container.visible) return;
+    if (!this.container.visible) {
+      this.lastTime = Number.NaN;
+      this.previousTransient = 0;
+      return;
+    }
+
+    const discontinuity = !Number.isFinite(this.lastTime) || time < this.lastTime || time - this.lastTime > 0.5;
+    const dt = discontinuity
+      ? 1 / 60
+      : Math.max(0, Math.min(0.1, time - this.lastTime));
+    this.lastTime = time;
+
+    if (discontinuity) {
+      this.travel = Math.max(0, time);
+      this.burst = 0;
+      this.burstAge = 10;
+      this.burstCooldown = 0;
+      this.previousTransient = audio.transient;
+    } else {
+      this.burstCooldown = Math.max(0, this.burstCooldown - dt);
+      const triggerThreshold = 0.48;
+      const hit = audio.transient >= triggerThreshold
+        && this.previousTransient < triggerThreshold
+        && this.burstCooldown <= 0;
+
+      if (hit) {
+        this.burst = Math.max(this.burst, Math.min(1.35, 0.72 + audio.transient * 0.68));
+        this.burstAge = 0;
+        this.burstCooldown = 0.16;
+      } else {
+        this.burst *= Math.exp(-dt * 2.7);
+        this.burstAge += dt;
+      }
+
+      // Critical motion contract: travel is monotonically increasing. Audio can
+      // only accelerate the outward flow through the positive burst envelope.
+      this.travel += dt * (1.0 + this.burst * 0.82);
+      this.previousTransient = audio.transient;
+    }
+
     this.write("uTime", time);
     this.write("uPower", this.intensity);
     this.write("uDetail", this.detail);
@@ -327,6 +393,9 @@ export class NeonEnergyBurstTunnelWorld {
     this.write("uTreble", audio.treble);
     this.write("uEnergy", audio.energy);
     this.write("uTransient", audio.transient);
+    this.write("uBurst", this.burst);
+    this.write("uBurstAge", this.burstAge);
+    this.write("uTravel", this.travel);
     this.write("uAspect", this.width / this.height);
     this.write("uQuality", this.quality === "cinema" ? 1 : 0);
     this.container.alpha = clamp(this.intensity, 0, 1);

@@ -1,13 +1,13 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `16881100f0318786e0aaf0faf611b0fb5678333c`  
-**Active candidate:** none  
-**Current phase/milestone:** 13-world expansion — WORLD_03 + WORLD_04 visual acceptance
+**Last known good merged baseline:** `bb5afb8a678c19dd490c5d05a20ad9e6b4a082fe`  
+**Active candidate:** `feat/worlds-05-06-motion-fixes`  
+**Current phase/milestone:** motion-semantics repair + WORLD_05 / WORLD_06 implementation
 
 ## Current objective
 
-Visually accept merged WORLD_03 Disco Mirrorball Room and WORLD_04 Neon Energy Burst Tunnel at the shader-fidelity bar established by the rebuilt first two worlds.
+Correct WORLD_03/WORLD_04 motion semantics from local acceptance, then implement WORLD_05 Fractal Hex Spiral Mosaic and WORLD_06 Soft Hex Cell Field at the established GPU-shader fidelity bar.
 
 ## Current state
 
@@ -21,8 +21,11 @@ Visually accept merged WORLD_03 Disco Mirrorball Room and WORLD_04 Neon Energy B
 - Pixi-vs-Three research is durable in `docs/WORLD_RENDERING_TECH_RESEARCH.md`: current conclusion is that Pixi custom Filters/Mesh are not the fidelity bottleneck; Three.js should be introduced only for worlds that measurably require a true second 3D scene/depth pipeline.
 
 - **WORLD_03 / WORLD_04 merged baseline (PR #63):** `disco-mirrorball-room` and `neon-energy-burst-tunnel` are first-class Background presets, Director-selectable, included in unrestricted AUTO and rendered as specialized GPU worlds.
-- WORLD_03 uses an analytic faceted sphere, metallic/Fresnel/specular response, layered dense square reflection fields, room-depth masks, dust and transient halo response.
-- WORLD_04 uses logarithmic radial tunnel depth, dense polar speed streaks, fBm density modulation, electric scribble filaments, broken arc sparks/ejecta and a hot central aperture.
+- WORLD_03 motion correction: mirrorball radius and angular velocity are now strictly time-driven/mechanical; raw audio cannot resize or accelerate the ball. Audio is smoothed and restricted to lighting/specular response.
+- WORLD_04 motion correction: radial travel is monotonically outward. Raw bass is removed from phase multipliers; rising transient edges now trigger a decaying positive burst envelope and outward shock front instead of expand/retract oscillation.
+- WORLD_05 Fractal Hex Spiral Mosaic is implemented as a custom GPU shader with analytic hex coordinates, three recursive vortex domains, sink-driven local subdivision, heavy black outlines and inset-cell detail.
+- WORLD_06 Soft Hex Cell Field is implemented as layered variable-size analytic hex fields with real black gaps, pastel shading, bevel depth, selective glints and slow parallax.
+- Motion/audio semantics are durable in `docs/WORLD_MOTION_AUDIO_REACTIVITY.md`.
 - Rendering-tech research keeps both in Pixi custom shaders for now; WORLD_03 escalates to a Three.js comparison only if local acceptance still requires true projected-room geometry/parallax.
 - **WORLD_01 / WORLD_02 merged baseline (PR #59):** `prism-stage-beams` and `laser-canopy-grid` are first-class Background presets, selectable in Director, exposed to AUTO/presets and rendered as specialized Pixi worlds that suppress generic legacy background layers.
 - WORLD_01 uses broad additive volumetric beam polygons, hot cores, dark haze, visible fixture lenses and transient flares.
@@ -57,8 +60,8 @@ Visually accept merged WORLD_03 Disco Mirrorball Room and WORLD_04 Neon Energy B
 - Shape Fill deliberately stays wider and follows focus less; Manifesto Wall follows active wall focus more strongly while keeping micro-motion bounded.
 - Merged PR #55 adds a dedicated **Presets** section ahead of the existing Scene, Type, Motion, World, Color, Titles and System sections.
 - Performance Presets constrain AUTO rather than freezing one look: permitted scene/type/sequence/layout/motion/world/mood/canvas/harmony pools remain deterministic and manually overridable.
-- Eight curated emotion/pace profiles are included: Tender/Slow, Heartbreak/Slow, Longing/Midtempo, Dream/Midtempo, Calm/Slow, Euphoria/Fast, Rage/Fast and Tension/Burst.
-- Built-in preset pools are editable/resettable; custom presets can be cloned, renamed and deleted. Preset edits are local browser/Electron preferences for this milestone, not yet part of `emo.project/v1`.
+- Performance Presets are user-authored only; the retired built-in emotion/pace library is removed and old built-in IDs are stripped during preference migration.
+- User-created preset edits remain local browser/Electron preferences for this milestone, not yet part of `emo.project/v1`.
 - The Visual Director uses preview cards and task-oriented sections: Presets, Scene, Type, Motion, World, Color, Titles and System.
 - Effect cards expose a semantic miniature, name, short behavioral explanation, selected state and AUTO-resolved LIVE state.
 - The resolved live stack is continuously visible above the Director controls.
@@ -196,10 +199,11 @@ Visually accept merged WORLD_03 Disco Mirrorball Room and WORLD_04 Neon Energy B
 
 ## Next concrete action
 
-1. User tests **Disco Mirrorball Room** at 50/100/200/300% World Power + Detail; verify the ball reads as faceted metal and the room contains dense moving square reflections rather than particles.
-2. User tests **Neon Energy Burst Tunnel** at 50/100/200/300%; verify strong depth/rush, dense photographic streaks, irregular electric scribbles and transient center spikes.
-3. Tune mirrorball room projection/parallax and tunnel density/exposure from the local display feedback.
-4. Continue to WORLD_05/WORLD_06 only after these two meet the reference-fidelity bar.
+1. Finish CI for `feat/worlds-05-06-motion-fixes` and merge only after Linux + Windows gates pass.
+2. User verifies **Disco Mirrorball Room** rotates smoothly independent of music while glints/reflections still react.
+3. User verifies **Neon Energy Burst Tunnel** is continuously outward and transient hits read as one-way surges/shock fronts with no retract phase.
+4. Test **Fractal Hex Spiral Mosaic** and **Soft Hex Cell Field** at 50/100/200/300% World Power + Detail.
+5. Tune 05/06 from local-display feedback, then continue to WORLD_07/WORLD_08.
 
 ### Previous visual-acceptance queue
 
