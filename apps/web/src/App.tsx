@@ -11,6 +11,8 @@ import {
   type BackgroundPresetId,
   type ColorHarmonyId,
   type ColorHarmonyMode,
+  type CompositionMotionId,
+  type CompositionMotionPreset,
   type ParsedLyrics,
   type QualityMode,
   type SceneMode,
@@ -53,6 +55,19 @@ const TYPOGRAPHY_LAYOUTS: TypographyLayoutPreset[] = [
   "vertical-accent",
   "split-stage",
   "crossword",
+];
+
+const COMPOSITION_MOTIONS: CompositionMotionPreset[] = [
+  "auto",
+  "handoff",
+  "conveyor",
+  "anchor-build",
+  "collapse",
+  "takeover",
+  "flip",
+  "camera-handoff",
+  "portal",
+  "panel",
 ];
 
 const COLOR_HARMONIES: ColorHarmonyMode[] = [
@@ -106,6 +121,7 @@ export function App() {
   const quality = useUiStore(state => state.quality);
   const typographyPreset = useUiStore(state => state.typographyPreset);
   const typographyLayout = useUiStore(state => state.typographyLayout);
+  const compositionMotion = useUiStore(state => state.compositionMotion);
   const backgroundPreset = useUiStore(state => state.backgroundPreset);
   const colorHarmony = useUiStore(state => state.colorHarmony);
   const syncMs = useUiStore(state => state.syncMs);
@@ -116,6 +132,7 @@ export function App() {
   const setQuality = useUiStore(state => state.setQuality);
   const setTypographyPreset = useUiStore(state => state.setTypographyPreset);
   const setTypographyLayout = useUiStore(state => state.setTypographyLayout);
+  const setCompositionMotion = useUiStore(state => state.setCompositionMotion);
   const setBackgroundPreset = useUiStore(state => state.setBackgroundPreset);
   const setColorHarmony = useUiStore(state => state.setColorHarmony);
   const setSyncMs = useUiStore(state => state.setSyncMs);
@@ -125,6 +142,7 @@ export function App() {
   const [activeScene, setActiveScene] = useState<SceneMode>("neon");
   const [activeTypography, setActiveTypography] = useState<TypographyPresetId>("elastic");
   const [activeLayout, setActiveLayout] = useState<TypographyLayoutId>("directional-stage");
+  const [activeMotion, setActiveMotion] = useState<CompositionMotionId>("handoff");
   const [activeBackground, setActiveBackground] = useState<BackgroundPresetId>("nebula");
   const [activeHarmony, setActiveHarmony] = useState<ColorHarmonyId>("split-complement");
   const [activePalette, setActivePalette] = useState<VisualPalette | null>(null);
@@ -171,6 +189,9 @@ export function App() {
     });
     const offLayout = renderer.onTypographyLayoutChange(layout => {
       if (!disposed) setActiveLayout(layout);
+    });
+    const offCompositionMotion = renderer.onCompositionMotionChange(motion => {
+      if (!disposed) setActiveMotion(motion);
     });
     const offBackground = renderer.onBackgroundPresetChange(preset => {
       if (!disposed) setActiveBackground(preset);
@@ -229,6 +250,7 @@ export function App() {
       renderer.setVisualMode(useUiStore.getState().mode);
       renderer.setTypographyPreset(useUiStore.getState().typographyPreset);
       renderer.setTypographyLayout(useUiStore.getState().typographyLayout);
+      renderer.setCompositionMotion(useUiStore.getState().compositionMotion);
       renderer.setBackgroundPreset(useUiStore.getState().backgroundPreset);
       renderer.setColorHarmony(useUiStore.getState().colorHarmony);
       renderer.setIntensity(useUiStore.getState().intensity);
@@ -243,6 +265,7 @@ export function App() {
       offMode();
       offTypography();
       offLayout();
+      offCompositionMotion();
       offBackground();
       offPalette();
       audio.element.removeEventListener("play", onPlay);
@@ -269,6 +292,10 @@ export function App() {
   useEffect(() => {
     rendererRef.current?.setTypographyLayout(typographyLayout);
   }, [typographyLayout]);
+
+  useEffect(() => {
+    rendererRef.current?.setCompositionMotion(compositionMotion);
+  }, [compositionMotion]);
 
   useEffect(() => {
     rendererRef.current?.setBackgroundPreset(backgroundPreset);
@@ -326,6 +353,10 @@ export function App() {
         const current = useUiStore.getState().typographyLayout;
         const index = TYPOGRAPHY_LAYOUTS.indexOf(current);
         setTypographyLayout(TYPOGRAPHY_LAYOUTS[(index + 1) % TYPOGRAPHY_LAYOUTS.length]);
+      } else if (event.code === "KeyG") {
+        const current = useUiStore.getState().compositionMotion;
+        const index = COMPOSITION_MOTIONS.indexOf(current);
+        setCompositionMotion(COMPOSITION_MOTIONS[(index + 1) % COMPOSITION_MOTIONS.length]);
       } else if (event.code === "KeyB") {
         const current = useUiStore.getState().backgroundPreset;
         const index = BACKGROUND_PRESETS.indexOf(current);
@@ -340,7 +371,7 @@ export function App() {
 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [setBackgroundPreset, setColorHarmony, setHudVisible, setMode, setSyncMs, setTypographyLayout, setTypographyPreset]);
+  }, [setBackgroundPreset, setColorHarmony, setCompositionMotion, setHudVisible, setMode, setSyncMs, setTypographyLayout, setTypographyPreset]);
 
   useEffect(() => {
     const onDragEnter = (event: DragEvent) => {
@@ -471,6 +502,7 @@ export function App() {
       if (defaults?.quality !== undefined) setQuality(defaults.quality);
       if (defaults?.typographyPreset !== undefined) setTypographyPreset(defaults.typographyPreset);
       if (defaults?.typographyLayout !== undefined) setTypographyLayout(defaults.typographyLayout);
+      if (defaults?.compositionMotion !== undefined) setCompositionMotion(defaults.compositionMotion);
       if (defaults?.backgroundPreset !== undefined) setBackgroundPreset(defaults.backgroundPreset);
       if (defaults?.colorHarmony !== undefined) setColorHarmony(defaults.colorHarmony);
       if (defaults?.syncMs !== undefined) {
@@ -527,7 +559,7 @@ export function App() {
             <div className="brand-mark">E</div>
             <div>
               <div className="brand">E-MO-ENGINE</div>
-              <div className="brand-sub">EXTENSIVE MOTION ENGINE FOR ENHANCED LRC · v0.7 ALPHA</div>
+              <div className="brand-sub">EXTENSIVE MOTION ENGINE FOR ENHANCED LRC · v0.8 ALPHA</div>
             </div>
           </div>
           <div className="top-actions">
@@ -627,6 +659,25 @@ export function App() {
                   className={`composition-button ${typographyLayout === value ? "is-active" : ""}`}
                   onClick={() => setTypographyLayout(value)}
                   title={value === "auto" ? "Auto word composition · L" : `${value} composition`}
+                >
+                  {value.replaceAll("-", " ").toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="motion-control">
+            <div className="control-heading">
+              <span>COMPOSITION MOTION</span>
+              <b>{activeMotion.replaceAll("-", " ").toUpperCase()}</b>
+            </div>
+            <div className="motion-grid" role="group" aria-label="Composition motion grammar">
+              {COMPOSITION_MOTIONS.map(value => (
+                <button
+                  key={value}
+                  className={`motion-button ${compositionMotion === value ? "is-active" : ""}`}
+                  onClick={() => setCompositionMotion(value)}
+                  title={value === "auto" ? "Auto composition motion · G" : `${value} composition motion`}
                 >
                   {value.replaceAll("-", " ").toUpperCase()}
                 </button>
@@ -736,7 +787,7 @@ export function App() {
             ))}
           </div>
 
-          <div className="director-footnote">Scene AUTO directs the visual family. Typography, Composition, Background and OKLCH Harmony can AUTO-direct per line. T/L/B/C cycle them.</div>
+          <div className="director-footnote">Scene AUTO directs the visual family. Typography, Composition, Motion, Background and OKLCH Harmony can AUTO-direct per line. T/L/G/B/C cycle them.</div>
         </aside>
 
         <section className={`empty-state ${hasContent ? "is-dismissed" : ""}`}>

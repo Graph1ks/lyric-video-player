@@ -84,6 +84,7 @@ test("emo.project/v1 selects nested media and carries visual defaults", async ()
         visualMode: "vortex",
         typographyPreset: "tunnel",
         typographyLayout: "vertical-accent",
+        compositionMotion: "camera-handoff",
         backgroundPreset: "lyrics",
         colorHarmony: "split-complement",
         intensity: 1.25,
@@ -100,6 +101,7 @@ test("emo.project/v1 selects nested media and carries visual defaults", async ()
     assert.equal(found.manifest?.defaults?.visualMode, "vortex");
     assert.equal(found.manifest?.defaults?.typographyPreset, "tunnel");
     assert.equal(found.manifest?.defaults?.typographyLayout, "vertical-accent");
+    assert.equal(found.manifest?.defaults?.compositionMotion, "camera-handoff");
     assert.equal(found.manifest?.defaults?.backgroundPreset, "lyrics");
     assert.equal(found.manifest?.defaults?.colorHarmony, "split-complement");
     assert.equal(found.manifest?.defaults?.syncMs, 80);
@@ -136,6 +138,13 @@ test("emo.project/v1 rejects traversal and invalid visual defaults", () => {
     lyrics: "lyrics.lrc",
     defaults: { typographyLayout: "unknown" },
   })), /typographyLayout is invalid/);
+
+  assert.throws(() => parseProjectManifest(JSON.stringify({
+    schema: "emo.project/v1",
+    audio: "track.mp3",
+    lyrics: "lyrics.lrc",
+    defaults: { compositionMotion: "unknown" },
+  })), /compositionMotion is invalid/);
 
   assert.throws(() => parseProjectManifest(JSON.stringify({
     schema: "emo.project/v1",

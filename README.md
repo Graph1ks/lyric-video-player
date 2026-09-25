@@ -2,7 +2,7 @@
 
 E-MO-Engine is a realtime motion-graphics player/engine for MP3/M4A/AAC audio synchronized to Enhanced LRC. It combines deterministic lyric timing with PixiJS typography, camera motion, audio-reactive backgrounds and GPU post-processing.
 
-## Current status — v0.7 alpha
+## Current status — v0.8 alpha
 
 The project now has three product surfaces backed by the same engine:
 
@@ -25,6 +25,7 @@ Frame-critical motion remains outside React. PixiJS, Web Audio and the E-MO cloc
 - deterministic typography selector engine: range, stagger, wave, wiggle, random and audio weighting
 - eight typography motion presets: Impact, Cascade, Wave, Scatter, Elastic, Outline, Tunnel and Glitch
 - word-level typography compositions: Center Stack, Directional Stage, Editorial, Vertical Accent, Split Stage and Crossword
+- composition motion grammar: Handoff, Conveyor, Anchor Build, Collapse, Takeover, Flip, Camera Handoff, Portal and Panel
 - OKLCH palette director with Split Complement, Analogous, Complement, Triad, Tetrad and Monochrome harmonies
 - background presets: Cinematic, Nebula, Grid, Starfield, Rays, Vortex, Liquid, Spectrum, Sparks, Recursive Lyrics and Minimal
 - Poster / Neon / Vortex visual families
@@ -94,6 +95,7 @@ See `docs/PLATFORM_ARCHITECTURE.md` and `docs/DECISIONS.md`.
 | `1` / `2` / `3` | Poster / Neon / Vortex |
 | `T` | cycle typography motion preset |
 | `L` | cycle typography composition |
+| `G` | cycle composition motion grammar |
 | `B` | cycle background preset |
 | `C` | cycle OKLCH color harmony |
 | `,` / `.` | lyric sync -/+ 50 ms |
@@ -151,8 +153,9 @@ The desktop renderer has no Node integration. Native directory selection is expo
 
 ## Near-term work
 
-1. complete the remaining typography families: soft-3D/inflate, brush/stroke reveal and dissolve/smear exits
-2. add scene-stack serialization and per-section visual directives
+1. expand distinct art-direction/background worlds on the OKLCH palette-role contract
+2. complete the remaining typography families: soft-3D/inflate, brush/stroke reveal and dissolve/smear exits
+3. add scene-stack serialization and per-section visual directives
 3. visually tune typography/background preset combinations on real tracks
 4. retire the temporary root legacy UI after React acceptance
 5. optional true-3D layer only where a concrete scene requires it

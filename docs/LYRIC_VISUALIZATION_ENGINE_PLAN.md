@@ -84,7 +84,7 @@ The audio/LRC clock remains authoritative. All automatic layout, palette and mot
 
 **Acceptance:** changing harmony changes the whole scene coherently while primary lyric text remains clearly readable against the generated background.
 
-## Step 3 — Composition Motion Grammar
+## Step 3 — Composition Motion Grammar — active candidate
 
 Build transitions above glyph effects:
 
@@ -99,6 +99,19 @@ Build transitions above glyph effects:
 - editorial page/panel transition.
 
 These operate on word/layout containers rather than individual glyphs.
+
+**Implemented candidate baseline:**
+
+- pure timestamp-driven evaluator in `engine-core`;
+- deterministic AUTO routing by scene family + cue index;
+- `handoff`, `conveyor`, `anchor-build`, `collapse`, `takeover`, `flip`, `camera-handoff`, `portal` and `panel`;
+- whole-stage and per-word transform outputs;
+- nested transform ownership in KineticLyrics so composition, grammar and glyph animation remain independent;
+- React Visual Director control + keyboard `G`;
+- `emo.project/v1` persistence;
+- regression coverage for deterministic and representative transforms.
+
+**Acceptance:** switching grammar must visibly change the motion logic of the complete composition without changing its authored layout or breaking glyph-level typography effects.
 
 ## Step 4 — Visual World Expansion
 
