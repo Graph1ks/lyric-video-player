@@ -1,5 +1,4 @@
 import {
-  DEFAULT_VISUAL_FX_RACK,
   sanitizeVisualFxRack,
   type ColorFlowMode,
   type VisualAutoProfile,
@@ -22,10 +21,6 @@ export interface PerformancePresetDefinition {
 }
 
 export type PerformancePresetPoolKey = keyof VisualAutoProfile;
-
-function fx(overrides: Partial<VisualFxRack>): VisualFxRack {
-  return sanitizeVisualFxRack(overrides, DEFAULT_VISUAL_FX_RACK);
-}
 
 // Built-in emotion/pace presets were intentionally removed. Presets are now
 // user-authored only. Keep the retired IDs solely for storage migration so old
