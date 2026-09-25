@@ -93,9 +93,9 @@ That complexity is not justified for full-screen shader worlds that Pixi already
 
 Re-evaluate Three.js when a world genuinely benefits from true 3D geometry/depth rather than a full-screen shader or Pixi mesh.
 
-Likely candidates:
+Likely candidates after current prototyping:
 
-- WORLD_03 Disco Mirrorball Room — true room + reflective/mirrored geometry may benefit;
+- WORLD_03 Disco Mirrorball Room — **evaluated now**. The first candidate uses an analytic Pixi GPU shader because the supplied reference can be reproduced without arbitrary camera/depth interaction. Escalate to true 3D only if local acceptance still reads too flat.
 - WORLD_09 Neon Equalizer Grid City — real perspective skyline can benefit;
 - WORLD_10 Holographic Audio Terrain — true displaced terrain mesh is a strong candidate.
 
@@ -143,7 +143,38 @@ The shader now owns:
 - suspended haze specks;
 - filmic exposure compression.
 
-## Rule for the remaining 11 worlds
+### WORLD_03 Disco Mirrorball Room candidate
+
+Technique: **full-screen analytic sphere + procedural room reflection shader**.
+
+Why this before Three.js:
+
+- the visual target is dominated by one sphere and projected reflection fields rather than free camera motion;
+- spherical normals/facets can be reconstructed analytically per pixel;
+- layered screen/perspective reflection grids can create the required hundreds of room light patches without per-object allocation;
+- this preserves one renderer, one render-target lifecycle and the existing edge-safety compositor.
+
+The shader implements spherical-coordinate facet quantization, metallic/Fresnel response, multiple moving color-reflection layers, room depth masks, specular glints and filmic compression.
+
+Escalation criterion: if real-display acceptance requires physically coherent wall projection, moving camera parallax or actual mirror reflection geometry, prototype the same scene in Three.js and compare fidelity/GPU/memory before merging a second renderer.
+
+### WORLD_04 Neon Energy Burst Tunnel candidate
+
+Technique: **full-screen polar/log-depth procedural shader**.
+
+The shader combines:
+
+- logarithmic radial depth for compressed tunnel ribs;
+- polar angular cells for dense stable speed streaks;
+- fBm/noise modulation for irregular density;
+- signed angular-distance electric filaments;
+- broken arc sparks/ejecta;
+- central aperture bloom and flare;
+- power/detail scaling without per-streak display objects.
+
+This is a direct fit for a Pixi custom Filter; a 3D scene graph adds no useful capability for the supplied target.
+
+## Rule for the remaining 9 worlds
 
 Do not prototype a reference-grade world using only primitive `Graphics` shapes unless the reference itself is graphic/flat.
 

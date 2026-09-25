@@ -1,13 +1,13 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `aa691e93ad44e7f4690ca729231264e836a5f524`  
-**Active candidate:** none  
-**Current phase/milestone:** FX parity + shader-world visual acceptance
+**Last known good merged baseline:** `e9a01d5524efff9fdc8a7e111815ea9c9003f8a5`  
+**Active candidate:** `feat/worlds-mirrorball-energy-tunnel`  
+**Current phase/milestone:** 13-world expansion — WORLD_03 + WORLD_04 shader implementation
 
 ## Current objective
 
-Visually accept the restored cinematic FX baseline and the GPU-shader rebuilds of WORLD_01 Prism Stage Beams and WORLD_02 Laser Canopy Grid.
+Implement WORLD_03 Disco Mirrorball Room and WORLD_04 Neon Energy Burst Tunnel at the shader-fidelity bar established by the rebuilt first two worlds.
 
 ## Current state
 
@@ -20,6 +20,10 @@ Visually accept the restored cinematic FX baseline and the GPU-shader rebuilds o
 - WORLD_01 Prism Stage Beams and WORLD_02 Laser Canopy Grid are rebuilt as full-screen custom GPU shaders. The first Graphics prototypes are superseded.
 - Pixi-vs-Three research is durable in `docs/WORLD_RENDERING_TECH_RESEARCH.md`: current conclusion is that Pixi custom Filters/Mesh are not the fidelity bottleneck; Three.js should be introduced only for worlds that measurably require a true second 3D scene/depth pipeline.
 
+- **WORLD_03 / WORLD_04 active candidate:** `disco-mirrorball-room` and `neon-energy-burst-tunnel` are first-class Background presets, Director-selectable, included in unrestricted AUTO and rendered as specialized GPU worlds.
+- WORLD_03 uses an analytic faceted sphere, metallic/Fresnel/specular response, layered dense square reflection fields, room-depth masks, dust and transient halo response.
+- WORLD_04 uses logarithmic radial tunnel depth, dense polar speed streaks, fBm density modulation, electric scribble filaments, broken arc sparks/ejecta and a hot central aperture.
+- Rendering-tech research keeps both in Pixi custom shaders for now; WORLD_03 escalates to a Three.js comparison only if local acceptance still requires true projected-room geometry/parallax.
 - **WORLD_01 / WORLD_02 merged baseline (PR #59):** `prism-stage-beams` and `laser-canopy-grid` are first-class Background presets, selectable in Director, exposed to AUTO/presets and rendered as specialized Pixi worlds that suppress generic legacy background layers.
 - WORLD_01 uses broad additive volumetric beam polygons, hot cores, dark haze, visible fixture lenses and transient flares.
 - WORLD_02 uses an overhead rig, thin laser core/glow passes, geometric canopy targeting, floor hit-points and restrained depth haze.
@@ -31,7 +35,7 @@ Visually accept the restored cinematic FX baseline and the GPU-shader rebuilds o
 - A new engine-core `VisualFxRack` exposes camera motion, impact/pulse, displacement, velocity smear, bloom, temporal feedback, cinematic post FX, World Power/Detail and DOM screen bloom/scanlines/grain/vignette.
 - FX use an explicit 0–300% range: 0% is OFF, 100% authored normal, 300% intentionally extreme.
 - Performance Preset AUTO pools may be emptied: an empty row means ANY/unrestricted rather than an invalid preset. Presets therefore do not need to constrain or activate every family.
-- Built-in emotion/pace presets were re-authored with much smaller vocabularies and explicit FX racks; Calm/Tender deliberately disable distortion families while Rage/Tension push selected distortion/world layers strongly.
+- Built-in Performance Presets are removed; presets are user-authored only, with retired built-in IDs stripped during storage migration.
 - World Power/Detail now drive art-world alpha, audio response, particle/blob density, recursive lyrics, sparks, spectrum resolution and geometric detail instead of only slightly scaling a shared intensity.
 - Design/research contract: `docs/PRO_CONTROL_SURFACE_FX_RACK.md`.
 
@@ -192,11 +196,11 @@ Visually accept the restored cinematic FX baseline and the GPU-shader rebuilds o
 
 ## Next concrete action
 
-1. User locally confirms that **FX → Reset FX to Factory** restores the richer pre-exposure cinematic balance and that Lens/Chroma/Warp/PostFX is visibly active again.
-2. Verify all shipped Performance Presets are gone, user presets remain, and delete requires Delete → Confirm Delete.
-3. Test Prism Stage Beams and Laser Canopy Grid at 50/100/200/300% World Power + Detail against the supplied references.
-4. Tune shader scattering, flare, density and laser geometry from real-display feedback.
-5. Continue with WORLD_03/WORLD_04 using the rendering-tech selection rules in `docs/WORLD_RENDERING_TECH_RESEARCH.md`.
+1. Finish CI for the WORLD_03/WORLD_04 candidate and merge only after Linux + Windows gates pass.
+2. User tests **Disco Mirrorball Room** at 50/100/200/300% World Power + Detail; verify the ball reads as faceted metal and the room contains dense moving square reflections rather than particles.
+3. User tests **Neon Energy Burst Tunnel** at 50/100/200/300%; verify strong depth/rush, dense photographic streaks, irregular electric scribbles and transient center spikes.
+4. Tune mirrorball room projection/parallax and tunnel density/exposure from the local display feedback.
+5. Continue to WORLD_05/WORLD_06 only after these two meet the reference-fidelity bar.
 
 ### Previous visual-acceptance queue
 

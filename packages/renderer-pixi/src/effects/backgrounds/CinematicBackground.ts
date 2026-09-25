@@ -13,6 +13,8 @@ import { ArtDirectionWorlds } from "./ArtDirectionWorlds.js";
 import { ProceduralLiquidFX } from "./ProceduralLiquidFX.js";
 import { PrismStageBeamsWorld } from "./PrismStageBeamsWorld.js";
 import { LaserCanopyGridWorld } from "./LaserCanopyGridWorld.js";
+import { DiscoMirrorballRoomWorld } from "./DiscoMirrorballRoomWorld.js";
+import { NeonEnergyBurstTunnelWorld } from "./NeonEnergyBurstTunnelWorld.js";
 
 const EMPTY_SPECTRUM = new Float32Array(0);
 
@@ -36,9 +38,9 @@ interface Blob {
 }
 
 const AUTO_BACKGROUND_PRESETS: Record<SceneMode, BackgroundPresetId[]> = {
-  poster: ["editorial", "print", "lyrics", "architecture", "cinematic", "spectrum", "minimal"],
-  neon: ["prism-stage-beams", "laser-canopy-grid", "aurora", "architecture", "liquid", "spectrum", "nebula", "editorial", "starfield", "rays"],
-  vortex: ["laser-canopy-grid", "architecture", "print", "vortex", "aurora", "starfield", "lyrics", "liquid", "sparks"],
+  poster: ["disco-mirrorball-room", "editorial", "print", "lyrics", "architecture", "cinematic", "spectrum", "minimal"],
+  neon: ["disco-mirrorball-room", "prism-stage-beams", "laser-canopy-grid", "neon-energy-burst-tunnel", "aurora", "architecture", "liquid", "spectrum", "nebula", "editorial", "starfield", "rays"],
+  vortex: ["neon-energy-burst-tunnel", "laser-canopy-grid", "architecture", "print", "vortex", "aurora", "starfield", "lyrics", "liquid", "sparks"],
 };
 
 const ART_DIRECTION_PRESETS = new Set<BackgroundPresetId>([
@@ -51,6 +53,8 @@ const ART_DIRECTION_PRESETS = new Set<BackgroundPresetId>([
 const SPECIALIZED_WORLD_PRESETS = new Set<BackgroundPresetId>([
   "prism-stage-beams",
   "laser-canopy-grid",
+  "disco-mirrorball-room",
+  "neon-energy-burst-tunnel",
 ]);
 
 export class CinematicBackground {
@@ -60,6 +64,8 @@ export class CinematicBackground {
   private artDirection = new ArtDirectionWorlds();
   private prismStageBeams = new PrismStageBeamsWorld();
   private laserCanopyGrid = new LaserCanopyGridWorld();
+  private discoMirrorballRoom = new DiscoMirrorballRoomWorld();
+  private neonEnergyBurstTunnel = new NeonEnergyBurstTunnelWorld();
   private liquidSurface = new Graphics();
   private liquidFX = new ProceduralLiquidFX();
   private geometry = new Graphics();
@@ -100,6 +106,8 @@ export class CinematicBackground {
       this.artDirection.container,
       this.prismStageBeams.container,
       this.laserCanopyGrid.container,
+      this.discoMirrorballRoom.container,
+      this.neonEnergyBurstTunnel.container,
       this.liquidSurface,
       this.lyricBackdropLayer,
       this.blobLayer,
@@ -215,6 +223,8 @@ export class CinematicBackground {
     this.artDirection.setDetail(this.worldDetail);
     this.prismStageBeams.setDetail(this.worldDetail);
     this.laserCanopyGrid.setDetail(this.worldDetail);
+    this.discoMirrorballRoom.setDetail(this.worldDetail);
+    this.neonEnergyBurstTunnel.setDetail(this.worldDetail);
     this.applyPresetVisibility();
     this.rebuildLyricBackdrop();
   }
@@ -227,6 +237,10 @@ export class CinematicBackground {
     this.prismStageBeams.setDetail(this.worldDetail);
     this.laserCanopyGrid.setIntensity(power);
     this.laserCanopyGrid.setDetail(this.worldDetail);
+    this.discoMirrorballRoom.setIntensity(power);
+    this.discoMirrorballRoom.setDetail(this.worldDetail);
+    this.neonEnergyBurstTunnel.setIntensity(power);
+    this.neonEnergyBurstTunnel.setDetail(this.worldDetail);
     this.liquidFX.setIntensity(power);
   }
 
@@ -235,6 +249,8 @@ export class CinematicBackground {
     this.artDirection.setQuality(value);
     this.prismStageBeams.setQuality(value);
     this.laserCanopyGrid.setQuality(value);
+    this.discoMirrorballRoom.setQuality(value);
+    this.neonEnergyBurstTunnel.setQuality(value);
     this.liquidFX.setQuality(value);
     this.applyPresetVisibility();
   }
@@ -245,6 +261,8 @@ export class CinematicBackground {
     this.artDirection.resize(w, h);
     this.prismStageBeams.resize(w, h);
     this.laserCanopyGrid.resize(w, h);
+    this.discoMirrorballRoom.resize(w, h);
+    this.neonEnergyBurstTunnel.resize(w, h);
     this.redrawBase();
     this.redrawLiquidSurface();
     this.liquidFX.resize(w, h);
@@ -271,6 +289,8 @@ export class CinematicBackground {
     this.artDirection.update(time, audio);
     this.prismStageBeams.update(time, audio);
     this.laserCanopyGrid.update(time, audio);
+    this.discoMirrorballRoom.update(time, audio);
+    this.neonEnergyBurstTunnel.update(time, audio);
     if (this.liquidSurface.visible) this.liquidFX.update(time, audio);
     this.updateGeometry(time, audio);
     this.updateLyricBackdrop(time, audio);
@@ -321,6 +341,8 @@ export class CinematicBackground {
     this.artDirection.setPreset(this.resolvedPreset);
     this.prismStageBeams.container.visible = this.resolvedPreset === "prism-stage-beams";
     this.laserCanopyGrid.container.visible = this.resolvedPreset === "laser-canopy-grid";
+    this.discoMirrorballRoom.container.visible = this.resolvedPreset === "disco-mirrorball-room";
+    this.neonEnergyBurstTunnel.container.visible = this.resolvedPreset === "neon-energy-burst-tunnel";
     this.artDirection.setLineIndex(this.lineIndex);
     this.liquidSurface.visible = this.resolvedPreset === "liquid";
     this.lyricBackdropLayer.visible = this.resolvedPreset === "lyrics";

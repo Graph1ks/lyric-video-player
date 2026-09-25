@@ -12,3 +12,6 @@ export * from "./effects/backgrounds/ProceduralLiquidFX.js";
 
 export * from "./effects/backgrounds/PrismStageBeamsWorld.js";
 export * from "./effects/backgrounds/LaserCanopyGridWorld.js";
+
+export * from "./effects/backgrounds/DiscoMirrorballRoomWorld.js";
+export * from "./effects/backgrounds/NeonEnergyBurstTunnelWorld.js";

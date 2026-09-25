@@ -73,7 +73,9 @@ export type BackgroundPresetId =
   | "architecture"
   | "aurora"
   | "prism-stage-beams"
-  | "laser-canopy-grid";
+  | "laser-canopy-grid"
+  | "disco-mirrorball-room"
+  | "neon-energy-burst-tunnel";
 export type BackgroundPreset = "auto" | BackgroundPresetId;
 export type ColorHarmonyId =
   | "split-complement"

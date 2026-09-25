@@ -3633,3 +3633,46 @@ kbd {
   font-size: 9px;
   line-height: 1.45;
 }
+
+
+/* Reference worlds 03/04 — semantic Director miniatures */
+.director-miniature[data-preview="world-disco-mirrorball-room"] {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(255,255,255,.96) 0 5%, rgba(205,215,230,.82) 6% 8%, rgba(80,85,100,.8) 9% 13%, transparent 14%),
+    radial-gradient(circle at 16% 24%, rgba(255,40,170,.66) 0 2%, transparent 3%),
+    radial-gradient(circle at 82% 29%, rgba(70,225,255,.68) 0 2%, transparent 3%),
+    radial-gradient(circle at 25% 78%, rgba(255,180,42,.58) 0 2%, transparent 3%),
+    radial-gradient(circle at 72% 74%, rgba(120,70,255,.66) 0 2%, transparent 3%),
+    linear-gradient(180deg, #090711 0 48%, #03050a 49% 100%);
+}
+.director-miniature[data-preview="world-disco-mirrorball-room"]::before {
+  content:"";
+  position:absolute;
+  inset:6%;
+  background:
+    repeating-linear-gradient(24deg, transparent 0 10px, rgba(255,255,255,.055) 11px 12px, transparent 13px 20px),
+    repeating-linear-gradient(113deg, transparent 0 15px, rgba(132,255,242,.04) 16px 17px, transparent 18px 28px);
+  mix-blend-mode:screen;
+  opacity:.8;
+}
+.director-miniature[data-preview="world-neon-energy-burst-tunnel"] {
+  background:
+    conic-gradient(from 12deg at 50% 48%,
+      rgba(255,35,172,.76), transparent 8%,
+      rgba(65,120,255,.68) 13%, transparent 22%,
+      rgba(255,184,42,.75) 31%, transparent 39%,
+      rgba(40,235,255,.7) 48%, transparent 58%,
+      rgba(255,45,180,.72) 68%, transparent 78%,
+      rgba(110,70,255,.72) 88%, rgba(255,35,172,.76)),
+    radial-gradient(circle at 50% 48%, #fff 0 3%, rgba(255,98,213,.88) 4% 8%, rgba(80,80,255,.32) 9% 18%, transparent 36%),
+    #05010c;
+}
+.director-miniature[data-preview="world-neon-energy-burst-tunnel"]::before {
+  content:"";
+  position:absolute;
+  inset:-12%;
+  background:
+    repeating-conic-gradient(from 5deg at 50% 48%, transparent 0 3deg, rgba(255,255,255,.16) 3.2deg 3.55deg, transparent 3.8deg 8deg);
+  mask-image:radial-gradient(circle at 50% 48%, transparent 0 16%, #000 28%, transparent 88%);
+  opacity:.75;
+}
