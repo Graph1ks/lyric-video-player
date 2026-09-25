@@ -1,13 +1,13 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `7dc366a61fbe941b9b6973e8ee988fe856620ea3`  
-**Active candidate:** PR #9 — `feature/render-graph-v0.6`  
-**Current phase/milestone:** v0.6 compositor / render graph
+**Merged baseline:** `2d5b9b75cbcbd124ac2a1768bb3bcc36157d5809`  
+**Active candidate:** `feature/threshold-bloom-v0.6`  
+**Current phase/milestone:** v0.6 compositor / post-FX stabilization
 
 ## Current objective
 
-Land the first explicit GPU composition boundary, then build deterministic ping-pong feedback and dedicated post-processing passes on top of it.
+Land thresholded bloom, visually validate the compositor, then begin the typography selector engine without changing clock ownership or platform boundaries.
 
 ## Current implementation state
 
@@ -16,55 +16,74 @@ Land the first explicit GPU composition boundary, then build deterministic ping-
 - React 19 / Vite 8 application shell is merged.
 - Node `EmoServer` is shared by hosted and Electron loopback modes.
 - `emo.project/v1` is merged.
-- Hosted HTTP integration exercises the real compiled server, manifest project path and byte-range media semantics.
-- Electron Windows NSIS and portable x64 packaging is exercised in CI.
+- Hosted HTTP integration covers the real compiled server and range-capable media path.
+- Windows NSIS and portable x64 packaging is exercised in CI.
 
-### Renderer candidate
+### Renderer
 
-PR #9 changes the renderer from direct scene-to-canvas rendering to:
+Current merged frame path:
 
 ```text
-Audio/LRC clock evaluation
-        |
-        v
-Background + Typography + Camera
-        |
-        v
+Audio/LRC clock
+    |
+    v
+Background + KineticLyrics + centered CameraRig
+    |
+    v
 Scene RenderTexture
-        |
-        +--> additive blurred bloom presentation
-        |
-        +--> sharp CinematicPostFX presentation
-                    |
-                    v
-                 Canvas
+    |
+    v
+Cinema feedback ping-pong (Performance bypasses)
+    |
+    +--> sharp layer:
+    |      displacement
+    |      velocity smear
+    |      cinematic RGB/glow/grain/vignette
+    |
+    +--> bloom layer:
+           [threshold candidate]
+           blur
+           additive composite
+    |
+    v
+Canvas
 ```
 
-The Pixi application ticker is disabled for this path. `EngineRenderer.update()` performs scene evaluation, scene capture and final canvas render in one explicit frame step.
+The Pixi automatic ticker is disabled. `EngineRenderer.update()` evaluates and presents exactly one frame for the supplied playback time.
 
-Camera transforms now pivot around viewport center. Backward-time/seek delta handling is also clamped safely.
+### Temporal feedback
+
+- alternating RenderTextures;
+- Cinema-only;
+- recursive scene-family transform;
+- no accumulation while audio time is stationary;
+- reset on project load, scene-family change, large cue jumps and discontinuous seek.
+
+### Active threshold-bloom candidate
+
+`ReactiveBloomThresholdFX` extracts bright pixels before blur. Its threshold and gain react to scene family, quality, intensity, energy and transients. Performance mode uses a higher threshold/lower gain.
 
 ## Important files / entry points
 
 | Path | Why it matters |
 |---|---|
-| `packages/renderer-pixi/src/render/SceneRenderGraph.ts` | RenderTexture capture + presentation layers |
-| `packages/renderer-pixi/src/render/EngineRenderer.ts` | explicit frame orchestration/manual Pixi render |
-| `packages/renderer-pixi/src/render/CameraRig.ts` | centered camera pivot and impulses |
-| `packages/renderer-pixi/src/render/CinematicPostFX.ts` | current sharp-layer custom GPU pass |
-| `packages/renderer-pixi/src/effects/typography/KineticLyrics.ts` | timestamp-derived lyric motion |
-| `apps/web/src/App.tsx` | audio-clock driven renderer update path |
-| `tests/server-integration.test.mjs` | hosted runtime end-to-end contract |
-| `docs/PROJECT_FORMAT.md` | current project schema |
+| `packages/renderer-pixi/src/render/SceneRenderGraph.ts` | scene capture, feedback, sharp/bloom presentation |
+| `packages/renderer-pixi/src/render/ReactiveDisplacementFX.ts` | scene-aware displacement |
+| `packages/renderer-pixi/src/render/ReactiveVelocitySmearFX.ts` | dedicated motion-smear pass |
+| `packages/renderer-pixi/src/render/ReactiveBloomThresholdFX.ts` | active bright-pass bloom candidate |
+| `packages/renderer-pixi/src/render/CinematicPostFX.ts` | final cinematic shader |
+| `packages/renderer-pixi/src/render/EngineRenderer.ts` | explicit frame orchestration |
+| `packages/renderer-pixi/src/effects/typography/KineticLyrics.ts` | current timestamp-derived glyph engine |
+| `apps/web/src/App.tsx` | audio-clock-driven renderer update path |
 
 ## Known risks / pending acceptance
 
-- The new scene RenderTexture/bloom path is type/build validated but still requires visual browser/Desktop acceptance.
-- No frame-feedback buffer exists yet.
-- Current bloom is a duplicated blurred presentation layer, not a thresholded multi-pass bloom.
-- Current CinematicPostFX is still one custom shader pass.
-- Electron artifacts are mechanically packaged but still need human runtime/visual smoke testing.
+- The full compositor stack is build/type validated but still needs human visual acceptance.
+- Threshold bloom may need tuning after real music/lyrics footage.
+- Current typography effects are hard-coded scene behaviors; there is not yet a general range/stagger/wiggle selector system.
+- Electron artifacts are mechanically packaged but still need a human runtime/visual smoke test on Windows.
 - Root legacy UI remains until React acceptance.
+- Safari/M4A remains real-device work.
 
 ## Verification
 
@@ -78,24 +97,24 @@ npm test
 python scripts/repo_audit.py
 ```
 
-Renderer acceptance after merge should verify:
+Visual compositor acceptance should verify:
 
 - no double-render/ticker drift;
-- seek backward/forward repeatedly;
-- camera punch remains centered;
-- Cinema/Performance resolution switches remain stable;
-- bloom does not make lyrics unreadable;
-- fullscreen and `Ctrl + Shift + H` still work.
+- repeated backward/forward seeks do not leave stale feedback trails;
+- Poster text stays crisp enough under smear/bloom;
+- Neon gets visible soft bloom without washing the frame;
+- Vortex feedback stays energetic without runaway brightness;
+- Performance mode materially reduces temporal/post-FX cost;
+- fullscreen and `Ctrl + Shift + H` remain unchanged.
 
 ## Next concrete work
 
-1. Merge PR #9 after green CI.
-2. Add a two-buffer feedback stage with explicit reset on project load/large seek.
-3. Add a displacement pass with scene/audio uniforms.
-4. Add velocity/directional smear as a separate quality-budgeted pass.
-5. Replace simple bloom with thresholded bloom only if profiling/visual gain justifies it.
-6. Resume selector-driven typography after the compositor is stable.
+1. Merge threshold bloom after green CI.
+2. Start a general typography selector API with range/stagger/wiggle weights.
+3. Route position, opacity, scale, rotation, color and distortion through selector weights.
+4. Build outline-stack and recursive tunnel presets using that API.
+5. Add scene/project serialization only after selector/preset contracts settle.
 
 ## Resume instruction
 
-Read `AGENTS.md`, `PROJECT.md`, `STATUS.md`, this file, `docs/PLATFORM_ARCHITECTURE.md`, `docs/PROJECT_FORMAT.md`, and `docs/DECISIONS.md`. Then inspect PR #9/current main CI before changing render targets or clock ownership.
+Read `AGENTS.md`, `PROJECT.md`, `STATUS.md`, this file, `docs/PLATFORM_ARCHITECTURE.md`, `docs/PROJECT_FORMAT.md`, and `docs/DECISIONS.md`. Then inspect main/current CI before changing clock, render-target or platform ownership.
