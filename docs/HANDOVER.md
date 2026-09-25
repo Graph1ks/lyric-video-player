@@ -1,13 +1,13 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `89f2ac1680d13f6ec126ab3258ad4659507e2272`  
-**Active candidate:** none  
-**Current phase/milestone:** v0.11.2 long-play + physical-edge visual acceptance
+**Merged baseline:** `947d2c28c46c6898a6ca0e0b87eb154d971d8c7c`  
+**Active candidate:** `feat/director-performance-presets`  
+**Current phase/milestone:** curated AUTO Performance Presets + operator-control cleanup
 
 ## Current objective
 
-Use merged PR #53 as the renderer-safety baseline and verify it on a lyric-heavy long-play plus fullscreen/high-DPI edge stress before continuing cinematic sequencing.
+Complete and verify the Performance Preset candidate: AUTO should draw only from the active preset's allowed visual/color pools, Lower Third scheduling must support permanent/scheduled/manual/outro use, and the detached Director transport/HUD controls must remain ergonomically correct.
 
 ## Merged baseline — Resource lifetime + physical-edge safety v0.11.2
 
@@ -27,6 +27,27 @@ The remaining physical-edge failure is compositor-level rather than world-geomet
 - forces the generated Liquid background pass opaque.
 
 Regression source-contract tests cover explicit text destruction, zero full-frame filter padding, the fallback presentation plane and opaque Liquid output.
+
+## Active candidate — Director Performance Presets
+
+The candidate adds `VisualAutoProfile` to engine-core. It is a set of allowed AUTO domains rather than a frozen scene snapshot.
+
+Runtime ownership:
+
+- `SceneDirector` constrains scene family plus coherent typography/layout/motion/sequence choices.
+- `CinematicBackground` constrains automatic background worlds.
+- `createVisualPalette()` constrains automatic mood, canvas and harmony.
+- manual Director choices still override the corresponding AUTO axis;
+- switching the axis back to AUTO returns it to the active preset;
+- no active Performance Preset preserves the existing unrestricted AUTO behavior.
+
+The React Director adds a dedicated Presets workspace with eight authored emotion/pace profiles. Built-in profiles can be edited and reset; custom profiles can be cloned, renamed and deleted. Each allowed pool retains at least one option. Edits persist locally under a versioned local-storage key; project serialization is intentionally deferred.
+
+Lower Third presentation is changed from Intro/Rotate to Off/Scheduled/Always. Scheduled mode exposes song start seconds, visible duration, optional outro trigger and outro lead seconds. Show Now temporarily overrides every schedule mode.
+
+The detached Director topbar is reflowed into operator actions + a full-width transport row so the existing player controls no longer collapse. The main HUD text button also receives an explicit text-sized border box.
+
+Detailed contract: `docs/DIRECTOR_PERFORMANCE_PRESETS.md`.
 
 ## Current implementation state
 
