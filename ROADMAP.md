@@ -51,7 +51,7 @@
 - handwritten / stroke reveal — next
 - particle dissolve and smear exits — next
 
-## Milestone 0.6 — Advanced backgrounds — active
+## Milestone 0.6 — Advanced backgrounds — complete baseline
 - preset routing independent from scene family — complete baseline
 - Cinematic / Nebula / Grid / Starfield / Rays / Vortex / Minimal families — complete baseline
 - deterministic particles / dust depth field — complete baseline
@@ -59,8 +59,8 @@
 - starfield / hyperspace scenes — complete baseline
 - procedural noise / liquid flow — complete baseline
 - waveform and spectrum ribbons — complete baseline
-- sparks / trails — active candidate
-- recursive typography backgrounds — active candidate
+- sparks / trails — complete baseline
+- recursive typography backgrounds — complete baseline
 
 ## Milestone 0.7 — Scene project format
 - scene JSON

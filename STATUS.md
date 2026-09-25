@@ -1,13 +1,13 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `99f8ecf0946ccd2f46852b78eba130e8355fd9d1`  
-**Active candidate:** `feature/visual-accents-v0.7`  
+**Last known good merged baseline:** `659008d754fc3f4eab921e3b3241ee8d9d79abdb`  
+**Active candidate:** none  
 **Current phase/milestone:** v0.7 visualization-engine expansion
 
 ## Current objective
 
-Finish the graphics/lyrics visualization engine before editor work. The current candidate adds deterministic spark/trail motion and recursive lyric-background typography on top of the merged Liquid/Spectrum infrastructure.
+Finish the remaining typography primitives and then stabilize the serializable scene/effect stack before editor work.
 
 ## Current state
 
@@ -17,26 +17,21 @@ Finish the graphics/lyrics visualization engine before editor work. The current 
 - Background engine now includes Cinematic, Nebula, Grid, Starfield, Rays, Vortex, Liquid, Spectrum and Minimal.
 - Full-spectrum audio transport uses allocation-stable logarithmic resampling.
 - Procedural Liquid and Spectrum ribbons passed Linux + Windows CI before merge.
-- Active visual-accents candidate adds:
-  - deterministic radial sparks with analytic trails;
-  - recursive current-line typography as a background family;
-  - scene-specific Poster / Neon / Vortex recursive-text layouts;
-  - quality-aware spark/text budgets;
-  - `sparks` and `lyrics` background routing in React and `emo.project/v1`.
+- Deterministic Sparks/Trails and Recursive Lyrics backgrounds are merged, including scene-specific Poster / Neon / Vortex layouts, quality budgets, React controls, AUTO routing and `emo.project/v1` support.
 
 ## Last verified checks
 
 - Liquid/Spectrum: Linux install/typecheck/build/tests/audit — passed.
 - Liquid/Spectrum: Windows full build, NSIS, portable x64 and artifact upload — passed.
-- Visual-accents candidate still requires Linux + Windows gates.
+- Visual Accents: Linux install/typecheck/build/tests/audit — passed.
+- Visual Accents: Windows full build, NSIS, portable x64 and artifact upload — passed.
 
 ## Next concrete action
 
-1. Land Sparks/Lyrics backgrounds after green CI.
-2. Add remaining typography families: soft-3D/inflate, brush/stroke reveal and dissolve/smear exit.
-3. Add scene-stack serialization with per-section visual directives.
-4. Perform a dedicated real-track visual tuning pass across the complete preset matrix.
-5. Only then begin timeline/editor UI.
+1. Add remaining typography families: soft-3D/inflate, brush/stroke reveal and dissolve/smear exit.
+2. Add scene-stack serialization with per-section visual directives.
+3. Perform a dedicated real-track visual tuning pass across the complete preset matrix.
+4. Only then begin timeline/editor UI.
 
 ## Do not redo
 

@@ -1,13 +1,13 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `99f8ecf0946ccd2f46852b78eba130e8355fd9d1`  
-**Active candidate:** `feature/visual-accents-v0.7`  
+**Merged baseline:** `659008d754fc3f4eab921e3b3241ee8d9d79abdb`  
+**Active candidate:** none  
 **Current phase/milestone:** v0.7 visualization-engine expansion
 
 ## Current objective
 
-Complete the final major background primitives, then close the remaining typography families before scene-stack/editor work.
+Close the remaining typography families, then stabilize scene-stack serialization before editor work.
 
 ## Current implementation state
 
@@ -22,7 +22,7 @@ Merged visual engine includes:
 - procedural GPU liquid flow;
 - React/project preset controls.
 
-### Active visual-accents candidate
+### Merged visual accents
 
 **Sparks**
 
@@ -73,11 +73,10 @@ Windows packaging remains a separate required CI gate.
 
 ## Next concrete work
 
-1. Merge visual accents after green gates.
-2. Implement remaining typography families.
-3. Stabilize a serializable scene/effect stack.
-4. Run visual tuning/acceptance across real Enhanced LRC tracks.
-5. Begin editor/timeline only after the engine contracts stop moving.
+1. Implement remaining typography families.
+2. Stabilize a serializable scene/effect stack.
+3. Run visual tuning/acceptance across real Enhanced LRC tracks.
+4. Begin editor/timeline only after the engine contracts stop moving.
 
 ## Resume instruction
 
