@@ -2,17 +2,28 @@
 
 Project: **E-MO-Engine — Extensive Motion Engine for Enhanced LRC files**
 
-Current baseline: **v0.3.0 alpha**
+Current candidate: **v0.5 cross-platform application stack**
 
-For repository work, follow `AGENTS.md`, `PROJECT.md`, `STATUS.md`, and `docs/HANDOVER.md`.
+Read in this order before changing architecture or dependencies:
+
+1. `AGENTS.md`
+2. `PROJECT.md`
+3. `STATUS.md`
+4. `docs/HANDOVER.md`
+5. `docs/PLATFORM_ARCHITECTURE.md`
+6. `docs/DECISIONS.md`
+7. `docs/DEPENDENCY_REVIEW.md`
 
 Core invariants:
 
-1. Audio time is the single master clock.
-2. Preserve `Ctrl + Shift + H` as the HUD hide/show shortcut.
-3. Preserve deterministic seek behavior: scene selection and timestamp motion must not depend on wall-clock randomness.
-4. Keep frame-critical rendering outside a future React editor layer.
-5. Keep local-first audio/LRC ingestion; no mandatory upload service.
-6. Required production path must remain zero-cost.
+1. Playback/audio time is authoritative for live synchronized visuals.
+2. Preserve `Ctrl + Shift + H` as the complete HUD hide/show shortcut.
+3. Preserve deterministic seek behavior; primary motion must derive from time/seed rather than wall-clock animation state.
+4. React/Zustand/TanStack are application control-plane tools, not the 60-FPS render bus.
+5. PixiJS owns frame-critical graphics.
+6. Server/Desktop filesystem access is restricted to an explicitly configured project root.
+7. Electron renderer stays sandboxed with no Node integration.
+8. Required production operation must have a zero-paid-service path.
+9. Do not reintroduce GSAP without reopening the accepted licensing/product-scope decision.
 
-Next engineering slice: cross-platform workspace extraction per `docs/PLATFORM_ARCHITECTURE.md`; resume RenderTexture/post-FX expansion only after the engine/platform boundaries are stable.
+Next engineering gate: merge/accept the React + Electron v0.5 platform candidate, smoke-test a real Windows package, then resume the multi-pass RenderTexture/post-FX engine.

@@ -1,52 +1,61 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `d4f1d30d5f6db8203a6fec95656f813b96752e9a`  
-**Current phase/milestone:** E-MO-Engine platform architecture freeze
+**Last known good merged baseline:** `ae49c1cd761266d48f2cd296bd28e0f86b8d39dc`  
+**Active candidate:** PR #4 — React web shell + Electron desktop runtime  
+**Current phase/milestone:** v0.5 cross-platform application cutover
 
 ## Current objective
 
-Freeze the cross-platform application architecture before adding more renderer/editor features, then restructure incrementally around stable engine/platform boundaries.
+Land the shared React/server/desktop product surface while preserving the already verified E-MO rendering/timing engine, then retire the temporary root/legacy application surface after visual/device acceptance.
 
 ## Current state
 
-- Product identity is now **E-MO-Engine — Extensive Motion Engine for Enhanced LRC files**.
-- The v0.3 realtime baseline is merged and its required `validate` CI passed typecheck, production build, and publication audit.
-- Current engine capabilities include Enhanced LRC parsing, timestamp-driven glyph motion, deterministic scene direction, audio analysis, PixiJS rendering, camera motion, procedural backgrounds, and the first custom GPU post-FX pass.
-- The platform baseline is now selected: React/TypeScript/Vite application shell, PixiJS engine, Node hosted runtime, Electron desktop runtime.
-- The selected React UI stack deliberately matches current RhymeLab experience: Base UI, Motion, Zustand, TanStack Query, TanStack Virtual where needed, CSS Modules/custom properties, Vitest.
-- React/UI state is explicitly prohibited from owning frame-critical renderer state.
-- Server and Electron modes will share root-confined Node filesystem/project adapters rather than giving the browser renderer raw filesystem access.
+- Product identity is **E-MO-Engine — Extensive Motion Engine for Enhanced LRC files**.
+- v0.4 workspace extraction is merged: engine-core, audio-web, renderer-pixi, app-contracts, platform-node and the reusable Node server are separated.
+- Current PR #4 adds the React 19 / TypeScript / Vite 8 application shell.
+- The React UI preserves local file/drop ingestion, transport, Visual Director controls, manual sync, fullscreen and `Ctrl + Shift + H`.
+- React/Zustand do not own the frame loop: audio analysis, cue lookup, renderer updates, meters and seek/time display remain imperative/ref-driven.
+- Hosted mode discovers projects below a configured root and serves audio/video with HTTP byte ranges.
+- Desktop mode uses Electron main/preload security boundaries and starts the exact same loopback E-MO server/React client.
+- Desktop folder selection changes the project root through typed preload IPC.
+- Windows packaging is configured for NSIS and portable x64 targets.
+- The old root Vite UI remains as a temporary compatibility surface until React visual/browser acceptance is completed.
 
 ## Last verified checks
 
-- PR #1 `validate`: dependency install — pass.
-- PR #1 `validate`: strict TypeScript — pass.
-- PR #1 `validate`: Vite production build — pass.
-- PR #1 `validate`: publication audit — pass.
-- RhymeLab architecture review completed against `apps/studio-react/package.json`, `docs/REACT_STUDIO_REPLATFORM.md`, and `docs/SHARED_CORE_ARCHITECTURE.md`.
+- PR #3 workspace extraction: typecheck, build, tests and publication audit — passed.
+- PR #4 initial candidate: dependency installation and strict TypeScript — passed.
+- PR #4 initial candidate: React + workspace + Electron compilation/build — passed.
+- PR #4 initial candidate: Node/workspace and React tests — passed.
+- PR #4 initial candidate: publication audit — passed.
+- A documentation/dependency-notice commit follows, so the final PR check must be re-confirmed before merge.
 
 ## Current blocker
 
-None. The next work is architectural extraction/scaffolding, not more visual feature growth.
+No known source/build blocker. Remaining gate is final CI after documentation updates, followed by real visual/Desktop packaging acceptance.
 
 ## Next concrete action
 
-Create the npm-workspace/app/package scaffold, extract current LRC/timing/director logic into framework-independent `engine-core`, and extract current Pixi code into `renderer-pixi` without behavior changes.
+1. Get final PR #4 CI green and merge.
+2. Run the React app as the default development surface against the Node project server.
+3. Perform owner visual/interaction acceptance of the React HUD, especially fullscreen, drag/drop, seek, project loading and `Ctrl + Shift + H`.
+4. Produce and smoke-test the first Windows installer/portable artifact.
+5. Only then remove the root legacy application surface and resume major RenderTexture/editor expansion.
 
 ## Do not redo
 
 - Do not reintroduce GSAP without reopening ADR-003.
-- Do not move frame-critical rendering/audio timing into React/Zustand.
-- Do not choose Tauri unless the Electron decision is explicitly reopened with a concrete product reason.
-- Do not add a larger Node web framework until the server surface actually outgrows the standard library.
-- Do not add FFmpeg/video-export dependencies before a dedicated export milestone/license review.
+- Do not move frame-critical rendering/audio timing into React/Zustand/TanStack.
+- Do not give the Electron renderer Node integration or unrestricted filesystem access.
+- Do not choose Tauri unless ADR-005 is explicitly reopened with a concrete product reason.
+- Do not add FFmpeg/video-export dependencies before a dedicated export/license milestone.
 
 ## Important context
 
-- Hosted mode and desktop mode must execute the same engine/project semantics.
-- Desktop targeting is by explicitly selected/configured project root, via Electron main/preload IPC.
-- Server asset access is confined to an explicitly configured root and must reject traversal.
-- The former `build/render-graph-v0.4` branch was created before this platform-architecture decision; do not continue feature work there until architecture extraction is complete.
+- Hosted and desktop modes execute the same React application and E-MO server/project semantics.
+- The desktop app starts its server on loopback and uses the preload bridge only for privileged native actions such as folder selection.
+- Server asset access is confined to a configured root and project media is addressed by discovered project/asset IDs rather than arbitrary paths.
+- A committed npm lockfile remains a follow-up; CI currently verifies the pinned workspace manifests directly.
 
 For deeper continuation context, read `docs/HANDOVER.md` and `docs/PLATFORM_ARCHITECTURE.md`.

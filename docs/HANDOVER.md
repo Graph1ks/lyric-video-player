@@ -1,125 +1,121 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged implementation baseline:** `d4f1d30d5f6db8203a6fec95656f813b96752e9a`  
-**Current phase/milestone:** E-MO-Engine platform architecture freeze
+**Merged baseline:** `ae49c1cd761266d48f2cd296bd28e0f86b8d39dc`  
+**Active candidate:** PR #4 — `architecture/react-electron-v0.5`  
+**Current phase/milestone:** v0.5 cross-platform application cutover
 
 ## Current objective
 
-Replatform the existing v0.3 browser baseline into stable cross-platform package boundaries before continuing major post-FX/editor work.
+Finish and accept the React/server/Electron platform cutover without changing frame-critical motion semantics. After visual/Desktop acceptance, remove the temporary legacy root application and return to RenderTexture/post-FX/editor work.
 
-## What was just completed
+## What is implemented
 
-- The first E-MO realtime baseline was merged with fully green CI.
-- Product identity was changed from the earlier E-MOE-CHAIN working name to **E-MO-Engine — Extensive Motion Engine for Enhanced LRC files**.
-- RhymeLab's current application and shared-core architecture was reviewed as the reference stack.
-- The cross-platform baseline was selected and documented in `docs/PLATFORM_ARCHITECTURE.md`.
-- Desktop packaging decision: Electron + electron-builder.
-- Hosted runtime decision: Node.js standard HTTP/filesystem APIs first.
-- UI decision: React + TypeScript + Vite + Base UI + Motion + Zustand + TanStack Query; TanStack Virtual where justified.
-- Renderer decision remains PixiJS + custom timestamp motion/shaders.
-- React/UI libraries are explicitly excluded from frame-critical rendering ownership.
+### Shared packages
 
-## Current implementation state
+- `packages/engine-core`: Enhanced LRC, cue/visual types, deterministic Scene Director, math/easing primitives, generic Clock and FixedFrameClock.
+- `packages/audio-web`: local/URL audio loading, Web Audio analysis and HtmlAudioClock.
+- `packages/renderer-pixi`: Pixi renderer, camera, typography, backgrounds and cinematic post-FX.
+- `packages/app-contracts`: shared project/runtime/Desktop bridge contracts.
+- `packages/platform-node`: root-confined project discovery.
+- `packages/platform-web`: hosted project client, media URLs, lyric fetch and dropped-file classification.
 
-The merged code is still a single Vite/Pixi browser application. Do not expand that single-app shape further. Preserve its working behavior while extracting it into the new package/application boundaries.
+### Hosted runtime
 
-Current visual behavior includes:
+`apps/server` now exports reusable `EmoServer` plus a CLI entry point. It serves the built app, runtime/project metadata and range-capable media from a configured project root.
 
-- local audio playback and Web Audio analysis;
-- Enhanced LRC parsing and fallback timing;
-- deterministic timestamp-derived word/glyph motion;
-- Auto Director;
-- Poster/Neon/Vortex scene families;
-- camera impulses;
-- procedural particles/geometry;
-- custom scene-aware GPU post-FX;
-- high-end HUD with `Ctrl + Shift + H` visibility control.
+### React application
+
+`apps/web` is the new application shell using the same dependency family already proven in RhymeLab:
+
+- React 19.3.0;
+- Vite 8.3.0;
+- Zustand 5.0.15;
+- TanStack Query 5.103.1;
+- Motion 13.4.0;
+- Base UI 1.8.0 available for accessible primitives;
+- TanStack Virtual available for future measured large-list needs;
+- Vitest 5.0.1.
+
+The existing player/HUD has been ported. Per-frame audio/renderer work remains imperative and bypasses React state.
+
+### Electron desktop
+
+`apps/desktop` starts the same E-MO server on an ephemeral loopback port and loads the same built React app. Security configuration:
+
+- `contextIsolation: true`;
+- `nodeIntegration: false`;
+- renderer sandbox enabled;
+- native directory selection only through preload IPC.
+
+The directory picker updates the server's project root and returns the new discovered project list. Packaging config defines Windows NSIS and portable x64 targets.
 
 ## Important files / entry points
 
 | Path | Why it matters |
 |---|---|
-| `docs/PLATFORM_ARCHITECTURE.md` | authoritative cross-platform stack and boundaries |
-| `docs/DECISIONS.md` | ADRs, including platform decision |
-| `src/main.ts` | current monolithic app orchestration to be split |
-| `src/audio/AudioEngine.ts` | current browser audio adapter |
-| `src/lyrics/ELRCParser.ts` | first engine-core extraction candidate |
-| `src/core/MasterClock.ts` | evolve behind a generic Clock contract |
-| `src/core/SceneDirector.ts` | engine-core candidate |
-| `src/render/EngineRenderer.ts` | renderer-pixi entry candidate |
-| `src/render/CinematicPostFX.ts` | renderer-pixi custom filter |
-| `src/effects/typography/KineticLyrics.ts` | renderer-pixi typography |
-| `src/effects/backgrounds/CinematicBackground.ts` | renderer-pixi backgrounds |
+| `apps/web/src/App.tsx` | React player/app orchestration |
+| `apps/web/src/store.ts` | low-frequency UI/session state only |
+| `apps/server/src/server.ts` | shared hosted/Desktop loopback server |
+| `apps/desktop/src/main.ts` | Electron privileged process |
+| `apps/desktop/src/preload.ts` | narrow typed Desktop bridge |
+| `packages/engine-core/src/clock.ts` | live/export timing abstraction |
+| `packages/platform-node/src/index.ts` | root confinement/project discovery |
+| `packages/renderer-pixi/src/render/EngineRenderer.ts` | frame-critical rendering |
+| `docs/PLATFORM_ARCHITECTURE.md` | authoritative architecture |
 
-## Decisions already made
+## Known risks / pending acceptance
 
-- ADR-001: playback clock owns synchronized live time.
-- ADR-002: PixiJS owns frame-critical rendering; UI framework stays outside.
-- ADR-003: GSAP is not an engine dependency.
-- ADR-004: licensing mirrors RhymeLab.
-- ADR-005: React/Vite + PixiJS + Node + Electron cross-platform baseline.
-
-## Target package/app shape
-
-```text
-apps/
-  web/
-  desktop/
-  server/
-
-packages/
-  engine-core/
-  renderer-pixi/
-  audio-web/
-  platform-web/
-  platform-node/
-  app-contracts/
-```
-
-This migration should be incremental. Do not perform a large rewrite that loses the already verified v0.3 behavior.
-
-## Next concrete work
-
-1. Add npm workspaces and scaffold the package/app boundaries.
-2. Pin the React app stack to the RhymeLab baseline where compatible.
-3. Move Enhanced LRC types/parser, math, timing contracts and SceneDirector into `engine-core`.
-4. Move Pixi renderer/effects into `renderer-pixi`.
-5. Wrap HTMLAudio/Web Audio as `audio-web`.
-6. Define `AssetSource`, `ProjectSource`, `Clock`, and typed platform contracts.
-7. Build the hosted Node project-root adapter.
-8. Build the secure Electron main/preload directory adapter.
-9. Resume render-graph/editor work only after the same baseline runs through the new boundaries.
+- Electron packaging configuration compiles but a real Windows NSIS/portable artifact still requires a packaging smoke test.
+- The React HUD needs owner visual acceptance; automated type/build tests do not prove presentation quality.
+- Safari and codec-specific M4A behavior remain real-device work.
+- The legacy root Vite app remains intentionally until the React cutover is accepted.
+- No lockfile is committed yet.
+- Current post-FX remains single-pass; ping-pong feedback/RenderTexture composition is postponed until platform cutover acceptance.
 
 ## Verification
 
-During extraction, every migration chunk must keep:
+Automated repository gate:
 
 ```text
+npm install --ignore-scripts --no-audit --no-fund
 npm run typecheck
 npm run build
+npm test
 python scripts/repo_audit.py
 ```
 
-Add package tests as modules move. Visual smoke tests must still cover audio/LRC load, seek, mode switching, post-FX, fullscreen, and `Ctrl + Shift + H`.
+Hosted smoke flow:
 
-## Important context / traps
+```text
+npm run build
+node apps/server/dist/index.js --root /path/to/projects
+```
 
-- Electron renderer must not have `nodeIntegration`; use typed preload IPC.
-- Server/Electron filesystem reads must be confined below a configured root.
-- React/Zustand/TanStack are control-plane/application tools, not a 60-FPS render state bus.
-- Motion is for UI transitions, not lyric/camera/particle animation.
-- Do not introduce Next.js/Tauri/Tailwind/FFmpeg/Three.js as baseline dependencies without reopening the corresponding architecture decision.
+Then open the printed loopback URL and verify project discovery/media seeking.
+
+Desktop development flow after a normal install that permits Electron's install script:
+
+```text
+npm run build
+npm --workspace @graph1ks/emo-desktop start -- --root /path/to/projects
+```
+
+Windows packaging target:
+
+```text
+npm run desktop:dist
+```
+
+## Next concrete work
+
+1. Merge PR #4 after final green CI.
+2. Visual/browser acceptance of React player.
+3. Windows Electron packaging smoke test.
+4. Make React/server surfaces canonical and delete old root UI only in a dedicated cleanup.
+5. Resume multi-pass RenderTexture/post-FX architecture.
+6. Begin editor/timeline work only on top of the accepted app/platform boundaries.
 
 ## Resume instruction
 
-Read in order:
-
-1. `AGENTS.md`
-2. `PROJECT.md`
-3. `STATUS.md`
-4. this file
-5. `docs/PLATFORM_ARCHITECTURE.md`
-6. `docs/DECISIONS.md`
-
-Then inspect current branches/CI before moving code.
+Read `AGENTS.md`, `PROJECT.md`, `STATUS.md`, this file, `docs/PLATFORM_ARCHITECTURE.md`, and `docs/DECISIONS.md`. Then inspect PR #4/current main CI before changing code.
