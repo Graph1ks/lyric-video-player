@@ -63,11 +63,11 @@
 - waveform and spectrum ribbons — complete baseline
 - sparks / trails — complete baseline
 - recursive typography backgrounds — complete baseline
-- Editorial art-direction world — active candidate
-- Print / halftone art-direction world — active candidate
-- Architecture art-direction world — active candidate
-- Aurora ribbon art-direction world — active candidate
-- generic ambient particles suppressed for dedicated art worlds — active candidate
+- Editorial art-direction world — complete baseline
+- Print / halftone art-direction world — complete baseline
+- Architecture art-direction world — complete baseline
+- Aurora ribbon art-direction world — complete baseline
+- generic ambient particles suppressed for dedicated art worlds — complete baseline
 
 ## Cross-cutting v0.8 — Composition + Color Direction — complete baseline
 - typography composition separated from glyph motion

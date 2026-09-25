@@ -126,7 +126,7 @@ Before adding more worlds, enforce the constraints every world must respect:
 
 See `docs/VISUAL_READABILITY_COLOR_RULES.md`.
 
-## Step 4 — Visual World Expansion — active candidate
+## Step 4 — Visual World Expansion — active expansion
 
 Move from effect variants to distinct art-direction worlds:
 
@@ -143,7 +143,7 @@ Move from effect variants to distinct art-direction worlds:
 
 Every world must declare which palette roles it consumes and its readability budget.
 
-**Implemented candidate baseline:**
+**Implemented baseline:**
 
 - Editorial — edge plates/bars/framing;
 - Print — halftone field + print texture;

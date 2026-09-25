@@ -1,13 +1,13 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `df04c773b08c19b80e4f1b823ba60acc817b0b69`  
-**Active candidate:** `feature/art-direction-worlds-v0.8`  
+**Last known good merged baseline:** `4f6f5420a137839584cb622e3ef9c78c7fb5402a`  
+**Active candidate:** none  
 **Current phase/milestone:** v0.8 lyric-scene composition + color direction
 
 ## Current objective
 
-Land the first genuinely distinct Step 4 art-direction worlds on top of the merged readability, composition-motion and color-direction contracts.
+Visually accept and tune the merged Step 4 art-direction worlds, then add only genuinely missing visual grammars.
 
 ## Current state
 
@@ -53,7 +53,7 @@ Land the first genuinely distinct Step 4 art-direction worlds on top of the merg
 - Color Director adds lyric-oriented mood presets: Tender, Heartbreak, Longing, Euphoria, Rage, Dream, Tension and Calm.
 - Dark background roles are now deliberately near-neutral/low-chroma to prevent persistent muddy brown fields.
 - Optional Rainbow Drift rotates hue slowly from explicit lyric time while primary text/background remain restrained.
-- Active Step 4 candidate adds four large-scale **Art Direction Worlds**:
+- Step 4 now includes four merged large-scale **Art Direction Worlds**:
   - Editorial — asymmetric plates, bars and framing marks;
   - Print — halftone field, print bands and registration-like texture;
   - Architecture — nested frames, vanishing-point guides and pillars;
@@ -64,6 +64,9 @@ Land the first genuinely distinct Step 4 art-direction worlds on top of the merg
 
 ## Last verified checks
 
+- Art Direction Worlds: Linux install/typecheck/build/tests/publication audit — passed.
+- Art Direction Worlds: Windows full build, NSIS packaging, portable x64 packaging and artifact upload — passed.
+
 - v0.8 Composition + Palette: Linux install/typecheck/build/tests/publication audit — passed.
 - v0.8 Composition + Palette: Windows full build, NSIS packaging, portable x64 packaging and artifact upload — passed.
 - Composition Motion: Linux install/typecheck/build/tests/publication audit — passed.
@@ -73,8 +76,8 @@ Land the first genuinely distinct Step 4 art-direction worlds on top of the merg
 
 ## Next concrete action
 
-1. Get the four-world Step 4 candidate green on Linux + Windows and visually accept it on real tracks.
-2. Tune composition/layout/grammar combinations on real Enhanced LRC tracks and narrow/mobile viewports.
+1. Visually accept Editorial / Print / Architecture / Aurora on real Enhanced LRC tracks.
+2. Tune composition/layout/grammar combinations on narrow/mobile viewports.
 3. Add only genuinely distinct next worlds (volumetric light, collage/cutout, 2.5D/image treatment) after the first four pass visual acceptance.
 4. Finish remaining typography primitives.
 5. Stabilize serializable scene-stack directives before editor work.
