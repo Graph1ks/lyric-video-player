@@ -9,6 +9,8 @@ import {
   hexColorToCss,
   type BackgroundPreset,
   type BackgroundPresetId,
+  type ColorCanvasId,
+  type ColorCanvasMode,
   type ColorHarmonyId,
   type ColorHarmonyMode,
   type ColorMoodId,
@@ -70,6 +72,14 @@ const COMPOSITION_MOTIONS: CompositionMotionPreset[] = [
   "camera-handoff",
   "portal",
   "panel",
+];
+
+const COLOR_CANVASES: ColorCanvasMode[] = [
+  "auto",
+  "night",
+  "paper",
+  "color-field",
+  "poster",
 ];
 
 const COLOR_MOODS: ColorMoodMode[] = [
@@ -143,6 +153,7 @@ export function App() {
   const backgroundPreset = useUiStore(state => state.backgroundPreset);
   const colorHarmony = useUiStore(state => state.colorHarmony);
   const colorMood = useUiStore(state => state.colorMood);
+  const colorCanvas = useUiStore(state => state.colorCanvas);
   const colorFlow = useUiStore(state => state.colorFlow);
   const syncMs = useUiStore(state => state.syncMs);
   const projectDrawerOpen = useUiStore(state => state.projectDrawerOpen);
@@ -156,6 +167,7 @@ export function App() {
   const setBackgroundPreset = useUiStore(state => state.setBackgroundPreset);
   const setColorHarmony = useUiStore(state => state.setColorHarmony);
   const setColorMood = useUiStore(state => state.setColorMood);
+  const setColorCanvas = useUiStore(state => state.setColorCanvas);
   const setColorFlow = useUiStore(state => state.setColorFlow);
   const setSyncMs = useUiStore(state => state.setSyncMs);
   const setProjectDrawerOpen = useUiStore(state => state.setProjectDrawerOpen);
@@ -168,6 +180,7 @@ export function App() {
   const [activeBackground, setActiveBackground] = useState<BackgroundPresetId>("nebula");
   const [activeHarmony, setActiveHarmony] = useState<ColorHarmonyId>("split-complement");
   const [activeMood, setActiveMood] = useState<ColorMoodId>("dream");
+  const [activeCanvas, setActiveCanvas] = useState<ColorCanvasId>("color-field");
   const [activePalette, setActivePalette] = useState<VisualPalette | null>(null);
   const [hasContent, setHasContent] = useState(false);
   const [playing, setPlaying] = useState(false);
@@ -223,6 +236,7 @@ export function App() {
       if (disposed) return;
       setActiveHarmony(palette.resolvedHarmony);
       setActiveMood(palette.resolvedMood);
+      setActiveCanvas(palette.resolvedCanvas);
       setActivePalette(palette);
     });
 
@@ -278,6 +292,7 @@ export function App() {
       renderer.setBackgroundPreset(useUiStore.getState().backgroundPreset);
       renderer.setColorHarmony(useUiStore.getState().colorHarmony);
       renderer.setColorMood(useUiStore.getState().colorMood);
+      renderer.setColorCanvas(useUiStore.getState().colorCanvas);
       renderer.setColorFlow(useUiStore.getState().colorFlow);
       renderer.setIntensity(useUiStore.getState().intensity);
       renderer.setQuality(useUiStore.getState().quality);
@@ -334,6 +349,10 @@ export function App() {
   useEffect(() => {
     rendererRef.current?.setColorMood(colorMood);
   }, [colorMood]);
+
+  useEffect(() => {
+    rendererRef.current?.setColorCanvas(colorCanvas);
+  }, [colorCanvas]);
 
   useEffect(() => {
     rendererRef.current?.setColorFlow(colorFlow);
@@ -403,6 +422,10 @@ export function App() {
         const current = useUiStore.getState().colorMood;
         const index = COLOR_MOODS.indexOf(current);
         setColorMood(COLOR_MOODS[(index + 1) % COLOR_MOODS.length]);
+      } else if (event.code === "KeyV") {
+        const current = useUiStore.getState().colorCanvas;
+        const index = COLOR_CANVASES.indexOf(current);
+        setColorCanvas(COLOR_CANVASES[(index + 1) % COLOR_CANVASES.length]);
       } else if (event.code === "KeyR") {
         const current = useUiStore.getState().colorFlow;
         setColorFlow(current === "rainbow" ? "static" : "rainbow");
@@ -412,7 +435,7 @@ export function App() {
 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [setBackgroundPreset, setColorFlow, setColorHarmony, setColorMood, setCompositionMotion, setHudVisible, setMode, setSyncMs, setTypographyLayout, setTypographyPreset]);
+  }, [setBackgroundPreset, setColorCanvas, setColorFlow, setColorHarmony, setColorMood, setCompositionMotion, setHudVisible, setMode, setSyncMs, setTypographyLayout, setTypographyPreset]);
 
   useEffect(() => {
     const onDragEnter = (event: DragEvent) => {
@@ -547,6 +570,7 @@ export function App() {
       if (defaults?.backgroundPreset !== undefined) setBackgroundPreset(defaults.backgroundPreset);
       if (defaults?.colorHarmony !== undefined) setColorHarmony(defaults.colorHarmony);
       if (defaults?.colorMood !== undefined) setColorMood(defaults.colorMood);
+      if (defaults?.colorCanvas !== undefined) setColorCanvas(defaults.colorCanvas);
       if (defaults?.colorFlow !== undefined) setColorFlow(defaults.colorFlow);
       if (defaults?.syncMs !== undefined) {
         syncRef.current = defaults.syncMs;
@@ -755,6 +779,25 @@ export function App() {
             </button>
           </div>
 
+          <div className="canvas-control">
+            <div className="control-heading">
+              <span>COLOR CANVAS</span>
+              <b>{activeCanvas.replaceAll("-", " ").toUpperCase()}</b>
+            </div>
+            <div className="canvas-grid" role="group" aria-label="Color canvas style">
+              {COLOR_CANVASES.map(value => (
+                <button
+                  key={value}
+                  className={`canvas-button ${colorCanvas === value ? "is-active" : ""}`}
+                  onClick={() => setColorCanvas(value)}
+                  title={value === "auto" ? "Auto canvas style · V" : `${value} canvas style`}
+                >
+                  {value.replaceAll("-", " ").toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="harmony-control">
             <div className="control-heading">
               <span>COLOR HARMONY</span>
@@ -857,7 +900,7 @@ export function App() {
             ))}
           </div>
 
-          <div className="director-footnote">Scene AUTO directs the visual family. Typography, Composition, Motion, Background, Lyric Mood and OKLCH Harmony can AUTO-direct per line. T/L/G/B/E/C cycle them; R toggles slow Rainbow Drift.</div>
+          <div className="director-footnote">Scene AUTO directs the visual family. Typography, Composition, Motion, Background, Lyric Mood, Color Canvas and OKLCH Harmony can AUTO-direct. T/L/G/B/E/V/C cycle them; R toggles slow Rainbow Drift.</div>
         </aside>
 
         <section className={`empty-state ${hasContent ? "is-dismissed" : ""}`}>

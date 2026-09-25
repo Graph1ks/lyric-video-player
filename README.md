@@ -28,7 +28,8 @@ Frame-critical motion remains outside React. PixiJS, Web Audio and the E-MO cloc
 - composition motion grammar: Handoff, Conveyor, Anchor Build, Collapse, Takeover, Flip, Camera Handoff, Portal and Panel
 - OKLCH palette director with Split Complement, Analogous, Complement, Triad, Tetrad and Monochrome harmonies
 - lyric mood palettes: Tender, Heartbreak, Longing, Euphoria, Rage, Dream, Tension and Calm
-- slow deterministic Rainbow Drift for accent/glow hue movement
+- slow deterministic Rainbow Drift for coherent hue movement
+- Color Canvas modes: Auto, Night, Paper, Color Field and Poster
 - central attention-field composition with collision-aware readable word placement
 - background presets: Cinematic, Nebula, Grid, Starfield, Rays, Vortex, Liquid, Spectrum, Sparks, Recursive Lyrics, Minimal, Editorial, Print, Architecture and Aurora
 - Poster / Neon / Vortex visual families
@@ -102,6 +103,7 @@ See `docs/PLATFORM_ARCHITECTURE.md` and `docs/DECISIONS.md`.
 | `B` | cycle background preset |
 | `C` | cycle OKLCH color harmony |
 | `E` | cycle lyric color mood |
+| `V` | cycle Color Canvas (Night / Paper / Color Field / Poster) |
 | `R` | toggle slow Rainbow Drift |
 | `,` / `.` | lyric sync -/+ 50 ms |
 | `Esc` | restore hidden HUD |
@@ -116,6 +118,25 @@ npm run typecheck
 npm run build
 npm test
 ```
+
+## Local development
+
+Normal development starts the **Node runtime first**, waits for `/api/runtime`, and only then starts Vite:
+
+```bash
+npm run dev
+```
+
+Default addresses:
+
+```text
+runtime  http://127.0.0.1:3040
+web      http://127.0.0.1:5173
+```
+
+The default `projects/` directory is created automatically. `npm run dev:web` is intentionally web-only and requires an already-running runtime; using it alone will produce Vite proxy `ECONNREFUSED` messages.
+
+See `docs/DEVELOPMENT_RUNTIME.md` for root overrides and split-process commands.
 
 ## Hosted project-root mode
 
@@ -158,7 +179,7 @@ The desktop renderer has no Node integration. Native directory selection is expo
 
 ## Near-term work
 
-1. visually validate collision-safe composition + mood/rainbow color direction on real tracks
+1. visually validate Color Canvas AUTO transitions + mood/rainbow color direction on real tracks
 2. visually accept the new Editorial / Print / Architecture / Aurora art-direction worlds on real tracks
 3. complete the remaining typography families: soft-3D/inflate, brush/stroke reveal and dissolve/smear exits
 4. add scene-stack serialization and per-section visual directives

@@ -49,6 +49,7 @@ export type ProjectColorMood =
   | "tension"
   | "calm";
 export type ProjectColorFlow = "static" | "rainbow";
+export type ProjectColorCanvas = "auto" | "night" | "paper" | "color-field" | "poster";
 export type ProjectBackgroundPreset =
   | "auto"
   | "cinematic"
@@ -77,6 +78,7 @@ export interface EmoProjectDefaults {
   backgroundPreset?: ProjectBackgroundPreset;
   colorHarmony?: ProjectColorHarmony;
   colorMood?: ProjectColorMood;
+  colorCanvas?: ProjectColorCanvas;
   colorFlow?: ProjectColorFlow;
   syncMs?: number;
 }

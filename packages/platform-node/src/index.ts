@@ -8,6 +8,7 @@ import type {
   ProjectAssetKind,
   ProjectDescriptor,
   ProjectBackgroundPreset,
+  ProjectColorCanvas,
   ProjectColorFlow,
   ProjectColorHarmony,
   ProjectColorMood,
@@ -65,6 +66,13 @@ const COLOR_MOODS = new Set<ProjectColorMood>([
   "dream",
   "tension",
   "calm",
+]);
+const COLOR_CANVASES = new Set<ProjectColorCanvas>([
+  "auto",
+  "night",
+  "paper",
+  "color-field",
+  "poster",
 ]);
 const COLOR_FLOWS = new Set<ProjectColorFlow>(["static", "rainbow"]);
 const COLOR_HARMONIES = new Set<ProjectColorHarmony>([
@@ -221,6 +229,16 @@ function parseDefaults(value: unknown): EmoProjectDefaults | undefined {
       throw new Error("E-MO manifest defaults.colorMood is invalid");
     }
     defaults.colorMood = input.colorMood as ProjectColorMood;
+  }
+
+  if (input.colorCanvas !== undefined) {
+    if (
+      typeof input.colorCanvas !== "string"
+      || !COLOR_CANVASES.has(input.colorCanvas as ProjectColorCanvas)
+    ) {
+      throw new Error("E-MO manifest defaults.colorCanvas is invalid");
+    }
+    defaults.colorCanvas = input.colorCanvas as ProjectColorCanvas;
   }
 
   if (input.colorFlow !== undefined) {

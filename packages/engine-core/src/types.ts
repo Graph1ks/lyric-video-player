@@ -92,6 +92,8 @@ export type ColorMoodId =
   | "calm";
 export type ColorMoodMode = "auto" | ColorMoodId;
 export type ColorFlowMode = "static" | "rainbow";
+export type ColorCanvasId = "night" | "paper" | "color-field" | "poster";
+export type ColorCanvasMode = "auto" | ColorCanvasId;
 
 export interface VisualSettings {
   mode: VisualMode;
@@ -104,6 +106,7 @@ export interface VisualSettings {
   colorHarmony?: ColorHarmonyMode;
   colorMood?: ColorMoodMode;
   colorFlow?: ColorFlowMode;
+  colorCanvas?: ColorCanvasMode;
 }
 
 export interface AudioBands {

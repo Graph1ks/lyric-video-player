@@ -80,7 +80,9 @@ The audio/LRC clock remains authoritative. All automatic layout, palette and mot
 - React harmony controls + palette preview;
 - project default serialization.
 
-**Implemented baseline:** OKLCH conversion/gamut reduction, six harmony families, semantic palette roles, contrast checks, shared primary typography/background palette, React preview/control, project defaults and tests.
+**Implemented baseline:** OKLCH conversion/gamut reduction, six harmony families, semantic palette roles, contrast checks, emotion-named mood presets, shared primary typography/background palette, React preview/control, project defaults and tests.
+
+**Active color-variety extension:** add an independent Color Canvas axis — Night, Paper, Color Field and Poster — so mood/harmony no longer imply one dark-canvas/light-type polarity. AUTO holds a canvas for a short multi-line chapter, and Rainbow Drift remains one coherent moving palette rather than simultaneous rainbow colors.
 
 **Acceptance:** changing harmony changes the whole scene coherently while primary lyric text remains clearly readable against the generated background.
 
