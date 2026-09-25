@@ -254,6 +254,48 @@ test("minimum fidelity floor locks cinematic and liquid to authored rendering sy
 });
 
 
+
+test("spectrum and sparks meet the dedicated fidelity floor", async () => {
+  const [background, spectrum, sparks] = await Promise.all([
+    source("packages/renderer-pixi/src/effects/backgrounds/CinematicBackground.ts"),
+    source("packages/renderer-pixi/src/effects/backgrounds/LegacySpectrumWorld.ts"),
+    source("packages/renderer-pixi/src/effects/backgrounds/LegacySparksWorld.ts"),
+  ]);
+
+  assert.match(background, /"cinematic",\s*\n\s*"liquid",\s*\n\s*"spectrum",\s*\n\s*"sparks",\s*\n\s*"vortex"/);
+  assert.match(background, /legacySpectrum\.container\.visible = this\.resolvedPreset === "spectrum"/);
+  assert.match(background, /legacySparks\.container\.visible = this\.resolvedPreset === "sparks"/);
+  assert.match(background, /legacySpectrum\.update\(time, legacyAudio, spectrum\)/);
+  assert.match(background, /legacySparks\.update\(time, legacyAudio, legacyFrame\.transientEnvelope\)/);
+  assert.match(background, /this\.sparkLayer\.visible = false/);
+  assert.match(background, /this\.spectrumLayer\.visible = false/);
+  assert.doesNotMatch(background, /this\.updateSparks\(time/);
+  assert.doesNotMatch(background, /this\.updateSpectrum\(time/);
+
+  // Spectrum: real FFT data becomes projected 3D topography, not a second minimal waveform.
+  assert.match(spectrum, /spectrum\.length >= 2/);
+  assert.match(spectrum, /A logarithmic-ish sampling curve/);
+  assert.match(spectrum, /projected spectral topography/i);
+  assert.match(spectrum, /const lanes =/);
+  assert.match(spectrum, /function project\(/);
+  assert.match(spectrum, /setPalette\(palette: VisualPalette\)/);
+  assert.doesNotMatch(spectrum, /Math\.random\(/);
+
+  // Sparks: analytic ballistic trajectories with history-derived trails.
+  assert.match(sparks, /const cycle = seed\.phase \+ time \* seed\.rate/);
+  assert.match(sparks, /const gravity =/);
+  assert.match(sparks, /const previous3 = sparkPosition/);
+  assert.match(sparks, /Transient response creates extra freshly-born emission only/);
+  assert.match(sparks, /setPalette\(palette: VisualPalette\)/);
+  assert.doesNotMatch(sparks, /Math\.random\(/);
+
+  const motionStart = sparks.indexOf("function sparkPosition(");
+  assert.ok(motionStart >= 0);
+  const motionSource = sparks.slice(motionStart);
+  assert.doesNotMatch(motionSource, /audio\.|transientEnvelope/);
+});
+
+
 test("global spatial post FX no longer turn raw audio into scene-scale motion", async () => {
   const [post, displacement, smear] = await Promise.all([
     source("packages/renderer-pixi/src/render/CinematicPostFX.ts"),
