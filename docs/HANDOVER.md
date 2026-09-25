@@ -2,12 +2,12 @@
 
 **Last updated:** 2026-09-25  
 **Merged baseline:** `8c907a70b79721fe28c77eadd8b16a205754501e`  
-**Active candidate:** none  
+**Active candidate:** `feat/elastic-tether-camera-continuity-v0.9`  
 **Current phase/milestone:** cinematic sequence direction + temporal readability
 
 ## Current objective
 
-Visually accept the merged four-grammar persistent typography baseline, then implement Elastic Tether and continuity-aware camera trajectory.
+Land Elastic Tether and a sequence-owned camera base plan while keeping audio/transient motion bounded as micro-response.
 
 ## Current implementation state
 
@@ -254,6 +254,27 @@ Directly spawning `npm.cmd` with `shell: false` is not a valid portable Windows 
 - adds an executable npm-child smoke test;
 - runs that smoke on Windows Node 22 and Node 24.
 
+## Active candidate — Elastic Tether + Camera Continuity
+
+**Elastic Tether**
+
+- adds a pure `evaluateElasticTether()` motion primitive;
+- word-level travel uses the composition entry vector instead of only per-glyph bounce;
+- deformation is anisotropic along the pull direction, followed by bounded overshoot and damped settle;
+- glyph-local elastic motion becomes secondary follow-through instead of owning the complete gesture;
+- Rapid/Burst readability budgets reduce travel, rotation and deformation but do not make the word static.
+
+**Camera continuity**
+
+- adds a pure `evaluateCinematicCameraPlan()` in engine-core;
+- inputs: Scene Mode, Establish/Develop/Accent/Release role, persistent grammar, phrase progress, active typography focus and readability pressure;
+- output: normalized pan, shot scale, rotation, impulse budget and micro-motion budget;
+- KineticLyrics provides a deterministic focus point with an end-of-word handoff toward the next word;
+- persistent grammars expose their current hero/focus point;
+- CameraRig applies the directed base shot first; bass/transient drift/impulses remain bounded micro-response;
+- Shape Build deliberately follows focus less and stays wider so its calligram framing is not destroyed;
+- Hero/Spiral/Ribbon can follow the active eye-trace more strongly.
+
 ## Important files / entry points
 
 | Path | Why it matters |
@@ -301,10 +322,10 @@ Windows packaging remains a separate required gate.
 
 ## Next concrete work
 
-1. Run real-track browser/Desktop acceptance across Spiral/Hero/Shape/Ribbon, dense lyrics and mobile.
-2. Add Elastic Tether.
-3. Add sequence-owned camera intent / eye-trace handoff.
-4. Extend visual acceptance around gaze continuity, persistent history, calligram integrity and shot-size rhythm.
+1. Verify Elastic Tether + camera plan in Linux/Windows CI.
+2. Run real-track acceptance across dense lyrics, mobile and the four persistent grammars.
+3. Extend visual acceptance around gaze continuity, tether readability and shot-size rhythm.
+4. Add section-level tension/release sequencing after camera acceptance.
 5. Stabilize serialized sequence directives after visual acceptance.
 
 ## Resume instruction

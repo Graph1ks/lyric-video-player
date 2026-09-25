@@ -10,9 +10,11 @@ import {
   easeOutElastic,
   easeOutExpo,
   evaluateCompositionMotion,
+  evaluateElasticTether,
   hash01,
   lerp,
   planTypographyComposition,
+  smoothstep,
   randomSelector,
   resolveCompositionMotion,
   resolveTypographyLayout,
@@ -181,6 +183,44 @@ export class KineticLyrics {
 
   getResolvedCompositionMotion() {
     return this.resolvedMotion;
+  }
+
+  getFocusPoint(time: number) {
+    if (!this.line || !this.words.length || this.w <= 0 || this.h <= 0) {
+      return { x: 0, y: 0 };
+    }
+
+    let index = this.findActiveWord(time);
+    if (index < 0) {
+      index = time < this.words[0].cue.start ? 0 : this.words.length - 1;
+    }
+
+    const pointFor = (wordIndex: number) => {
+      const word = this.words[Math.max(0, Math.min(this.words.length - 1, wordIndex))];
+      const localX = word.slot.x * this.mainLayer.scale.x;
+      const localY = word.slot.y * this.mainLayer.scale.y;
+      const cos = Math.cos(this.mainLayer.rotation);
+      const sin = Math.sin(this.mainLayer.rotation);
+      return {
+        x: this.mainLayer.x + localX * cos - localY * sin,
+        y: this.mainLayer.y + localX * sin + localY * cos,
+      };
+    };
+
+    const current = pointFor(index);
+    const cue = this.words[index].cue;
+    const cueProgress = clamp((time - cue.start) / Math.max(0.04, cue.end - cue.start));
+    const handoff = index < this.words.length - 1
+      ? smoothstep(0.78, 1, cueProgress)
+      : 0;
+    const next = handoff > 0 ? pointFor(index + 1) : current;
+    const x = lerp(current.x, next.x, handoff);
+    const y = lerp(current.y, next.y, handoff);
+
+    return {
+      x: clamp((x - this.w * 0.5) / Math.max(1, this.w * 0.5), -1, 1),
+      y: clamp((y - this.h * 0.5) / Math.max(1, this.h * 0.5), -1, 1),
+    };
   }
 
   setCinematicDirection(direction?: CinematicTypographyDirection) {
@@ -588,17 +628,16 @@ export class KineticLyrics {
     }
 
     if (this.resolvedPreset === "elastic") {
-      const age = context.time - ((this.words[context.wordIndex]?.cue.start ?? context.time) + glyphIndex * 0.018);
-      const bounce = dampedPulse(age, 15 + glyphIndex * 0.07, 5.1);
-      const entry = clamp((age + 0.08) / 0.48);
-      const elastic = easeOutElastic(entry);
-      const audioLift = context.audio.bass * 0.14 * (active ? 1 : 0.25) * this.intensity;
+      const age = context.time - ((this.words[context.wordIndex]?.cue.start ?? context.time) + glyphIndex * 0.014);
+      const bounce = dampedPulse(age, 17 + glyphIndex * 0.05, 7.2);
+      const entry = clamp((age + 0.055) / 0.3);
+      const audioLift = context.audio.bass * 0.06 * (active ? 1 : 0.2) * this.intensity;
       return {
-        x: sign * bounce * 6 * this.intensity,
-        y: -bounce * 19 * this.intensity,
-        rotation: sign * bounce * 0.075 * this.intensity,
-        scaleX: Math.max(0.12, 0.4 + elastic * 0.6 + bounce * 0.18 + audioLift + currentPulse),
-        scaleY: Math.max(0.12, 0.4 + elastic * 0.6 - bounce * 0.1 + currentPulse * 0.45),
+        x: sign * bounce * 2.4 * this.intensity,
+        y: -bounce * 5.5 * this.intensity,
+        rotation: sign * bounce * 0.025 * this.intensity,
+        scaleX: Math.max(0.7, 1 + bounce * 0.055 + audioLift + currentPulse * 0.42),
+        scaleY: Math.max(0.7, 1 - bounce * 0.04 + currentPulse * 0.3),
         alpha: baseAlpha * entry,
       };
     }
@@ -693,6 +732,32 @@ export class KineticLyrics {
 
   private updateWordMotion(word: WordVisual, index: number, time: number, audio: AudioBands) {
     if (!this.line) return;
+
+    if (this.resolvedPreset === "elastic") {
+      const fallbackSign = index % 2 ? 1 : -1;
+      const entryMagnitude = Math.hypot(word.entryX, word.entryY);
+      const sourceX = entryMagnitude > 12
+        ? word.entryX
+        : fallbackSign * this.w * (0.18 + (index % 3) * 0.025);
+      const sourceY = entryMagnitude > 12
+        ? word.entryY
+        : -this.h * (0.05 + (index % 2) * 0.035);
+      const tether = evaluateElasticTether({
+        time,
+        start: word.cue.start,
+        end: word.cue.end,
+        sourceX,
+        sourceY,
+        intensity: this.intensity * (1 + audio.transient * 0.12),
+        budget: this.readability.motion,
+      });
+
+      word.motion.position.set(tether.x, tether.y);
+      word.motion.rotation = tether.rotation;
+      word.motion.alpha = tether.alpha;
+      word.motion.scale.set(tether.scaleX, tether.scaleY);
+      return;
+    }
 
     const glyphOwnedEntry = this.resolvedPreset === "cascade"
       || this.resolvedPreset === "scatter"

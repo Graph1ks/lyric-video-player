@@ -2,12 +2,12 @@
 
 **Last updated:** 2026-09-25  
 **Last known good merged baseline:** `8c907a70b79721fe28c77eadd8b16a205754501e`  
-**Active candidate:** none  
+**Active candidate:** `feat/elastic-tether-camera-continuity-v0.9`  
 **Current phase/milestone:** cinematic sequence direction + temporal readability
 
 ## Current objective
 
-Visually calibrate the four merged persistent cinematic typography grammars — Spiral Depth, Hero/Echo, Shape Build and Ribbon Path — on real Enhanced LRC tracks, then continue with Elastic Tether and continuity-aware camera direction.
+Implement Elastic Tether as a readable word-level deformation/arrival grammar and move camera ownership toward phrase/shot/focus direction instead of primarily audio impulses.
 
 ## Current state
 
@@ -110,11 +110,11 @@ Visually calibrate the four merged persistent cinematic typography grammars — 
 
 ## Next concrete action
 
-1. Visually calibrate all four persistent grammars — Spiral, Hero/Echo, Shape Build and Ribbon — on real Enhanced LRC tracks and mobile.
-2. Add Elastic Tether / stretch-squeeze.
-3. Add continuity-aware camera trajectory / eye-trace handoff.
-4. Extend the cinematic acceptance matrix with gaze continuity, sequence persistence, calligram integrity and shot-scale variation.
-5. Stabilize serializable sequence directives only after those cinematic behaviors are visually accepted.
+1. Verify Elastic Tether + continuity-aware camera planning in Linux/Windows CI.
+2. Visually calibrate tether deformation and camera eye-trace on real tracks, especially Rapid/Burst lyrics.
+3. Extend the cinematic acceptance matrix with gaze continuity, sequence persistence, calligram integrity and shot-scale variation.
+4. Add section-level tension/release + shot-size sequencing after camera acceptance.
+5. Stabilize serializable sequence directives only after those behaviors are visually accepted.
 
 ## Do not redo
 

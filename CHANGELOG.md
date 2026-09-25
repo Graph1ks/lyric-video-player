@@ -45,6 +45,8 @@ Git history remains the complete technical history. This file records meaningful
 - Persistent multi-cue typography scenes with Spiral Depth and Hero/Echo rendering.
 - Shape Build calligrams with deterministic frame/ring variants and stable phrase slots.
 - Ribbon Path sequences with continuous S-curve word handoffs.
+- Elastic Tether word arrivals with directional stretch/squash, overshoot and damped settle.
+- Phrase/shot/focus-driven cinematic camera planning with bounded audio micro-response.
 
 ### Changed
 
