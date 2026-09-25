@@ -7,6 +7,7 @@ import type {
   VisualMode,
 } from "./types.js";
 import type { TypographySequenceGrammarId } from "./typographySequenceComposition.js";
+import { isAllowed, pickAllowed, type VisualAutoProfile } from "./visualAutoProfile.js";
 
 export type CinematicShotRole = "establish" | "develop" | "accent" | "release";
 
@@ -56,6 +57,8 @@ interface PhraseSpan {
 export class SceneDirector {
   private requested: VisualMode = "auto";
   private plan: DirectedScene[] = [];
+  private lines: LineCue[] = [];
+  private autoProfile?: VisualAutoProfile;
 
   setMode(mode: VisualMode) {
     this.requested = mode;
@@ -65,7 +68,17 @@ export class SceneDirector {
     return this.requested;
   }
 
+  setAutoProfile(profile?: VisualAutoProfile) {
+    this.autoProfile = profile;
+    if (this.lines.length) this.load(this.lines);
+  }
+
+  getAutoProfile() {
+    return this.autoProfile;
+  }
+
   load(lines: LineCue[]) {
+    this.lines = lines;
     const frequency = new Map<string, number>();
     for (const line of lines) {
       const key = normalize(line.text);
@@ -87,15 +100,16 @@ export class SceneDirector {
       const compactCount = phraseLines.filter(line => line.words.length <= 4 || line.text.length <= 24).length;
       const compactRatio = compactCount / Math.max(1, phraseLines.length);
 
-      const { mode, reason } = resolvePhraseScene(phrase.phraseIndex, repeated, density, compactRatio);
-      const typography = typographyFor(mode, phrase.phraseIndex);
+      const resolved = resolvePhraseScene(phrase.phraseIndex, repeated, density, compactRatio);
+      const mode = constrainScene(resolved.mode, phrase.phraseIndex, this.autoProfile);
+      const typography = typographyFor(mode, phrase.phraseIndex, this.autoProfile);
 
       for (let index = phrase.start; index <= phrase.end; index++) {
         const position = index - phrase.start;
         const length = phrase.end - phrase.start + 1;
         this.plan[index] = {
           mode,
-          reason,
+          reason: resolved.reason,
           phraseIndex: phrase.phraseIndex,
           phraseStartLine: phrase.start,
           phraseEndLine: phrase.end,
@@ -107,14 +121,14 @@ export class SceneDirector {
   }
 
   sceneFor(lineIndex: number): DirectedScene {
-    const planned = this.plan[lineIndex] ?? fallbackDirection(lineIndex);
+    const planned = this.plan[lineIndex] ?? fallbackDirection(lineIndex, this.autoProfile);
     if (this.requested === "auto") return planned;
 
     return {
       ...planned,
       mode: this.requested,
       reason: "chapter",
-      typography: typographyFor(this.requested, planned.phraseIndex),
+      typography: typographyFor(this.requested, planned.phraseIndex, this.autoProfile),
     };
   }
 }
@@ -177,9 +191,79 @@ function resolvePhraseScene(
       : { mode: "vortex", reason: "chapter" };
 }
 
-function typographyFor(mode: SceneMode, phraseIndex: number) {
+function constrainScene(
+  preferred: SceneMode,
+  phraseIndex: number,
+  profile?: VisualAutoProfile,
+): SceneMode {
+  if (isAllowed(preferred, profile?.scenes)) return preferred;
+  return pickAllowed(["neon", "poster", "vortex"], profile?.scenes, phraseIndex);
+}
+
+function typographyFor(
+  mode: SceneMode,
+  phraseIndex: number,
+  profile?: VisualAutoProfile,
+): CinematicTypographyDirection {
   const options = TYPOGRAPHY_BUNDLES[mode];
-  return options[Math.max(0, phraseIndex) % options.length];
+  const compatible = options.filter(bundle =>
+    isAllowed(bundle.typographyPreset, profile?.typographyPresets)
+    && isAllowed(bundle.layout, profile?.layouts)
+    && isAllowed(bundle.motion, profile?.motions)
+    && (!bundle.sequenceGrammar || isAllowed(bundle.sequenceGrammar, sequencePoolWithoutOff(profile))),
+  );
+
+  if (compatible.length) {
+    const bundle = compatible[Math.max(0, phraseIndex) % compatible.length];
+    return {
+      ...bundle,
+      sequenceGrammar: resolveSequence(bundle.sequenceGrammar, phraseIndex, profile),
+    };
+  }
+
+  const fallback = options[Math.max(0, phraseIndex) % options.length];
+  return {
+    family: `profile-${mode}-${phraseIndex % 4}`,
+    typographyPreset: pickAllowed(
+      options.map(bundle => bundle.typographyPreset),
+      profile?.typographyPresets,
+      phraseIndex,
+    ),
+    layout: pickAllowed(
+      options.map(bundle => bundle.layout),
+      profile?.layouts,
+      phraseIndex + 1,
+    ),
+    motion: pickAllowed(
+      options.map(bundle => bundle.motion),
+      profile?.motions,
+      phraseIndex + 2,
+    ),
+    sequenceGrammar: resolveSequence(fallback.sequenceGrammar, phraseIndex, profile),
+  };
+}
+
+function resolveSequence(
+  preferred: TypographySequenceGrammarId | undefined,
+  phraseIndex: number,
+  profile?: VisualAutoProfile,
+): TypographySequenceGrammarId | undefined {
+  const allowed = profile?.sequences;
+  if (!allowed?.length) return preferred;
+  if (preferred && allowed.includes(preferred)) return preferred;
+  if (allowed.includes("off") && (phraseIndex % 2 === 0 || allowed.length === 1)) return undefined;
+
+  const grammars = allowed.filter(
+    (value): value is TypographySequenceGrammarId => value !== "off",
+  );
+  if (!grammars.length) return undefined;
+  return grammars[Math.max(0, phraseIndex) % grammars.length];
+}
+
+function sequencePoolWithoutOff(profile?: VisualAutoProfile) {
+  return profile?.sequences?.filter(
+    (value): value is TypographySequenceGrammarId => value !== "off",
+  );
 }
 
 function shotRoleFor(position: number, length: number): CinematicShotRole {
@@ -190,16 +274,17 @@ function shotRoleFor(position: number, length: number): CinematicShotRole {
   return "develop";
 }
 
-function fallbackDirection(lineIndex: number): DirectedScene {
+function fallbackDirection(lineIndex: number, profile?: VisualAutoProfile): DirectedScene {
   const phraseIndex = Math.max(0, Math.floor(lineIndex / 3));
+  const mode = constrainScene("neon", phraseIndex, profile);
   return {
-    mode: "neon",
+    mode,
     reason: "chapter",
     phraseIndex,
     phraseStartLine: Math.max(0, lineIndex),
     phraseEndLine: Math.max(0, lineIndex),
     shotRole: "accent",
-    typography: typographyFor("neon", phraseIndex),
+    typography: typographyFor(mode, phraseIndex, profile),
   };
 }
 
