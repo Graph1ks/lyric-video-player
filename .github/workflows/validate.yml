@@ -25,7 +25,15 @@ jobs:
           node-version: "22"
 
       - name: Install dependencies
-        run: npm install --ignore-scripts --no-audit --no-fund
+        shell: bash
+        run: |
+          set -e
+          if ! npm install --ignore-scripts --no-audit --no-fund; then
+            echo "::warning::npm install hit a transient Arborist/cache failure; clearing cache and retrying once"
+            rm -rf node_modules
+            npm cache clean --force
+            npm install --ignore-scripts --no-audit --no-fund
+          fi
 
       - name: Typecheck
         run: npm run typecheck
