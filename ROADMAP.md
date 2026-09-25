@@ -142,20 +142,20 @@ See `docs/CINEMATIC_TYPOGRAPHY_DIRECTION.md`.
 
 See `docs/VISUAL_DIRECTOR_WORKSPACE.md`.
 
-## Cross-cutting v0.10.1 — Operator Output + Presentation — active
+## Cross-cutting v0.10.1 — Operator Output + Presentation — complete baseline
 
-- screen-anchored background independent from lyric camera — active candidate
-- host/fullscreen/VisualViewport render-target reflow — active candidate
-- screen-FX overscan / no visible effect boundaries — active candidate
-- high-resolution Pixi text raster baseline for hero zooms — active candidate
-- explicit Spiral / Hero-Echo / Shape Build / Ribbon Path Director controls — active candidate
-- detached Director owns player transport while open — active candidate
-- clean-output player mode while Director is detached — active candidate
-- professional readable Director type scale — active candidate
-- English / German control-plane localization — active candidate
-- Lower Third screen-space presentation layer — active candidate
-- ten Lower Third looks + Auto rotation — active candidate
-- artist/title metadata overrides + optional portrait URL/upload — active candidate
+- screen-anchored background independent from lyric camera — complete baseline
+- host/fullscreen/VisualViewport render-target reflow — complete baseline
+- screen-FX overscan / no visible effect boundaries — complete baseline
+- high-resolution Pixi text raster baseline for hero zooms — complete baseline
+- explicit Spiral / Hero-Echo / Shape Build / Ribbon Path Director controls — complete baseline
+- detached Director owns player transport while open — complete baseline
+- clean-output player mode while Director is detached — complete baseline
+- professional readable Director type scale — complete baseline
+- English / German control-plane localization — complete baseline
+- Lower Third screen-space presentation layer — complete baseline
+- ten Lower Third looks + Auto rotation — complete baseline
+- artist/title metadata overrides + optional portrait URL/upload — complete baseline
 - project persistence for Lower Third config/assets — planned with scene/project directives
 - playlist-per-song presentation plans — planned after playlist support
 

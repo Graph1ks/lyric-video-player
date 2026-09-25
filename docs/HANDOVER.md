@@ -1,13 +1,13 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `da1def09667a4c87a91240bfcf996705e2b424ef`  
-**Active candidate:** `feat/operator-render-lower-thirds-v0.10` / PR #46  
-**Current phase/milestone:** cinematic sequence direction + temporal readability
+**Merged baseline:** `13cd90f2f81e73d7675d6c285ebe80d85d34ec07`  
+**Active candidate:** none  
+**Current phase/milestone:** operator output + presentation acceptance
 
 ## Current objective
 
-Land output-safety fixes and make the detached Visual Director the actual operator console, with explicit persistent-sequence controls, bilingual readable UI and Lower Third presentation.
+Use the merged PR #46 operator-output baseline for real-display/real-track acceptance, then continue cinematic sequencing and serialization work without reopening the settled rendering/control ownership decisions.
 
 ## Current implementation state
 
@@ -306,7 +306,7 @@ PR #44 changes the control plane, not the renderer contract.
 
 See `docs/VISUAL_DIRECTOR_WORKSPACE.md`.
 
-## Active candidate — Operator output + Lower Thirds
+## Merged baseline — Operator output + Lower Thirds
 
 **Output safety**
 
@@ -392,9 +392,9 @@ Windows packaging remains a separate required gate.
 
 ## Next concrete work
 
-1. Verify PR #46 Linux/Windows CI + packaging.
-2. Manually acceptance-test fullscreen, edge safety, large type zooms, Director transport and DE/EN.
-3. Review all Lower Third looks and persistent sequence controls at real output sizes.
+1. Manually acceptance-test fullscreen, edge safety, large type zooms, Director transport and DE/EN.
+2. Review all Lower Third looks and persistent sequence controls at real output sizes.
+3. Run multi-monitor/Desktop acceptance for detached Director reopen/focus and transport synchronization.
 4. Resume cinematic real-track acceptance and section-level tension/release sequencing.
 5. Integrate PLAN/Lower Third persistence with serialized sequence directives; playlist support should reference the same per-song plan contract.
 
