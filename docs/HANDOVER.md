@@ -1,13 +1,13 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `aa691e93ad44e7f4690ca729231264e836a5f524`  
-**Active candidate:** none  
-**Current phase/milestone:** FX parity + shader-world visual acceptance
+**Merged baseline:** `e9a01d5524efff9fdc8a7e111815ea9c9003f8a5`  
+**Active candidate:** `feat/worlds-mirrorball-energy-tunnel`  
+**Current phase/milestone:** 13-world expansion — WORLD_03 + WORLD_04 shader implementation
 
 ## Current objective
 
-Verify merged PR #61 locally: factory FX reset must restore the pre-exposure cinematic balance, shipped presets must be absent, delete must require confirmation, and shader-rebuilt WORLD_01/WORLD_02 must materially improve fidelity over the rejected Graphics prototypes.
+Finish and visually accept WORLD_03 Disco Mirrorball Room and WORLD_04 Neon Energy Burst Tunnel, preserving the no-primitive-prototype fidelity rule established after WORLD_01/WORLD_02.
 
 ## Merged baseline — Resource lifetime + physical-edge safety v0.11.2
 
@@ -41,7 +41,7 @@ Runtime ownership:
 - switching the axis back to AUTO returns it to the active preset;
 - no active Performance Preset preserves the existing unrestricted AUTO behavior.
 
-The React Director adds a dedicated Presets workspace with eight authored emotion/pace profiles. Built-in profiles can be edited and reset; custom profiles can be cloned, renamed and deleted. Each allowed pool retains at least one option. Edits persist locally under a versioned local-storage key; project serialization is intentionally deferred.
+The React Director Presets workspace is now user-authored only. The previously shipped emotion/pace profiles were retired in PR #61; storage migration removes those retired IDs while preserving user-created presets. Preset deletion uses an explicit two-click confirmation.
 
 Lower Third presentation is changed from Intro/Rotate to Off/Scheduled/Always. Scheduled mode exposes song start seconds, visible duration, optional outro trigger and outro lead seconds. Show Now temporarily overrides every schedule mode.
 
@@ -79,7 +79,7 @@ Each uses 0–300%; 0% is off. The engine keeps global authored Intensity separa
 
 Preset category rows may be empty. Empty means ANY/unrestricted on that AUTO axis. FX values are independent and can be zero. A preset therefore does not have to select every family or run every effect.
 
-The built-in presets are re-authored as smaller visual vocabularies with explicit FX racks, making low-energy and high-energy profiles structurally different rather than minor variations of the same global stack.
+Performance Presets no longer ship as built-ins. User-created presets own their explicit FX rack and constrained AUTO pools.
 
 **World dynamics**
 
@@ -125,6 +125,37 @@ PR #61 restores all four contracts and adds a Director factory-reset action.
 Preset policy also changes: E-MO no longer ships authored Performance Presets. Only user-created presets remain; v1/v2 built-in IDs are stripped during local-storage migration. Delete is a two-click Director action.
 
 WORLD_01/WORLD_02 first-pass Graphics implementations are superseded by full-screen GPU fragment shaders. This was based on research into Pixi v8 custom Filters/Mesh and volumetric-light rendering. Three.js is MIT and technically capable, but adding a second renderer is not justified yet. See `docs/WORLD_RENDERING_TECH_RESEARCH.md`.
+
+## Active candidate — WORLD_03 + WORLD_04
+
+### WORLD_03 Disco Mirrorball Room
+
+File: `packages/renderer-pixi/src/effects/backgrounds/DiscoMirrorballRoomWorld.ts`
+
+- full-screen custom GPU Filter;
+- analytic sphere normal reconstruction;
+- spherical-coordinate mirror-facet quantization;
+- metallic/Fresnel shading with several colored specular light directions;
+- three differently scaled moving square-reflection layers to create dense room projections without per-tile objects;
+- floor/ceiling/side-wall depth masks, subtle room edges, hanging cable and dust;
+- bass → room/ball breath, treble → facet sparkle, transient → specular/halo lift;
+- World Detail increases facet/reflection density; World Power drives exposure/reactivity;
+- Three.js was evaluated but not added: current reference does not yet require true camera/parallax/projective reflection geometry.
+
+### WORLD_04 Neon Energy Burst Tunnel
+
+File: `packages/renderer-pixi/src/effects/backgrounds/NeonEnergyBurstTunnelWorld.ts`
+
+- full-screen custom GPU Filter;
+- logarithmic radial depth for compressed perspective tunnel ribs;
+- dense polar angular cells for stable outward speed streaks;
+- fBm/noise modulation for irregular trail density;
+- signed angular-distance electric filaments and broken arc sparks;
+- hot central aperture, magenta/blue/cyan/gold light language, anamorphic/vertical flare and ejecta;
+- bass → rush/depth cadence, treble → fine streak/electric complexity, transient → hot center and filament spikes;
+- one pass avoids per-streak display-object churn.
+
+Both are registered as specialized `BackgroundPresetId` values, suppress legacy generic world layers, expose Director miniatures and participate in unrestricted AUTO routing.
 
 ## Current implementation state
 
