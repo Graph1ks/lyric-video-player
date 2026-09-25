@@ -1,6 +1,6 @@
 # Professional Control Surface + Visual FX Rack
 
-**Status:** active candidate — `feat/pro-control-surface-fx-rack`  
+**Status:** merged baseline — PR #57 / `94e34e6609c180c07445246c69d46cc0ef9021ef`  
 **Started:** 2026-09-25  
 **Scope:** playback telemetry, web-player/Director chrome, explicit renderer FX ownership, preset semantics, and background-world dynamic range.
 

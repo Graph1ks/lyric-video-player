@@ -1,17 +1,17 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `fd13259b8608e779ac868180ad0e4095c9fd70f9`  
-**Active candidate:** `feat/pro-control-surface-fx-rack` / PR #57  
-**Current phase/milestone:** v0.13 professional control surface + explicit FX ownership
+**Last known good merged baseline:** `94e34e6609c180c07445246c69d46cc0ef9021ef`  
+**Active candidate:** none  
+**Current phase/milestone:** v0.13 pro control surface + FX rack visual acceptance
 
 ## Current objective
 
-Fix the remaining operator failures exposed after PR #55: frozen detached-Director playback telemetry, Lower Third schedules starved by that telemetry, hidden renderer effects outside preset control, insufficient preset differentiation, and background worlds with too little dynamic range.
+Visually accept merged PR #57: verify live detached-Director playback telemetry, automatic Lower Third scheduling, explicit FX ownership, differentiated presets and the full subtle→extreme background-world range on real tracks/displays.
 
 ## Current state
 
-- PR #57 rebuilds the web-player and detached-Director chrome as one restrained production-console design system with persistent transport and large playhead counters.
+- Merged PR #57 rebuilds the web-player and detached-Director chrome as one restrained production-console design system with persistent transport and large playhead counters.
 - Director playback telemetry is decoupled from the main Pixi RAF: media events plus a 125 ms heartbeat sample the authoritative HTML audio clock; the visible detached playhead interpolates locally.
 - This removes the same stale-time dependency that prevented Scheduled Lower Third windows from firing while the main player was background-throttled.
 - A new engine-core `VisualFxRack` exposes camera motion, impact/pulse, displacement, velocity smear, bloom, temporal feedback, cinematic post FX, World Power/Detail and DOM screen bloom/scanlines/grain/vignette.
@@ -178,12 +178,11 @@ Fix the remaining operator failures exposed after PR #55: frozen detached-Direct
 
 ## Next concrete action
 
-1. Finish PR #57 CI and fix any validation/Windows packaging regressions.
-2. Visually verify the detached Director counter/timeline against a real playing track with the main player backgrounded.
-3. Verify Lower Third Scheduled start + optional pre-outro trigger against real playback duration.
-4. Sweep every FX Rack control from 0 → 100 → 300% and confirm independent ownership/no hidden residual pulse or distortion.
-5. Compare Calm/Tender vs Rage/Tension and sweep World Power/Detail to confirm the intended subtle → extreme range.
-6. Then continue the longer memory acceptance run and Shape Fill/Manifesto visual acceptance.
+1. Visually verify the detached Director counter/timeline against a real playing track with the main player backgrounded.
+2. Verify Lower Third Scheduled start + optional pre-outro trigger against real playback duration.
+3. Sweep every FX Rack control from 0 → 100 → 300% and confirm independent ownership/no hidden residual pulse or distortion.
+4. Compare Calm/Tender vs Rage/Tension and sweep World Power/Detail to confirm the intended subtle → extreme range.
+5. Then continue the longer memory acceptance run and Shape Fill/Manifesto visual acceptance.
 
 ### Previous visual-acceptance queue
 

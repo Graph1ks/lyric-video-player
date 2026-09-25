@@ -1,13 +1,13 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `fd13259b8608e779ac868180ad0e4095c9fd70f9`  
-**Active candidate:** `feat/pro-control-surface-fx-rack` / PR #57  
-**Current phase/milestone:** v0.13 professional control surface + explicit FX ownership
+**Merged baseline:** `94e34e6609c180c07445246c69d46cc0ef9021ef`  
+**Active candidate:** none  
+**Current phase/milestone:** v0.13 pro control surface + FX rack visual acceptance
 
 ## Current objective
 
-Complete PR #57 and then visually verify its operator contract: the detached playhead must remain live independently of Pixi RAF throttling, Lower Third schedules must follow authoritative playback time, every major renderer effect must be directly controllable, and world/preset dynamics must span restrained through deliberately extreme.
+Visually verify merged PR #57's operator contract: the detached playhead must remain live independently of Pixi RAF throttling, Lower Third schedules must follow authoritative playback time, every major renderer effect must be directly controllable, and world/preset dynamics must span restrained through deliberately extreme.
 
 ## Merged baseline — Resource lifetime + physical-edge safety v0.11.2
 
@@ -49,7 +49,7 @@ The detached Director topbar is reflowed into operator actions + a full-width tr
 
 Detailed contract: `docs/DIRECTOR_PERFORMANCE_PRESETS.md`.
 
-## Active candidate — Professional control surface + FX ownership
+## Merged baseline — Professional control surface + FX ownership
 
 PR #57 addresses a shared root cause and an ownership problem.
 
