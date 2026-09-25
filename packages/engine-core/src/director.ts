@@ -67,7 +67,7 @@ export class SceneDirector {
       if (key) frequency.set(key, (frequency.get(key) ?? 0) + 1);
     }
 
-    const phrases = segmentPhrases(lines);
+    const phrases = segmentPhrases(lines, frequency);
     this.plan = Array.from({ length: lines.length });
 
     for (const phrase of phrases) {
@@ -112,27 +112,40 @@ export class SceneDirector {
   }
 }
 
-function segmentPhrases(lines: LineCue[]): PhraseSpan[] {
+function segmentPhrases(
+  lines: LineCue[],
+  frequency: Map<string, number>,
+): PhraseSpan[] {
   if (!lines.length) return [];
 
   const phrases: PhraseSpan[] = [];
+  const seen = new Set<string>([normalize(lines[0].text)]);
   let start = 0;
   let phraseIndex = 0;
 
   for (let index = 1; index < lines.length; index++) {
     const previous = lines[index - 1];
     const current = lines[index];
+    const currentKey = normalize(current.text);
     const gap = Math.max(0, current.start - previous.end);
     const phraseLength = index - start;
     const punctuationBreak = /[.!?…]["')\]]?$/.test(previous.text.trim());
-    const shouldBreak = gap >= 0.7
+    const recurringMotif = Boolean(
+      currentKey
+      && (frequency.get(currentKey) ?? 0) > 1
+      && seen.has(currentKey),
+    );
+    const shouldBreak = recurringMotif
+      || gap >= 0.7
       || phraseLength >= 4
       || (punctuationBreak && phraseLength >= 2);
 
-    if (!shouldBreak) continue;
-    phrases.push({ phraseIndex, start, end: index - 1 });
-    phraseIndex += 1;
-    start = index;
+    if (shouldBreak) {
+      phrases.push({ phraseIndex, start, end: index - 1 });
+      phraseIndex += 1;
+      start = index;
+    }
+    if (currentKey) seen.add(currentKey);
   }
 
   phrases.push({ phraseIndex, start, end: lines.length - 1 });

@@ -62,3 +62,17 @@ test("manual scene mode keeps phrase continuity but rebinds a compatible typogra
   assert.equal(forcedA.typography.family, forcedB.typography.family);
   assert.match(forcedA.typography.family, /tunnel|scatter|wave/);
 });
+
+
+test("a recurring lyric motif starts a new directed phrase and keeps hook routing", () => {
+  const director = new SceneDirector();
+  director.load([
+    line(0, 1.8, "WE GO", 2),
+    line(1.8, 4.8, "longer verse line with enough words to move", 7),
+    line(4.8, 6.2, "WE GO", 2),
+  ]);
+
+  assert.notEqual(director.sceneFor(1).phraseIndex, director.sceneFor(2).phraseIndex);
+  assert.equal(director.sceneFor(2).reason, "hook");
+  assert.equal(director.sceneFor(2).mode, "vortex");
+});

@@ -183,6 +183,22 @@ export class KineticLyrics {
     return this.resolvedMotion;
   }
 
+  setCinematicDirection(direction?: CinematicTypographyDirection) {
+    const previous = this.cinematicDirection;
+    if (
+      previous?.family === direction?.family
+      && previous?.typographyPreset === direction?.typographyPreset
+      && previous?.layout === direction?.layout
+      && previous?.motion === direction?.motion
+    ) return;
+
+    this.cinematicDirection = direction;
+    this.resolvePreset();
+    this.resolveLayout();
+    this.resolveMotion();
+    if (this.line) this.rebuild(false);
+  }
+
   setPalette(palette: VisualPalette, refreshStatic = true) {
     this.palette = palette;
     if (this.line && refreshStatic) {
