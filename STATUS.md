@@ -1,13 +1,13 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `947d2c28c46c6898a6ca0e0b87eb154d971d8c7c`  
-**Active candidate:** `feat/director-performance-presets`  
-**Current phase/milestone:** curated AUTO Performance Presets + operator-control cleanup
+**Last known good merged baseline:** `f359c94c24b7d0d9fe30fbe833c9e618af97c953`  
+**Active candidate:** none  
+**Current phase/milestone:** v0.12 Director Performance Preset visual acceptance
 
 ## Current objective
 
-Reduce uncontrolled AUTO combinatorics by introducing editable emotion/pace Performance Presets, then complete the requested Lower Third scheduler and detached-Director/player-HUD control fixes without removing any existing manual visual axis.
+Visually accept merged PR #55: verify that curated emotion/pace Performance Presets produce deliberately narrower AUTO vocabularies, preset editing updates live, Lower Third scheduling behaves correctly, and the repaired detached Director transport remains ergonomic.
 
 ## Current state
 
@@ -27,7 +27,7 @@ Reduce uncontrolled AUTO combinatorics by introducing editable emotion/pace Perf
 - Ordinary and persistent typography expose deterministic focus points. Current-line focus begins handing off toward the next word near cue end.
 - CameraRig now treats bass/transient drift as bounded micro-response layered over the directed shot rather than the primary framing source.
 - Shape Fill deliberately stays wider and follows focus less; Manifesto Wall follows active wall focus more strongly while keeping micro-motion bounded.
-- The Visual Director candidate adds a dedicated **Presets** section ahead of the existing Scene, Type, Motion, World, Color, Titles and System sections.
+- Merged PR #55 adds a dedicated **Presets** section ahead of the existing Scene, Type, Motion, World, Color, Titles and System sections.
 - Performance Presets constrain AUTO rather than freezing one look: permitted scene/type/sequence/layout/motion/world/mood/canvas/harmony pools remain deterministic and manually overridable.
 - Eight curated emotion/pace profiles are included: Tender/Slow, Heartbreak/Slow, Longing/Midtempo, Dream/Midtempo, Calm/Slow, Euphoria/Fast, Rage/Fast and Tension/Burst.
 - Built-in preset pools are editable/resettable; custom presets can be cloned, renamed and deleted. Preset edits are local browser/Electron preferences for this milestone, not yet part of `emo.project/v1`.
@@ -48,7 +48,7 @@ Reduce uncontrolled AUTO combinatorics by introducing editable emotion/pace Perf
 - When the detached Director is open, the player becomes a clean output monitor; transport/file/fullscreen controls move to the Director topbar and command the main AudioEngine/Clock.
 - Director UI has a DE/EN language switch and a professional readability pass replacing micro-font-heavy controls.
 - Lower Thirds are a separate screen-space layer with ten visual presets, metadata overrides and optional linked/uploaded artist image.
-- The active candidate replaces Intro/Rotate scheduling with Off / Scheduled / Always. Scheduled defaults to a configurable appearance around 10s into the song, supports configurable visible duration, optional pre-outro replay, and a manual Show Now trigger.
+- Merged PR #55 replaces Intro/Rotate scheduling with Off / Scheduled / Always. Scheduled defaults to a configurable appearance around 10s into the song, supports configurable visible duration, optional pre-outro replay, and a manual Show Now trigger.
 - Output/operator contract is `docs/OPERATOR_OUTPUT_LOWER_THIRDS.md`.
 - Merged PR #48 adds **Shape Fill**: phrase-stable packed silhouettes using Tree, Star and Human/Figure masks. Words occupy interior slots rather than tracing a border.
 - Shape Fill slots expose explicit text-fit boxes so Pixi can respect actual font metrics while the layout remains pure and deterministic.
@@ -168,10 +168,10 @@ Reduce uncontrolled AUTO combinatorics by introducing editable emotion/pace Perf
 
 ## Next concrete action
 
-1. Validate/typecheck/build/test the Performance Preset candidate and fix any integration regressions.
-2. Visually exercise each curated preset and edit its allowed pools live; confirm unrestricted AUTO remains the compatibility fallback.
-3. Verify Lower Third Scheduled/Always/Off + manual/outro triggers against real playback duration.
-4. Verify detached Director player controls at common desktop widths and the main HUD button border.
+1. Visually exercise each merged curated preset and edit its allowed pools live; confirm unrestricted AUTO remains the compatibility fallback.
+2. Verify Lower Third Scheduled/Always/Off + manual/outro triggers against real playback duration.
+3. Verify detached Director player controls at common desktop widths and the main HUD button border.
+4. Continue a longer memory acceptance run; the reported memory behavior is improved after PR #53, while the physical-edge artifact has been visually accepted as fixed.
 5. Then return to Shape Fill/Manifesto visual acceptance and the remaining cinematic sequencing work.
 
 ### Previous visual-acceptance queue
