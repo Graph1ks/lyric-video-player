@@ -86,6 +86,8 @@ export const BACKGROUND_CATALOG: DirectorCatalogItem<BackgroundPreset>[] = [
   { value: "rays", label: "Rays", description: "Directional light architecture", preview: "world-rays" },
   { value: "prism-stage-beams", label: "Prism Stage Beams", description: "Volumetric rainbow stage-light fan with a bright central rig", preview: "world-prism-stage-beams" },
   { value: "laser-canopy-grid", label: "Laser Canopy Grid", description: "Crisp red/cyan laser architecture from overhead rig to floor", preview: "world-laser-canopy-grid" },
+  { value: "disco-mirrorball-room", label: "Disco Mirrorball Room", description: "Faceted mirrorball in a dark room flooded with moving colored reflections", preview: "world-disco-mirrorball-room" },
+  { value: "neon-energy-burst-tunnel", label: "Neon Energy Burst Tunnel", description: "High-velocity neon warp tunnel with electric filaments and radial light trails", preview: "world-neon-energy-burst-tunnel" },
   { value: "vortex", label: "Vortex", description: "Rotational depth and pull", preview: "world-vortex" },
   { value: "liquid", label: "Liquid", description: "Procedural fluid movement", preview: "world-liquid" },
   { value: "spectrum", label: "Spectrum", description: "Audio-shaped bands and ribbons", preview: "world-spectrum" },
