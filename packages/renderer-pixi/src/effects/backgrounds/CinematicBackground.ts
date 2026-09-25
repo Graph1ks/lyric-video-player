@@ -25,6 +25,7 @@ import { LegacyRaysWorld } from "./LegacyRaysWorld.js";
 import { LegacyStarfieldWorld } from "./LegacyStarfieldWorld.js";
 import { LegacyNebulaWorld } from "./LegacyNebulaWorld.js";
 import { LegacyGridWorld } from "./LegacyGridWorld.js";
+import { LegacyCinematicWorld } from "./LegacyCinematicWorld.js";
 
 const EMPTY_SPECTRUM = new Float32Array(0);
 
@@ -61,6 +62,8 @@ const ART_DIRECTION_PRESETS = new Set<BackgroundPresetId>([
 ]);
 
 const SPECIALIZED_WORLD_PRESETS = new Set<BackgroundPresetId>([
+  "cinematic",
+  "liquid",
   "vortex",
   "rays",
   "starfield",
@@ -94,6 +97,7 @@ export class CinematicBackground {
   private legacyStarfield = new LegacyStarfieldWorld();
   private legacyNebula = new LegacyNebulaWorld();
   private legacyGrid = new LegacyGridWorld();
+  private legacyCinematic = new LegacyCinematicWorld();
   private liquidSurface = new Graphics();
   private liquidFX = new ProceduralLiquidFX();
   private geometry = new Graphics();
@@ -145,6 +149,7 @@ export class CinematicBackground {
       this.legacyStarfield.container,
       this.legacyNebula.container,
       this.legacyGrid.container,
+      this.legacyCinematic.container,
       this.liquidSurface,
       this.lyricBackdropLayer,
       this.blobLayer,
@@ -241,6 +246,8 @@ export class CinematicBackground {
     this.legacyStarfield.setPalette(palette);
     this.legacyNebula.setPalette(palette);
     this.legacyGrid.setPalette(palette);
+    this.legacyCinematic.setPalette(palette);
+    this.liquidFX.setPalette(palette);
     this.applyModePalette();
     if (refreshStatic) this.rebuildLyricBackdrop();
   }
@@ -276,6 +283,8 @@ export class CinematicBackground {
     this.legacyStarfield.setDetail(this.worldDetail);
     this.legacyNebula.setDetail(this.worldDetail);
     this.legacyGrid.setDetail(this.worldDetail);
+    this.legacyCinematic.setDetail(this.worldDetail);
+    this.liquidFX.setDetail(this.worldDetail);
     this.applyPresetVisibility();
     this.rebuildLyricBackdrop();
   }
@@ -310,7 +319,10 @@ export class CinematicBackground {
     this.legacyNebula.setDetail(this.worldDetail);
     this.legacyGrid.setIntensity(power);
     this.legacyGrid.setDetail(this.worldDetail);
+    this.legacyCinematic.setIntensity(power);
+    this.legacyCinematic.setDetail(this.worldDetail);
     this.liquidFX.setIntensity(power);
+    this.liquidFX.setDetail(this.worldDetail);
   }
 
   setQuality(value: QualityMode) {
@@ -329,6 +341,7 @@ export class CinematicBackground {
     this.legacyStarfield.setQuality(value);
     this.legacyNebula.setQuality(value);
     this.legacyGrid.setQuality(value);
+    this.legacyCinematic.setQuality(value);
     this.liquidFX.setQuality(value);
     this.applyPresetVisibility();
   }
@@ -350,6 +363,7 @@ export class CinematicBackground {
     this.legacyStarfield.resize(w, h);
     this.legacyNebula.resize(w, h);
     this.legacyGrid.resize(w, h);
+    this.legacyCinematic.resize(w, h);
     this.redrawBase();
     this.redrawLiquidSurface();
     this.liquidFX.resize(w, h);
@@ -390,6 +404,7 @@ export class CinematicBackground {
     this.legacyStarfield.update(time, legacyAudio);
     this.legacyNebula.update(time, legacyAudio);
     this.legacyGrid.update(time, legacyAudio);
+    this.legacyCinematic.update(time, legacyAudio);
     if (this.liquidSurface.visible) this.liquidFX.update(time, legacyAudio);
     this.updateGeometry(time, legacyAudio);
     this.updateLyricBackdrop(time, legacyAudio);
@@ -447,6 +462,7 @@ export class CinematicBackground {
     this.legacyStarfield.container.visible = this.resolvedPreset === "starfield";
     this.legacyNebula.container.visible = this.resolvedPreset === "nebula";
     this.legacyGrid.container.visible = this.resolvedPreset === "grid";
+    this.legacyCinematic.container.visible = this.resolvedPreset === "cinematic";
     this.artDirection.setLineIndex(this.lineIndex);
     this.liquidSurface.visible = this.resolvedPreset === "liquid";
     this.lyricBackdropLayer.visible = this.resolvedPreset === "lyrics";
