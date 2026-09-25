@@ -44,7 +44,8 @@ export const useUiStore = create<UiState>(set => ({
   colorHarmony: "auto",
   colorMood: "auto",
   colorFlow: "static",
-  canvasTone: "auto",  syncMs: 0,
+  canvasTone: "auto",
+  syncMs: 0,
   projectDrawerOpen: false,
   setHudVisible: hudVisible => set({ hudVisible }),
   setMode: mode => set({ mode }),
@@ -57,6 +58,7 @@ export const useUiStore = create<UiState>(set => ({
   setColorHarmony: colorHarmony => set({ colorHarmony }),
   setColorMood: colorMood => set({ colorMood }),
   setColorFlow: colorFlow => set({ colorFlow }),
-  setCanvasTone: canvasTone => set({ canvasTone }),  setSyncMs: syncMs => set({ syncMs }),
+  setCanvasTone: canvasTone => set({ canvasTone }),
+  setSyncMs: syncMs => set({ syncMs }),
   setProjectDrawerOpen: projectDrawerOpen => set({ projectDrawerOpen })
 }));
