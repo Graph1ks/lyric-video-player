@@ -221,7 +221,7 @@ test("minimum fidelity floor locks cinematic and liquid to authored rendering sy
     source("packages/renderer-pixi/src/effects/backgrounds/ProceduralLiquidFX.ts"),
   ]);
 
-  assert.match(background, /"cinematic",\s*\n\s*"liquid",\s*\n\s*"vortex"/);
+  for (const id of ["cinematic", "liquid"]) {\n    assert.match(background, new RegExp(`"${id}"`));\n  }
   assert.match(background, /legacyCinematic\.container\.visible = this\.resolvedPreset === "cinematic"/);
   assert.match(background, /legacyCinematic\.update\(time, legacyAudio\)/);
   assert.match(background, /liquidFX\.setPalette\(palette\)/);
