@@ -1,15 +1,24 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `5155a18a22aa4ba691cf09edc1565c95bb979bfc`  
-**Active candidate:** none  
-**Current phase/milestone:** 13-world visualizer expansion — WORLD_01 + WORLD_02 visual acceptance
+**Last known good merged baseline:** `52c875aac3df9e89721622fd365c1d29c9ae7fb0`  
+**Active candidate:** `fix/fx-baseline-preset-cleanup-world-fidelity` / PR #61  
+**Current phase/milestone:** FX parity repair + shader-fidelity world rebuild
 
 ## Current objective
 
-Visually accept the merged first two worlds from the 13-world reference set at reference-grade fidelity: Prism Stage Beams and Laser Canopy Grid.
+Restore the original cinematic renderer balance after FX exposure, remove shipped presets, make preset deletion safe, and raise WORLD_01/WORLD_02 from primitive prototypes to GPU-shader fidelity.
 
 ## Current state
+
+- **PR #61 repairs a real post-FX regression:** the CinematicPostFX shader's final true-bypass blend referenced an undefined `source` sample. The shader now explicitly samples the untouched frame before processing.
+- Exposed FX factory defaults are restored to the pre-exposure authored balance: every formerly implicit renderer/compositor/screen layer is 100% at factory reset.
+- Background Impact/Pulse no longer gets multiplied once before `CinematicBackground` and a second time inside it.
+- DOM bloom/scanlines/grain again retain their original audio reactivity; the FX rack scales those authored behaviors instead of replacing them with static opacity.
+- Built-in Performance Presets are removed. Storage migration drops the retired built-in IDs and preserves user-created presets only.
+- Preset deletion is two-stage in the Director: Delete → Confirm Delete.
+- WORLD_01 Prism Stage Beams and WORLD_02 Laser Canopy Grid are rebuilt as full-screen custom GPU shaders. The first Graphics prototypes are superseded.
+- Pixi-vs-Three research is durable in `docs/WORLD_RENDERING_TECH_RESEARCH.md`: current conclusion is that Pixi custom Filters/Mesh are not the fidelity bottleneck; Three.js should be introduced only for worlds that measurably require a true second 3D scene/depth pipeline.
 
 - **WORLD_01 / WORLD_02 merged baseline (PR #59):** `prism-stage-beams` and `laser-canopy-grid` are first-class Background presets, selectable in Director, exposed to AUTO/presets and rendered as specialized Pixi worlds that suppress generic legacy background layers.
 - WORLD_01 uses broad additive volumetric beam polygons, hot cores, dark haze, visible fixture lenses and transient flares.
@@ -183,10 +192,11 @@ Visually accept the merged first two worlds from the 13-world reference set at r
 
 ## Next concrete action
 
-1. User locally tests Director → World → **Prism Stage Beams** and **Laser Canopy Grid** at World Power/Detail 50%, 100%, 200% and 300%.
-2. Tune beam width/bloom/fixture density and laser line density/spread from that visual feedback.
-3. Continue with WORLD_03 and WORLD_04 after the first two establish the fidelity bar.
-4. Keep the existing pro-control/Lower-Third/memory/Shape-Fill acceptance queue active after world tuning.
+1. Finish PR #61 Linux + Windows CI and merge only after all gates pass.
+2. User locally confirms that factory FX reset visually matches the richer pre-exposure baseline and that PostFX is active again.
+3. Test Prism Stage Beams and Laser Canopy Grid at 50/100/200/300% World Power + Detail and compare against the supplied references.
+4. Tune shader scattering, flare, density and laser geometry from real-display feedback.
+5. Continue with WORLD_03/WORLD_04 using the rendering-tech selection rules in `docs/WORLD_RENDERING_TECH_RESEARCH.md`.
 
 ### Previous visual-acceptance queue
 
