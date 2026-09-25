@@ -141,3 +141,31 @@ test("vertical accents are restricted to a logical edge word", () => {
   assert.equal(vertical.length, 1);
   assert.ok(vertical[0].index === 0 || vertical[0].index === plan.words.length - 1);
 });
+
+
+test("composition collision solver respects different measured word heights", () => {
+  const widths = [520, 250, 610, 290, 430];
+  const heights = [72, 164, 88, 136, 96];
+  const plan = planTypographyComposition({
+    preset: "directional-stage",
+    scene: "vortex",
+    width: 1600,
+    height: 900,
+    lineIndex: 6,
+    wordWidths: widths,
+    wordHeights: heights,
+    wordHeight: 96,
+  });
+
+  const boxes = plan.words.map((word, index) => box(word, widths[index], heights[index]));
+  for (let a = 0; a < boxes.length; a++) {
+    for (let b = a + 1; b < boxes.length; b++) {
+      const overlapX = Math.min(boxes[a].right, boxes[b].right) - Math.max(boxes[a].left, boxes[b].left);
+      const overlapY = Math.min(boxes[a].bottom, boxes[b].bottom) - Math.max(boxes[a].top, boxes[b].top);
+      assert.ok(
+        overlapX <= 2 || overlapY <= 2,
+        `measured words ${a}/${b} overlapped by ${overlapX.toFixed(1)}×${overlapY.toFixed(1)}px`,
+      );
+    }
+  }
+});
