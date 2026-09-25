@@ -59,6 +59,7 @@ export interface UiState {
   directorPlaybackSeconds: number;
   directorDurationSeconds: number;
   directorPlaying: boolean;
+  directorAudioBands: { bass: number; mid: number; treble: number };
   directorCues: DirectorCueDraft[];
 
   setHudVisible(value: boolean): void;
@@ -86,6 +87,7 @@ export interface UiState {
   setDirectorTrack(title: string, meta?: string): void;
   setDirectorPlayback(seconds: number, duration: number): void;
   setDirectorPlaying(value: boolean): void;
+  setDirectorAudioBands(value: { bass: number; mid: number; treble: number }): void;
   addDirectorCue(at: number, label?: string): void;
   removeDirectorCue(id: string): void;
   clearDirectorCues(): void;
@@ -123,6 +125,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   directorPlaybackSeconds: 0,
   directorDurationSeconds: 0,
   directorPlaying: false,
+  directorAudioBands: { bass: 0, mid: 0, treble: 0 },
   directorCues: [],
 
   setHudVisible: hudVisible => set({ hudVisible }),
@@ -161,6 +164,7 @@ export const useUiStore = create<UiState>((set, get) => ({
     directorDurationSeconds,
   }),
   setDirectorPlaying: directorPlaying => set({ directorPlaying }),
+  setDirectorAudioBands: directorAudioBands => set({ directorAudioBands }),
 
   addDirectorCue: (at, label) => {
     const state = get();
@@ -212,6 +216,7 @@ export type DirectorSharedState = Pick<
   | "directorPlaybackSeconds"
   | "directorDurationSeconds"
   | "directorPlaying"
+  | "directorAudioBands"
   | "directorCues"
 >;
 
@@ -243,6 +248,7 @@ export function directorSharedState(state: UiState): DirectorSharedState {
     directorPlaybackSeconds: state.directorPlaybackSeconds,
     directorDurationSeconds: state.directorDurationSeconds,
     directorPlaying: state.directorPlaying,
+    directorAudioBands: state.directorAudioBands,
     directorCues: state.directorCues,
   };
 }
