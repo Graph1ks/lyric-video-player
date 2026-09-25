@@ -9,6 +9,7 @@ import type {
   ProjectDescriptor,
   ProjectBackgroundPreset,
   ProjectQualityMode,
+  ProjectTypographyLayout,
   ProjectTypographyPreset,
   ProjectVisualMode,
 } from "@graph1ks/emo-app-contracts";
@@ -28,6 +29,15 @@ const TYPOGRAPHY_PRESETS = new Set<ProjectTypographyPreset>([
   "outline",
   "tunnel",
   "glitch",
+]);
+const TYPOGRAPHY_LAYOUTS = new Set<ProjectTypographyLayout>([
+  "auto",
+  "center-stack",
+  "directional-stage",
+  "editorial",
+  "vertical-accent",
+  "split-stage",
+  "crossword",
 ]);
 const BACKGROUND_PRESETS = new Set<ProjectBackgroundPreset>([
   "auto",
@@ -120,6 +130,16 @@ function parseDefaults(value: unknown): EmoProjectDefaults | undefined {
       throw new Error("E-MO manifest defaults.typographyPreset is invalid");
     }
     defaults.typographyPreset = input.typographyPreset as ProjectTypographyPreset;
+  }
+
+  if (input.typographyLayout !== undefined) {
+    if (
+      typeof input.typographyLayout !== "string"
+      || !TYPOGRAPHY_LAYOUTS.has(input.typographyLayout as ProjectTypographyLayout)
+    ) {
+      throw new Error("E-MO manifest defaults.typographyLayout is invalid");
+    }
+    defaults.typographyLayout = input.typographyLayout as ProjectTypographyLayout;
   }
 
   if (input.backgroundPreset !== undefined) {

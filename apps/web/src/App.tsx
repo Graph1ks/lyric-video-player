@@ -11,6 +11,8 @@ import {
   type ParsedLyrics,
   type QualityMode,
   type SceneMode,
+  type TypographyLayoutId,
+  type TypographyLayoutPreset,
   type TypographyPreset,
   type TypographyPresetId,
   type VisualMode,
@@ -37,6 +39,16 @@ const TYPOGRAPHY_PRESETS: TypographyPreset[] = [
   "outline",
   "tunnel",
   "glitch",
+];
+
+const TYPOGRAPHY_LAYOUTS: TypographyLayoutPreset[] = [
+  "auto",
+  "center-stack",
+  "directional-stage",
+  "editorial",
+  "vertical-accent",
+  "split-stage",
+  "crossword",
 ];
 
 const BACKGROUND_PRESETS: BackgroundPreset[] = [
@@ -79,6 +91,7 @@ export function App() {
   const intensity = useUiStore(state => state.intensity);
   const quality = useUiStore(state => state.quality);
   const typographyPreset = useUiStore(state => state.typographyPreset);
+  const typographyLayout = useUiStore(state => state.typographyLayout);
   const backgroundPreset = useUiStore(state => state.backgroundPreset);
   const syncMs = useUiStore(state => state.syncMs);
   const projectDrawerOpen = useUiStore(state => state.projectDrawerOpen);
@@ -87,6 +100,7 @@ export function App() {
   const setIntensity = useUiStore(state => state.setIntensity);
   const setQuality = useUiStore(state => state.setQuality);
   const setTypographyPreset = useUiStore(state => state.setTypographyPreset);
+  const setTypographyLayout = useUiStore(state => state.setTypographyLayout);
   const setBackgroundPreset = useUiStore(state => state.setBackgroundPreset);
   const setSyncMs = useUiStore(state => state.setSyncMs);
   const setProjectDrawerOpen = useUiStore(state => state.setProjectDrawerOpen);
@@ -94,6 +108,7 @@ export function App() {
   const [engineStatus, setEngineStatus] = useState("ENGINE READY");
   const [activeScene, setActiveScene] = useState<SceneMode>("neon");
   const [activeTypography, setActiveTypography] = useState<TypographyPresetId>("elastic");
+  const [activeLayout, setActiveLayout] = useState<TypographyLayoutId>("directional-stage");
   const [activeBackground, setActiveBackground] = useState<BackgroundPresetId>("nebula");
   const [hasContent, setHasContent] = useState(false);
   const [playing, setPlaying] = useState(false);
@@ -135,6 +150,9 @@ export function App() {
     });
     const offTypography = renderer.onTypographyPresetChange(preset => {
       if (!disposed) setActiveTypography(preset);
+    });
+    const offLayout = renderer.onTypographyLayoutChange(layout => {
+      if (!disposed) setActiveLayout(layout);
     });
     const offBackground = renderer.onBackgroundPresetChange(preset => {
       if (!disposed) setActiveBackground(preset);
@@ -187,6 +205,7 @@ export function App() {
       if (disposed) return;
       renderer.setVisualMode(useUiStore.getState().mode);
       renderer.setTypographyPreset(useUiStore.getState().typographyPreset);
+      renderer.setTypographyLayout(useUiStore.getState().typographyLayout);
       renderer.setBackgroundPreset(useUiStore.getState().backgroundPreset);
       renderer.setIntensity(useUiStore.getState().intensity);
       renderer.setQuality(useUiStore.getState().quality);
@@ -199,6 +218,7 @@ export function App() {
       offTick();
       offMode();
       offTypography();
+      offLayout();
       offBackground();
       audio.element.removeEventListener("play", onPlay);
       audio.element.removeEventListener("pause", onPause);
@@ -220,6 +240,10 @@ export function App() {
   useEffect(() => {
     rendererRef.current?.setTypographyPreset(typographyPreset);
   }, [typographyPreset]);
+
+  useEffect(() => {
+    rendererRef.current?.setTypographyLayout(typographyLayout);
+  }, [typographyLayout]);
 
   useEffect(() => {
     rendererRef.current?.setBackgroundPreset(backgroundPreset);
@@ -269,13 +293,21 @@ export function App() {
         const current = useUiStore.getState().typographyPreset;
         const index = TYPOGRAPHY_PRESETS.indexOf(current);
         setTypographyPreset(TYPOGRAPHY_PRESETS[(index + 1) % TYPOGRAPHY_PRESETS.length]);
+      } else if (event.code === "KeyL") {
+        const current = useUiStore.getState().typographyLayout;
+        const index = TYPOGRAPHY_LAYOUTS.indexOf(current);
+        setTypographyLayout(TYPOGRAPHY_LAYOUTS[(index + 1) % TYPOGRAPHY_LAYOUTS.length]);
+      } else if (event.code === "KeyB") {
+        const current = useUiStore.getState().backgroundPreset;
+        const index = BACKGROUND_PRESETS.indexOf(current);
+        setBackgroundPreset(BACKGROUND_PRESETS[(index + 1) % BACKGROUND_PRESETS.length]);
       } else if (event.code === "Comma") adjustSync(-50);
       else if (event.code === "Period") adjustSync(50);
     };
 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [setBackgroundPreset, setHudVisible, setMode, setSyncMs, setTypographyPreset]);
+  }, [setBackgroundPreset, setHudVisible, setMode, setSyncMs, setTypographyLayout, setTypographyPreset]);
 
   useEffect(() => {
     const onDragEnter = (event: DragEvent) => {
@@ -405,6 +437,7 @@ export function App() {
       if (defaults?.intensity !== undefined) setIntensity(defaults.intensity);
       if (defaults?.quality !== undefined) setQuality(defaults.quality);
       if (defaults?.typographyPreset !== undefined) setTypographyPreset(defaults.typographyPreset);
+      if (defaults?.typographyLayout !== undefined) setTypographyLayout(defaults.typographyLayout);
       if (defaults?.backgroundPreset !== undefined) setBackgroundPreset(defaults.backgroundPreset);
       if (defaults?.syncMs !== undefined) {
         syncRef.current = defaults.syncMs;
@@ -548,6 +581,25 @@ export function App() {
             </div>
           </div>
 
+          <div className="composition-control">
+            <div className="control-heading">
+              <span>COMPOSITION</span>
+              <b>{activeLayout.replaceAll("-", " ").toUpperCase()}</b>
+            </div>
+            <div className="composition-grid" role="group" aria-label="Typography composition">
+              {TYPOGRAPHY_LAYOUTS.map(value => (
+                <button
+                  key={value}
+                  className={`composition-button ${typographyLayout === value ? "is-active" : ""}`}
+                  onClick={() => setTypographyLayout(value)}
+                  title={value === "auto" ? "Auto word composition · L" : `${value} composition`}
+                >
+                  {value.replaceAll("-", " ").toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="background-control">
             <div className="control-heading">
               <span>BACKGROUND</span>
@@ -615,7 +667,7 @@ export function App() {
             ))}
           </div>
 
-          <div className="director-footnote">Scene AUTO directs the visual family. Typography and Background AUTO rotate deterministic presets per line. T/B cycle the respective preset.</div>
+          <div className="director-footnote">Scene AUTO directs the visual family. Typography, Composition and Background AUTO rotate deterministic choices per line. T/L/B cycle them.</div>
         </aside>
 
         <section className={`empty-state ${hasContent ? "is-dismissed" : ""}`}>

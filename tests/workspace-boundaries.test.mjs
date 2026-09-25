@@ -83,6 +83,7 @@ test("emo.project/v1 selects nested media and carries visual defaults", async ()
       defaults: {
         visualMode: "vortex",
         typographyPreset: "tunnel",
+        typographyLayout: "vertical-accent",
         backgroundPreset: "lyrics",
         intensity: 1.25,
         quality: "cinema",
@@ -97,6 +98,7 @@ test("emo.project/v1 selects nested media and carries visual defaults", async ()
     assert.equal(found.lyrics?.relativePath, "manifest-song/lyrics/enhanced.lrc");
     assert.equal(found.manifest?.defaults?.visualMode, "vortex");
     assert.equal(found.manifest?.defaults?.typographyPreset, "tunnel");
+    assert.equal(found.manifest?.defaults?.typographyLayout, "vertical-accent");
     assert.equal(found.manifest?.defaults?.backgroundPreset, "lyrics");
     assert.equal(found.manifest?.defaults?.syncMs, 80);
     assert.ok(found.assets.some(asset => asset.relativePath.endsWith("assets/cover.webp")));
@@ -125,6 +127,13 @@ test("emo.project/v1 rejects traversal and invalid visual defaults", () => {
     lyrics: "lyrics.lrc",
     defaults: { typographyPreset: "unknown" },
   })), /typographyPreset is invalid/);
+
+  assert.throws(() => parseProjectManifest(JSON.stringify({
+    schema: "emo.project/v1",
+    audio: "track.mp3",
+    lyrics: "lyrics.lrc",
+    defaults: { typographyLayout: "unknown" },
+  })), /typographyLayout is invalid/);
 
   assert.throws(() => parseProjectManifest(JSON.stringify({
     schema: "emo.project/v1",

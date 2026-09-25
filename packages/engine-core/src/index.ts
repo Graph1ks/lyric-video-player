@@ -4,3 +4,4 @@ export * from "./elrc.js";
 export * from "./math.js";
 export * from "./types.js";
 export * from "./typographySelectors.js";
+export * from "./typographyComposition.js";

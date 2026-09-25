@@ -37,6 +37,14 @@ export type TypographyPresetId =
   | "tunnel"
   | "glitch";
 export type TypographyPreset = "auto" | TypographyPresetId;
+export type TypographyLayoutId =
+  | "center-stack"
+  | "directional-stage"
+  | "editorial"
+  | "vertical-accent"
+  | "split-stage"
+  | "crossword";
+export type TypographyLayoutPreset = "auto" | TypographyLayoutId;
 export type BackgroundPresetId =
   | "cinematic"
   | "nebula"
@@ -56,6 +64,7 @@ export interface VisualSettings {
   intensity: number;
   quality: QualityMode;
   typographyPreset?: TypographyPreset;
+  typographyLayout?: TypographyLayoutPreset;
   backgroundPreset?: BackgroundPreset;
 }
 

@@ -9,13 +9,17 @@ import {
   easeOutExpo,
   hash01,
   lerp,
+  planTypographyComposition,
   randomSelector,
+  resolveTypographyLayout,
   staggerSelector,
   waveSelector,
   wiggleSelector,
   type GlyphSelectorContext,
   type LineCue,
   type SceneMode,
+  type TypographyLayoutId,
+  type TypographyLayoutPreset,
   type TypographyPreset,
   type TypographyPresetId,
   type WordCue,
@@ -38,6 +42,12 @@ interface WordVisual {
   width: number;
   baseX: number;
   baseY: number;
+  layoutScale: number;
+  layoutRotation: number;
+  entryX: number;
+  entryY: number;
+  entryScale: number;
+  entryRotation: number;
 }
 
 interface GlyphMotion {
@@ -71,6 +81,8 @@ export class KineticLyrics {
   private mode: SceneMode = "neon";
   private preset: TypographyPreset = "auto";
   private resolvedPreset: TypographyPresetId = "elastic";
+  private layoutPreset: TypographyLayoutPreset = "auto";
+  private resolvedLayout: TypographyLayoutId = "directional-stage";
   private w = 1;
   private h = 1;
   private intensity = 1;
@@ -94,10 +106,13 @@ export class KineticLyrics {
   setMode(mode: SceneMode) {
     if (this.mode === mode) return;
     this.mode = mode;
-    const previous = this.resolvedPreset;
+    const previousPreset = this.resolvedPreset;
+    const previousLayout = this.resolvedLayout;
     this.resolvePreset();
-    if (this.line && previous !== this.resolvedPreset) this.rebuild(false);
-    else if (this.line) {
+    this.resolveLayout();
+    if (this.line && (previousPreset !== this.resolvedPreset || previousLayout !== this.resolvedLayout)) {
+      this.rebuild(false);
+    } else if (this.line) {
       this.configureStyle();
       this.remeasureWords();
       this.layout();
@@ -119,6 +134,22 @@ export class KineticLyrics {
 
   getResolvedPreset() {
     return this.resolvedPreset;
+  }
+
+  setLayoutPreset(preset: TypographyLayoutPreset) {
+    if (this.layoutPreset === preset) return;
+    this.layoutPreset = preset;
+    const previous = this.resolvedLayout;
+    this.resolveLayout();
+    if (this.line && previous !== this.resolvedLayout) this.layout();
+  }
+
+  getLayoutPreset() {
+    return this.layoutPreset;
+  }
+
+  getResolvedLayout() {
+    return this.resolvedLayout;
   }
 
   setIntensity(value: number) {
@@ -155,6 +186,7 @@ export class KineticLyrics {
     this.lineIndex = index;
     this.activeWord = -1;
     this.resolvePreset();
+    this.resolveLayout();
     this.rebuild(true);
   }
 
@@ -296,7 +328,21 @@ export class KineticLyrics {
       motion.scale.set(animateEntry ? 0.64 : 1);
       motion.rotation = animateEntry ? (wordIndex % 2 ? 0.09 : -0.09) : 0;
 
-      this.words.push({ cue, slot, motion, glyphs, width, baseX: 0, baseY: 0 });
+      this.words.push({
+        cue,
+        slot,
+        motion,
+        glyphs,
+        width,
+        baseX: 0,
+        baseY: 0,
+        layoutScale: 1,
+        layoutRotation: 0,
+        entryX: 0,
+        entryY: 0,
+        entryScale: 0.64,
+        entryRotation: 0,
+      });
     });
 
     this.glyphCount = Math.max(1, globalIndex);
@@ -322,6 +368,15 @@ export class KineticLyrics {
     const options = AUTO_PRESETS[this.mode];
     const safeLine = Math.max(0, this.lineIndex);
     this.resolvedPreset = options[safeLine % options.length];
+  }
+
+  private resolveLayout() {
+    this.resolvedLayout = resolveTypographyLayout(
+      this.layoutPreset,
+      this.mode,
+      this.lineIndex,
+      this.line?.words.length ?? this.words.length,
+    );
   }
 
   private glyphMotion(
@@ -491,16 +546,11 @@ export class KineticLyrics {
     const entryEase = easeOutExpo(entryT);
     const entryScaleEase = this.mode === "poster" ? easeOutBack(entryT, 1.8) : easeOutElastic(entryT);
 
-    const fromX = glyphOwnedEntry
-      ? 0
-      : this.mode === "poster"
-        ? (index % 2 ? 90 : -90)
-        : this.mode === "vortex"
-          ? 0
-          : (index % 2 ? 36 : -36);
-    const fromY = glyphOwnedEntry ? 0 : this.mode === "vortex" ? (index % 2 ? 140 : -140) : 18;
-    const fromRotation = glyphOwnedEntry ? 0 : index % 2 ? 0.09 : -0.09;
-    const startScale = glyphOwnedEntry ? 1 : 0.64;
+    const layoutMotionMix = glyphOwnedEntry ? 0.34 : 1;
+    const fromX = word.entryX * layoutMotionMix;
+    const fromY = word.entryY * layoutMotionMix;
+    const fromRotation = word.entryRotation * layoutMotionMix;
+    const startScale = glyphOwnedEntry ? lerp(1, word.entryScale, 0.34) : word.entryScale;
 
     let x = lerp(fromX * this.intensity, 0, entryEase);
     let y = lerp(fromY * this.intensity, 0, entryEase);
@@ -763,41 +813,35 @@ export class KineticLyrics {
 
   private layout() {
     if (!this.words.length) return;
-    const maxWidth = Math.min(this.w * (this.mode === "poster" ? 0.76 : 0.84), 1480);
-    const gap = this.fontSize * (this.mode === "poster" ? 0.25 : 0.31);
-    const rows: WordVisual[][] = [[]];
-    let rowWidth = 0;
 
-    for (const word of this.words) {
-      const next = word.width + (rows[rows.length - 1].length ? gap : 0);
-      if (rowWidth + next > maxWidth && rows[rows.length - 1].length) {
-        rows.push([]);
-        rowWidth = 0;
-      }
-      rows[rows.length - 1].push(word);
-      rowWidth += word.width + (rows[rows.length - 1].length > 1 ? gap : 0);
-    }
+    const plan = planTypographyComposition({
+      preset: this.layoutPreset,
+      scene: this.mode,
+      width: this.w,
+      height: this.h,
+      lineIndex: this.lineIndex,
+      wordWidths: this.words.map(word => word.width),
+      wordTexts: this.words.map(word => word.cue.text),
+    });
+    this.resolvedLayout = plan.layout;
 
-    const lineHeight = this.fontSize * (this.mode === "poster" ? 1.02 : 1.08);
-    const totalHeight = (rows.length - 1) * lineHeight;
-    let y = -totalHeight * 0.5;
-
-    rows.forEach(row => {
-      const width = row.reduce((sum, word, i) => sum + word.width + (i ? gap : 0), 0);
-      let x = -width * 0.5;
-      row.forEach(word => {
-        word.baseX = x + word.width * 0.5;
-        word.baseY = y;
-        word.slot.position.set(word.baseX, word.baseY);
-        x += word.width + gap;
-      });
-      y += lineHeight;
+    this.words.forEach((word, index) => {
+      const placement = plan.words[index];
+      if (!placement) return;
+      word.baseX = placement.x;
+      word.baseY = placement.y;
+      word.layoutScale = placement.scale;
+      word.layoutRotation = placement.rotation;
+      word.entryX = placement.entryX;
+      word.entryY = placement.entryY;
+      word.entryScale = placement.entryScale;
+      word.entryRotation = placement.entryRotation;
+      word.slot.position.set(word.baseX, word.baseY);
+      word.slot.rotation = word.layoutRotation;
+      word.slot.scale.set(word.layoutScale);
     });
 
-    const xBias = this.mode === "poster" && (this.resolvedPreset === "impact" || this.resolvedPreset === "outline")
-      ? this.w * 0.17
-      : 0;
-    this.mainLayer.position.set(this.w * 0.5 + xBias, this.h * 0.5);
+    this.mainLayer.position.set(this.w * 0.5, this.h * 0.5);
   }
 
   private layoutEchoes() {

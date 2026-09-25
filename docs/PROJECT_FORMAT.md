@@ -25,6 +25,7 @@ Manifest mode is the stable path for projects that use nested media, multiple au
   "defaults": {
     "visualMode": "auto",
     "typographyPreset": "auto",
+    "typographyLayout": "auto",
     "backgroundPreset": "auto",
     "intensity": 1.15,
     "quality": "cinema",
@@ -46,6 +47,7 @@ Manifest mode is the stable path for projects that use nested media, multiple au
 - `presets`: project-relative JSON preset files.
 - `defaults.visualMode`: `auto`, `poster`, `neon` or `vortex`.
 - `defaults.typographyPreset`: `auto`, `impact`, `cascade`, `wave`, `scatter`, `elastic`, `outline`, `tunnel` or `glitch`.
+- `defaults.typographyLayout`: `auto`, `center-stack`, `directional-stage`, `editorial`, `vertical-accent`, `split-stage` or `crossword`.
 - `defaults.backgroundPreset`: `auto`, `cinematic`, `nebula`, `grid`, `starfield`, `rays`, `vortex`, `liquid`, `spectrum`, `sparks`, `lyrics` or `minimal`.
 - `defaults.intensity`: number from `0.2` to `1.8`.
 - `defaults.quality`: `performance` or `cinema`.

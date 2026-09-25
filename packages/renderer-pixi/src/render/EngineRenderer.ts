@@ -7,6 +7,8 @@ import type {
   LineCue,
   QualityMode,
   SceneMode,
+  TypographyLayoutId,
+  TypographyLayoutPreset,
   TypographyPreset,
   TypographyPresetId,
   VisualMode,
@@ -48,8 +50,10 @@ export class EngineRenderer {
   private host?: HTMLElement;
   private modeListeners = new Set<(mode: SceneMode) => void>();
   private typographyListeners = new Set<(preset: TypographyPresetId) => void>();
+  private layoutListeners = new Set<(layout: TypographyLayoutId) => void>();
   private backgroundListeners = new Set<(preset: BackgroundPresetId) => void>();
   private lastTypographyPreset?: TypographyPresetId;
+  private lastTypographyLayout?: TypographyLayoutId;
   private lastBackgroundPreset?: BackgroundPresetId;
   private sceneTransition = 0;
   private previousTime = 0;
@@ -133,6 +137,25 @@ export class EngineRenderer {
     this.emitTypographyPreset();
   }
 
+  setTypographyLayout(preset: TypographyLayoutPreset) {
+    this.lyrics.setLayoutPreset(preset);
+    this.renderGraph.resetFeedback();
+    this.emitTypographyLayout();
+  }
+
+  onTypographyLayoutChange(listener: (layout: TypographyLayoutId) => void) {
+    this.layoutListeners.add(listener);
+    return () => this.layoutListeners.delete(listener);
+  }
+
+  getTypographyLayout() {
+    return this.lyrics.getLayoutPreset();
+  }
+
+  getResolvedTypographyLayout() {
+    return this.lyrics.getResolvedLayout();
+  }
+
   onTypographyPresetChange(listener: (preset: TypographyPresetId) => void) {
     this.typographyListeners.add(listener);
     return () => this.typographyListeners.delete(listener);
@@ -194,6 +217,7 @@ export class EngineRenderer {
     this.emitBackgroundPreset();
     this.lyrics.setLine(line, index);
     this.emitTypographyPreset();
+    this.emitTypographyLayout();
     if (line) {
       this.background.hit(0.92 + (index % 3) * 0.08);
       this.cameraRig.lineHit(index);
@@ -248,6 +272,7 @@ export class EngineRenderer {
     this.emitBackgroundPreset();
     this.lyrics.setMode(mode);
     this.emitTypographyPreset();
+    this.emitTypographyLayout();
     this.cameraRig.setMode(mode);
     this.displacementFX.setMode(mode);
     this.velocitySmearFX.setMode(mode);
@@ -273,6 +298,13 @@ export class EngineRenderer {
     if (preset === this.lastTypographyPreset) return;
     this.lastTypographyPreset = preset;
     for (const listener of this.typographyListeners) listener(preset);
+  }
+
+  private emitTypographyLayout() {
+    const layout = this.lyrics.getResolvedLayout();
+    if (layout === this.lastTypographyLayout) return;
+    this.lastTypographyLayout = layout;
+    for (const listener of this.layoutListeners) listener(layout);
   }
 
   private resize() {

@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { BackgroundPreset, QualityMode, TypographyPreset, VisualMode } from "@graph1ks/emo-engine-core";
+import type { BackgroundPreset, QualityMode, TypographyLayoutPreset, TypographyPreset, VisualMode } from "@graph1ks/emo-engine-core";
 
 interface UiState {
   hudVisible: boolean;
@@ -7,6 +7,7 @@ interface UiState {
   intensity: number;
   quality: QualityMode;
   typographyPreset: TypographyPreset;
+  typographyLayout: TypographyLayoutPreset;
   backgroundPreset: BackgroundPreset;
   syncMs: number;
   projectDrawerOpen: boolean;
@@ -15,6 +16,7 @@ interface UiState {
   setIntensity(value: number): void;
   setQuality(value: QualityMode): void;
   setTypographyPreset(value: TypographyPreset): void;
+  setTypographyLayout(value: TypographyLayoutPreset): void;
   setBackgroundPreset(value: BackgroundPreset): void;
   setSyncMs(value: number): void;
   setProjectDrawerOpen(value: boolean): void;
@@ -26,6 +28,7 @@ export const useUiStore = create<UiState>(set => ({
   intensity: 1,
   quality: "cinema",
   typographyPreset: "auto",
+  typographyLayout: "auto",
   backgroundPreset: "auto",
   syncMs: 0,
   projectDrawerOpen: false,
@@ -34,6 +37,7 @@ export const useUiStore = create<UiState>(set => ({
   setIntensity: intensity => set({ intensity }),
   setQuality: quality => set({ quality }),
   setTypographyPreset: typographyPreset => set({ typographyPreset }),
+  setTypographyLayout: typographyLayout => set({ typographyLayout }),
   setBackgroundPreset: backgroundPreset => set({ backgroundPreset }),
   setSyncMs: syncMs => set({ syncMs }),
   setProjectDrawerOpen: projectDrawerOpen => set({ projectDrawerOpen })
