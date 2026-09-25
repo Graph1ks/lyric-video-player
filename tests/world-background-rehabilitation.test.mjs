@@ -378,7 +378,7 @@ test("art direction presets meet the dedicated fidelity floor", async () => {
   assert.doesNotMatch(editorial, /Math\.random\(/);
   const editorialGeometry = editorial.slice(
     editorial.indexOf("// Editorial identity:"),
-    editorial.indexOf("float inkResponse="),
+    editorial.indexOf("float inkResponse ="),
   );
   assert.doesNotMatch(editorialGeometry, /u(?:Energy|Mid|Treble)/);
 
