@@ -116,14 +116,8 @@ export class LegacyStarfieldWorld {
 
     this.backdrop.rect(0, 0, this.w, this.h).fill({ color: background, alpha: 1 });
 
-    // Deep-space haze gives the vanishing region depth without changing camera motion.
-    const coreRadius = Math.min(this.w, this.h) * 0.22;
-    this.backdrop
-      .circle(cx, cy, coreRadius * 2.4)
-      .fill({ color: surface, alpha: 0.10 + power * 0.05 });
-    this.bloom
-      .circle(cx, cy, coreRadius)
-      .fill({ color: accentB, alpha: 0.018 + power * 0.014 });
+    // The flight volume itself carries the depth. Deliberately avoid a radial
+    // center disc/halo: that reads as breathing when the optical field is moving.
 
     const brightness = 0.78 + audio.energy * 0.16 + audio.treble * 0.10;
     const trailSeconds = 0.048 + detail01 * 0.028 + power * 0.018;
