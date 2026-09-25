@@ -1,22 +1,25 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `7d9c6570868198b2e7cfa159ba70a3b03376dccc`  
-**Active candidate:** `feat/render-persistent-typography-sequences-v0.9`  
+**Last known good merged baseline:** `019d5f3630cc8f13a2741bf20d79141142e0c6ea`  
+**Active candidate:** `feat/shape-build-ribbon-path-v0.9` / PR #40  
 **Current phase/milestone:** cinematic sequence direction + temporal readability
 
 ## Current objective
 
-Render the merged seek-safe multi-cue model as actual cinematic AUTO shots: Spiral Depth and Hero/Echo first, with phrase-scoped history and explicit manual-control fallback.
+Expand the merged persistent cinematic typography system with two additional multi-cue grammars: Shape Build calligrams and Ribbon Path trajectories, while preserving seek safety, rapid-lyric readability and manual override behavior.
 
 ## Current state
 
 - Phrase-level cinematic direction + adaptive readability pressure are merged in `c58be3e`.
 - The pure multi-cue typography window + Spiral Depth/Hero-Echo planners are merged in `7d9c657`.
-- Active candidate adds a bounded Pixi word cache driven by the pure plan; Pixi state remains disposable and non-authoritative.
-- Spiral Depth and Hero/Echo become real AUTO sequence shots and replace, rather than overlay, normal current-line typography while active.
-- Persistent history is scoped to the current directed phrase.
-- Any manual Typography, Composition or Composition Motion selection disables the persistent AUTO grammar immediately and restores the explicit current-line composition.
+- Persistent Pixi sequence rendering, Spiral Depth and Hero/Echo are merged in `019d5f3`.
+- Pixi sequence state is disposable; the pure time-derived plan remains authoritative.
+- Persistent history is phrase-scoped and manual Typography/Layout/Composition-Motion choices still disable sequence AUTO immediately.
+- Active candidate adds **Shape Build** with deterministic Frame/Square and Ring/Circle calligram variants. Stable phrase ordinals keep already-placed words fixed while the shape grows.
+- Active candidate adds **Ribbon Path**, an S-curve trajectory where active/recent/history lyrics share one path and advance continuously across word handoffs.
+- Shape/Ribbon structural geometry is preserved under rapid-lyric readability pressure; active micro-motion and history budgets still adapt.
+- Rotated persistent words now fit against both viewport width and height, improving ring/frame side safety on narrow viewports.
 - Active candidate introduces phrase-level cinematic direction: AUTO typography preset, layout and composition motion are selected as coherent bundles and held across a phrase instead of independently cycling every line.
 - Phrases expose Establish / Develop / Accent / Release shot roles for the next sequence/camera layer.
 - Active candidate adds kinetic readability pressure from line duration, words/s, chars/s and shortest word duration.
@@ -104,11 +107,11 @@ Render the merged seek-safe multi-cue model as actual cinematic AUTO shots: Spir
 
 ## Next concrete action
 
-1. Get visible Spiral/Hero renderer integration green in Linux + Windows CI.
-2. Visually calibrate Spiral Depth and Hero/Echo on real Enhanced LRC tracks, including dense passages and mobile.
-3. Add Shape Build / Ribbon Path.
-4. Add Elastic Tether, then continuity-aware camera direction.
-5. Extend the cinematic acceptance matrix with gaze continuity, sequence persistence and shot-scale variation.
+1. Get Shape Build + Ribbon Path green in Linux + Windows CI.
+2. Visually calibrate all four persistent grammars — Spiral, Hero/Echo, Shape Build and Ribbon — on real Enhanced LRC tracks and mobile.
+3. Add Elastic Tether / stretch-squeeze.
+4. Add continuity-aware camera trajectory / eye-trace handoff.
+5. Extend the cinematic acceptance matrix with gaze continuity, sequence persistence, calligram integrity and shot-scale variation.
 
 ## Do not redo
 

@@ -218,17 +218,22 @@ Continuity rule: new words inherit the previous tangent/direction rather than te
 
 ### Shape Build / Calligram
 
-Words progressively construct an explicit silhouette or perimeter.
+**Implementation status:** Frame/Square + Ring/Circle active candidate.
 
-Initial primitives:
+Words progressively construct an explicit silhouette or perimeter. The current implementation assigns a stable ordinal to every word inside the directed phrase so already-built parts of the calligram do not reflow when new words arrive.
+
+Implemented primitives:
 
 - rectangle / frame;
-- circle / ring;
+- circle / ring.
+
+Planned extensions:
+
 - arc;
 - cross;
 - stepped block.
 
-The shape is a path/occupancy constraint. Collision resolution must not destroy the intended silhouette.
+The shape is a path/occupancy constraint. Collision/readability handling must preserve the silhouette rather than collapsing the complete geometry toward center.
 
 ### Hero / Echo Field
 
@@ -246,7 +251,19 @@ The background words remain composition, not noise.
 
 ### Ribbon / Path
 
-Words enter onto a continuous curve and remain attached to it while focus advances. This supports snake, wave, S-curve and diagonal trajectories without treating every word as an independent flyer.
+**Implementation status:** continuous S-curve active candidate.
+
+Words enter onto a continuous curve and remain attached to it while focus advances. The first implementation uses active-word progress to move the complete recent/history trail continuously; at a word boundary the previous hero reaches its next rank on the same curve instead of jumping.
+
+Current primitive:
+
+- S-curve ribbon.
+
+Planned extensions:
+
+- snake;
+- wave families;
+- diagonal / corner-to-corner trajectories.
 
 ### Elastic Tether
 
@@ -315,8 +332,8 @@ Audio analysis remains a supporting signal. Enhanced LRC timing and explicit son
 
 1. **Phrase direction + readability pressure** — active candidate.
 2. **Persistent multi-cue typography scene graph** — next.
-3. **Spiral Depth + Hero/Echo Field** — first persistent grammars because they exercise history, scale hierarchy and camera continuity.
-4. **Shape Build + Ribbon/Path**.
+3. **Spiral Depth + Hero/Echo Field** — merged persistent grammars exercising history, scale hierarchy and camera continuity.
+4. **Shape Build + Ribbon/Path** — active candidate.
 5. **Elastic Tether** with readable anisotropic deformation; mesh deformation only after baseline acceptance.
 6. **Continuity-aware camera plan** and constrained audio impulses.
 7. **Section-level tension/release and shot-size sequencing**.
