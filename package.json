@@ -1,21 +1,33 @@
 {
-  "name": "@graph1ks/lyric-video-player",
-  "version": "0.3.0",
+  "name": "@graph1ks/emo-engine",
+  "version": "0.4.0",
   "private": true,
   "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
   "engines": {
-    "node": ">=22.5.0"
+    "node": ">=22.12.0"
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
-    "typecheck": "tsc -b --pretty false",
+    "build:packages": "tsc -b packages/engine-core packages/app-contracts packages/audio-web packages/platform-node packages/renderer-pixi apps/server",
+    "typecheck:packages": "tsc -b packages/engine-core packages/app-contracts packages/audio-web packages/platform-node packages/renderer-pixi apps/server --pretty false",
+    "typecheck": "npm run typecheck:packages && tsc -b --pretty false",
+    "build": "npm run build:packages && tsc -b && vite build",
+    "test": "npm run build:packages && node --test tests/*.test.mjs",
+    "server": "node apps/server/dist/index.js",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@graph1ks/emo-audio-web": "0.4.0",
+    "@graph1ks/emo-engine-core": "0.4.0",
+    "@graph1ks/emo-renderer-pixi": "0.4.0",
     "pixi.js": "8.21.0"
   },
   "devDependencies": {
+    "@types/node": "22.20.4",
     "typescript": "5.9.3",
     "vite": "7.1.0"
   }
