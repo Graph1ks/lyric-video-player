@@ -231,6 +231,15 @@ export class CinematicBackground {
     const bass = audio.bass * intensity;
     const energy = audio.energy * intensity;
     const transient = audio.transient * intensity;
+    const layerAlpha = Math.min(1, this.worldIntensity);
+    this.geometry.alpha = layerAlpha;
+    this.lyricBackdropLayer.alpha = layerAlpha;
+    this.sparkLayer.alpha = layerAlpha;
+    this.spectrumLayer.alpha = layerAlpha;
+    this.blobLayer.alpha = layerAlpha;
+    this.particleLayer.alpha = layerAlpha;
+    this.ringLayer.alpha = layerAlpha;
+    this.beamLayer.alpha = layerAlpha;
 
     this.artDirection.update(time, audio);
     if (this.liquidSurface.visible) this.liquidFX.update(time, audio);
@@ -756,8 +765,9 @@ export class CinematicBackground {
 
     const cx = this.w * 0.5;
     const cy = this.h * 0.5;
-    const count = this.quality === "cinema" ? 76 : 38;
-    const radiusMax = Math.hypot(this.w, this.h) * 0.46;
+    const baseCount = this.quality === "cinema" ? 76 : 38;
+    const count = Math.max(12, Math.min(180, Math.round(baseCount * Math.max(0.35, this.worldDetail))));
+    const radiusMax = Math.hypot(this.w, this.h) * (0.34 + this.worldIntensity * 0.12);
     const primary = this.palette?.accentA ?? (
       this.mode === "poster"
         ? 0xffffff
@@ -789,9 +799,10 @@ export class CinematicBackground {
       const length = (6 + hash01(seed * 211 + 1.3) * 34)
         * burst
         * (1 - life * 0.72)
-        * this.intensity;
+        * this.intensity
+        * (0.35 + this.worldIntensity * 0.9);
       const width = 0.55 + hash01(seed * 71 + 4.8) * 1.35;
-      const alpha = Math.max(0, (1 - life) * (0.08 + burst * 0.16));
+      const alpha = Math.min(0.95, Math.max(0, (1 - life) * (0.06 + burst * 0.18) * (0.25 + this.worldIntensity * 1.05)));
       const color = index % 5 === 0 ? secondary : primary;
 
       this.sparkLayer
@@ -811,9 +822,11 @@ export class CinematicBackground {
     this.spectrumLayer.clear();
     if (!this.spectrumLayer.visible || spectrum.length < 2) return;
 
-    const count = this.quality === "cinema"
-      ? Math.min(64, spectrum.length)
-      : Math.min(36, spectrum.length);
+    const baseCount = this.quality === "cinema" ? 64 : 36;
+    const count = Math.min(
+      spectrum.length,
+      Math.max(12, Math.min(96, Math.round(baseCount * Math.max(0.4, this.worldDetail)))),
+    );
     const top: number[] = [];
     const bottom: number[] = [];
     const area: number[] = [];
@@ -821,7 +834,10 @@ export class CinematicBackground {
     const cy = this.h * 0.5;
     const width = this.w * 0.86;
     const left = cx - width * 0.5;
-    const amplitude = this.h * (0.11 + audio.energy * 0.08) * this.intensity;
+    const amplitude = this.h
+      * (0.08 + audio.energy * (0.06 + this.worldIntensity * 0.06))
+      * this.intensity
+      * (0.4 + this.worldIntensity * 0.75);
 
     for (let index = 0; index < count; index++) {
       const t = index / Math.max(1, count - 1);
@@ -862,13 +878,13 @@ export class CinematicBackground {
 
     this.spectrumLayer
       .poly(area)
-      .fill({ color: primary, alpha: 0.018 + audio.energy * 0.035 });
+      .fill({ color: primary, alpha: Math.min(0.42, (0.014 + audio.energy * 0.05) * (0.3 + this.worldIntensity * 1.05)) });
     this.spectrumLayer
       .poly(top)
-      .stroke({ width: 2.2, color: primary, alpha: 0.34 + audio.energy * 0.36 });
+      .stroke({ width: 2.2 + this.worldIntensity * 0.5, color: primary, alpha: Math.min(1, (0.24 + audio.energy * 0.42) * (0.35 + this.worldIntensity * 0.82)) });
     this.spectrumLayer
       .poly(bottom)
-      .stroke({ width: 1.4, color: secondary, alpha: 0.2 + audio.treble * 0.3 });
+      .stroke({ width: 1.4 + this.worldIntensity * 0.3, color: secondary, alpha: Math.min(0.9, (0.16 + audio.treble * 0.34) * (0.35 + this.worldIntensity * 0.75)) });
     this.spectrumLayer
       .moveTo(left, cy)
       .lineTo(left + width, cy)
@@ -890,13 +906,17 @@ export class CinematicBackground {
       || this.resolvedPreset === "lyrics"
     ) return;
 
+    const detail = Math.max(0.35, this.worldDetail);
+    const power = Math.max(0, this.worldIntensity);
+
     if (this.resolvedPreset === "minimal") {
-      for (let index = 0; index < 3; index++) {
-        const y = h * (0.32 + index * 0.18) + Math.sin(time * 0.15 + index) * 4;
+      const lines = Math.max(1, Math.min(8, Math.round(3 * detail)));
+      for (let index = 0; index < lines; index++) {
+        const y = h * (0.28 + index * (0.44 / Math.max(1, lines - 1))) + Math.sin(time * 0.15 + index) * (2 + power * 3);
         this.geometry.moveTo(w * 0.08, y).lineTo(w * 0.92, y).stroke({
           width: 1,
           color: this.mode === "vortex" ? 0xff435b : 0x7cfff2,
-          alpha: 0.018 + audio.energy * 0.012,
+          alpha: Math.min(0.35, (0.012 + audio.energy * 0.018) * (0.25 + power * 1.2)),
         });
       }
       return;
@@ -905,8 +925,9 @@ export class CinematicBackground {
     if (this.resolvedPreset === "grid") {
       const horizon = h * (this.mode === "poster" ? 0.58 : 0.63);
       const color = this.palette?.accentA ?? (this.mode === "poster" ? 0xff5362 : 0x70fff2);
-      for (let index = 0; index <= 16; index++) {
-        const t = index / 16;
+      const columns = Math.max(8, Math.min(32, Math.round(16 * detail)));
+      for (let index = 0; index <= columns; index++) {
+        const t = index / columns;
         const x = t * w;
         this.geometry
           .moveTo(cx + (x - cx) * 0.04, horizon)
@@ -914,8 +935,9 @@ export class CinematicBackground {
           .stroke({ width: 1, color, alpha: 0.055 + audio.energy * 0.025 });
       }
       const scroll = (time * 0.12) % 1;
-      for (let index = 0; index < 11; index++) {
-        const t = (index + scroll) / 11;
+      const rows = Math.max(6, Math.min(24, Math.round(11 * detail)));
+      for (let index = 0; index < rows; index++) {
+        const t = (index + scroll) / rows;
         const curve = t * t;
         const y = horizon + (h - horizon) * curve;
         this.geometry.moveTo(0, y).lineTo(w, y).stroke({
@@ -930,26 +952,28 @@ export class CinematicBackground {
     if (this.resolvedPreset === "rays") {
       const color = this.palette?.accentA ?? (this.mode === "vortex" ? 0xff4a54 : 0x70fff2);
       const rotation = time * 0.045;
-      for (let index = 0; index < 14; index++) {
-        const angle = (index / 14) * Math.PI * 2 + rotation;
+      const rays = Math.max(6, Math.min(36, Math.round(14 * detail)));
+      for (let index = 0; index < rays; index++) {
+        const angle = (index / rays) * Math.PI * 2 + rotation;
         const radius = Math.max(w, h) * 0.85;
         this.geometry
           .moveTo(cx, cy)
           .lineTo(cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius)
-          .stroke({ width: index % 3 === 0 ? 2 : 1, color, alpha: 0.035 + audio.energy * 0.035 });
+          .stroke({ width: (index % 3 === 0 ? 2 : 1) * (0.8 + power * 0.25), color, alpha: Math.min(0.75, (0.025 + audio.energy * 0.05) * (0.25 + power * 1.2)) });
       }
       return;
     }
 
     if (this.resolvedPreset === "vortex") {
       const rotation = time * 0.13;
-      for (let index = 0; index < 24; index++) {
-        const angle = (index / 24) * Math.PI * 2 + rotation;
+      const spokes = Math.max(10, Math.min(56, Math.round(24 * detail)));
+      for (let index = 0; index < spokes; index++) {
+        const angle = (index / spokes) * Math.PI * 2 + rotation;
         const radius = Math.max(w, h) * (0.72 + (index % 3) * 0.05);
         this.geometry
           .moveTo(cx, cy)
           .lineTo(cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius)
-          .stroke({ width: 1, color: index % 2 ? 0xff334d : 0xff795f, alpha: 0.05 + audio.bass * 0.04 });
+          .stroke({ width: 1 + power * 0.22, color: index % 2 ? 0xff334d : 0xff795f, alpha: Math.min(0.78, (0.035 + audio.bass * 0.06) * (0.25 + power * 1.25)) });
       }
       return;
     }
@@ -957,13 +981,14 @@ export class CinematicBackground {
     if (this.resolvedPreset === "starfield") {
       const color = this.palette?.accentA ?? (this.mode === "vortex" ? 0xff5060 : 0x8cfff7);
       const rotation = time * 0.018;
-      for (let index = 0; index < 10; index++) {
-        const angle = (index / 10) * Math.PI * 2 + rotation;
+      const streaks = Math.max(6, Math.min(28, Math.round(10 * detail)));
+      for (let index = 0; index < streaks; index++) {
+        const angle = (index / streaks) * Math.PI * 2 + rotation;
         const radius = Math.max(w, h) * 0.72;
         this.geometry
           .moveTo(cx + Math.cos(angle) * 30, cy + Math.sin(angle) * 30)
           .lineTo(cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius)
-          .stroke({ width: 1, color, alpha: 0.012 + audio.energy * 0.016 });
+          .stroke({ width: 1, color, alpha: Math.min(0.42, (0.01 + audio.energy * 0.025) * (0.22 + power * 1.1)) });
       }
       return;
     }
@@ -971,12 +996,13 @@ export class CinematicBackground {
     if (this.resolvedPreset === "nebula") {
       const color = this.palette?.accentA ?? (this.mode === "vortex" ? 0xff4e67 : 0x72fff3);
       const shift = Math.sin(time * 0.17) * h * 0.06;
-      for (let index = 0; index < 7; index++) {
-        const y = h * (0.16 + index * 0.115) + shift * (index % 2 ? -1 : 1);
+      const bands = Math.max(4, Math.min(18, Math.round(7 * detail)));
+      for (let index = 0; index < bands; index++) {
+        const y = h * (0.12 + index * (0.76 / Math.max(1, bands - 1))) + shift * (index % 2 ? -1 : 1);
         this.geometry
           .moveTo(w * 0.05, y)
           .lineTo(w * 0.95, y + Math.sin(time * 0.23 + index) * 34)
-          .stroke({ width: 1, color, alpha: 0.018 + audio.mid * 0.025 });
+          .stroke({ width: 1 + power * 0.18, color, alpha: Math.min(0.5, (0.014 + audio.mid * 0.04) * (0.25 + power * 1.15)) });
       }
       return;
     }
