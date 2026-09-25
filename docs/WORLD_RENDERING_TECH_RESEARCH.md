@@ -238,7 +238,39 @@ The current renderer now owns:
 
 Audio changes illumination/highlights only; it never changes the grid topology or spacing.
 
-## Rule for the remaining 7 worlds
+### WORLD_07 Particle Spiral Vortex
+
+Technique: **projected 3D procedural particle funnel**.
+
+The reference depends on particle depth and a readable inward vortex. The renderer therefore owns deterministic 3D particle coordinates rather than a 2D polar-dot shader:
+
+- multiple arm IDs;
+- autonomous progress along a collapsing radius;
+- increasing z-depth toward the core;
+- perspective scale/parallax;
+- depth sorting;
+- additive glow plus small specular sparkles;
+- warm outer palette transitioning to spectral color at the core.
+
+Audio is smoothed and affects apparent size/material brightness only. Geometry remains autonomous.
+
+### WORLD_08 Minimal Rainbow Waveform
+
+Technique: **real spectrum-driven Graphics renderer**.
+
+This world already has the correct data source available: the audio engine's resampled FFT spectrum. A custom 3D renderer would be counterproductive.
+
+The renderer:
+
+- chooses 32–128 samples from World Detail / Quality;
+- resamples the incoming spectrum;
+- applies per-bin attack/release smoothing;
+- mirrors each frequency around a center axis;
+- draws a continuous left-to-right rainbow core;
+- adds sparse transient needle peaks and fine envelope lines;
+- preserves large negative space.
+
+## Rule for the remaining 5 worlds
 
 Do not prototype a reference-grade world using only primitive `Graphics` shapes unless the reference itself is graphic/flat.
 

@@ -1,13 +1,13 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `35ea8cf1a20834e8f52453c9219beb0ef08bb3b5`  
-**Active candidate:** `fix/worlds-05-06-projected-3d`  
-**Current phase/milestone:** WORLD_05 / WORLD_06 projected-3D rebuild
+**Merged baseline:** `db14f45bf1a682e2526d1d4b0764b8e051f871ab`  
+**Active candidate:** `feat/worlds-07-08-vortex-waveform-v2`  
+**Current phase/milestone:** WORLD_07 / WORLD_08 implementation
 
 ## Current objective
 
-Replace the rejected WORLD_05/06 flat shader implementations with explicit projected 3D geometry, using the user's Graph1ks/website background runtime as the internal quality benchmark.
+Continue directly with WORLD_07 Particle Spiral Vortex and WORLD_08 Minimal Rainbow Waveform. WORLD_05/06 projected-3D rebuild is merged in PR #67; user feedback can arrive asynchronously.
 
 ## Merged baseline — Resource lifetime + physical-edge safety v0.11.2
 
@@ -210,7 +210,7 @@ The generalized rule is documented in `docs/WORLD_MOTION_AUDIO_REACTIVITY.md`.
 
 Both 05/06 are first-class `BackgroundPresetId` values, Director-selectable, included in unrestricted AUTO routing and specialized-world isolation.
 
-## Active candidate — WORLD_05 / WORLD_06 projected 3D rebuild
+## Merged baseline — WORLD_05 / WORLD_06 projected 3D rebuild
 
 Local visual acceptance rejected both first implementations.
 
@@ -229,6 +229,34 @@ The replacement uses mathematically correct pointy-top axial placement, narrow f
 ### Internal benchmark
 
 The user's `Graph1ks/website` repo was inspected. Its Circuit Grid already demonstrates the correct architectural principle: own world coordinates, relief, projection and camera depth instead of simulating depth with a screen-space warp. E-MO WORLD_05/06 now adopt that standard.
+
+## Active candidate — WORLD_07 / WORLD_08
+
+### WORLD_07 Particle Spiral Vortex
+
+`ParticleSpiralVortexWorld.ts`
+
+- deterministic projected 3D particle population;
+- 4–7 spiral arms depending on World Detail;
+- particle progress moves autonomously inward while z-depth increases;
+- perspective scale/parallax and depth sorting make the funnel volumetric;
+- warm outer particles transition toward a dense spectral center;
+- audio is smoothed and affects apparent size/light/sparkle only, never geometry direction.
+
+### WORLD_08 Minimal Rainbow Waveform
+
+`MinimalRainbowWaveformWorld.ts`
+
+- consumes the real `Float32Array` spectrum already passed into `CinematicBackground.update()`;
+- World Detail / Quality choose 32–128 visual samples;
+- each bin uses independent attack/release smoothing;
+- mirrored vertical frequency lines around one center axis;
+- segmented left→right rainbow core;
+- thin top/bottom envelope traces;
+- sparse deterministic transient needle extensions;
+- intentionally large black negative space.
+
+Both are first-class specialized Background presets and suppress generic legacy layers.
 
 ## Current implementation state
 

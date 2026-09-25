@@ -77,7 +77,9 @@ export type BackgroundPresetId =
   | "disco-mirrorball-room"
   | "neon-energy-burst-tunnel"
   | "fractal-hex-spiral-mosaic"
-  | "soft-hex-cell-field";
+  | "soft-hex-cell-field"
+  | "particle-spiral-vortex"
+  | "minimal-rainbow-waveform";
 export type BackgroundPreset = "auto" | BackgroundPresetId;
 export type ColorHarmonyId =
   | "split-complement"

@@ -18,3 +18,6 @@ export * from "./effects/backgrounds/NeonEnergyBurstTunnelWorld.js";
 
 export * from "./effects/backgrounds/FractalHexSpiralMosaicWorld.js";
 export * from "./effects/backgrounds/SoftHexCellFieldWorld.js";
+
+export * from "./effects/backgrounds/ParticleSpiralVortexWorld.js";
+export * from "./effects/backgrounds/MinimalRainbowWaveformWorld.js";

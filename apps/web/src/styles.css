@@ -3716,3 +3716,53 @@ kbd {
     radial-gradient(circle at 58% 64%, transparent 0 12%, rgba(0,0,0,.28) 13% 15%, transparent 16%);
   opacity:.9;
 }
+
+
+/* Reference worlds 07/08 — semantic Director miniatures */
+.director-miniature[data-preview="world-particle-spiral-vortex"] {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255,255,220,.95) 0 2%, rgba(100,255,180,.78) 3% 5%, rgba(130,70,255,.6) 6% 10%, transparent 17%),
+    repeating-conic-gradient(from 12deg at 50% 50%,
+      transparent 0 8deg,
+      rgba(255,180,70,.68) 8.5deg 10deg,
+      transparent 11deg 18deg),
+    #010101;
+}
+.director-miniature[data-preview="world-particle-spiral-vortex"]::before {
+  content:"";
+  position:absolute;
+  inset:8%;
+  background:
+    radial-gradient(circle at 20% 35%, rgba(255,171,74,.9) 0 2%, transparent 3%),
+    radial-gradient(circle at 75% 24%, rgba(255,210,80,.8) 0 1.7%, transparent 2.8%),
+    radial-gradient(circle at 72% 73%, rgba(61,225,255,.82) 0 1.6%, transparent 2.6%),
+    radial-gradient(circle at 34% 76%, rgba(180,80,255,.84) 0 1.5%, transparent 2.5%);
+  filter:blur(.2px);
+}
+.director-miniature[data-preview="world-minimal-rainbow-waveform"] {
+  background:
+    linear-gradient(90deg,
+      #2bd6ff 0%,
+      #52ffc5 18%,
+      #efff55 36%,
+      #ffc34a 52%,
+      #ff6b61 66%,
+      #ff45ad 80%,
+      #7b69ff 100%) center / 88% 2px no-repeat,
+    #010207;
+}
+.director-miniature[data-preview="world-minimal-rainbow-waveform"]::before {
+  content:"";
+  position:absolute;
+  left:6%;
+  right:6%;
+  top:19%;
+  bottom:19%;
+  background:
+    repeating-linear-gradient(90deg,
+      transparent 0 5px,
+      rgba(255,255,255,.76) 5.5px 6.4px,
+      transparent 7px 11px);
+  mask-image:linear-gradient(180deg, transparent 0%, #000 22%, #000 78%, transparent 100%);
+  opacity:.58;
+}

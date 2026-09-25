@@ -70,6 +70,8 @@ Git history remains the complete technical history. This file records meaningful
 - **Neon Energy Burst Tunnel** shader world with logarithmic tunnel depth, dense radial streaks, electric filaments, arc sparks and central energy bloom.
 - **Fractal Hex Spiral Mosaic** rebuilt from a rejected flat warp shader into projected 3D moving hex prisms with real z-depth, three spiral sinks, perspective parallax, depth sorting and visible extrusion.
 - **Soft Hex Cell Field** rebuilt from rejected screen-space masks into a mathematically packed axial 3D hex-prism surface with controlled gaps, camera perspective, relief, occlusion and bevel/highlight geometry.
+- **Particle Spiral Vortex** world with projected 3D particle arms, real z-depth, autonomous inward funnel travel, warm outer particles and a bright spectral vortex core.
+- **Minimal Rainbow Waveform** world driven by the live resampled spectrum with per-bin smoothing, mirrored rainbow spikes, fine transient needles and large negative space.
 - User-authored-only Performance Presets; the previously shipped emotion/pace preset library is removed.
 - FX Rack factory reset that restores the original pre-exposure renderer/compositor balance.
 

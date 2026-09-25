@@ -1,13 +1,13 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `35ea8cf1a20834e8f52453c9219beb0ef08bb3b5`  
-**Active candidate:** `fix/worlds-05-06-projected-3d`  
-**Current phase/milestone:** WORLD_05 / WORLD_06 projected-3D rebuild
+**Last known good merged baseline:** `db14f45bf1a682e2526d1d4b0764b8e051f871ab`  
+**Active candidate:** `feat/worlds-07-08-vortex-waveform-v2`  
+**Current phase/milestone:** WORLD_07 / WORLD_08 implementation
 
 ## Current objective
 
-Replace the rejected flat WORLD_05/06 implementations with explicit projected 3D geometry benchmarked against the stronger background architecture in Graph1ks/website.
+Continue the 13-world expansion with WORLD_07 Particle Spiral Vortex and WORLD_08 Minimal Rainbow Waveform while preserving the projected-3D / motion-semantics quality bar established by the WORLD_05/06 rebuild.
 
 ## Current state
 
@@ -23,8 +23,11 @@ Replace the rejected flat WORLD_05/06 implementations with explicit projected 3D
 - **WORLD_03 / WORLD_04 merged baseline (PR #63):** `disco-mirrorball-room` and `neon-energy-burst-tunnel` are first-class Background presets, Director-selectable, included in unrestricted AUTO and rendered as specialized GPU worlds.
 - WORLD_03 motion correction: mirrorball radius and angular velocity are now strictly time-driven/mechanical; raw audio cannot resize or accelerate the ball. Audio is smoothed and restricted to lighting/specular response.
 - WORLD_04 motion correction: radial travel is monotonically outward. Raw bass is removed from phase multipliers; rising transient edges now trigger a decaying positive burst envelope and outward shock front instead of expand/retract oscillation.
-- WORLD_05 Fractal Hex Spiral Mosaic is implemented as a custom GPU shader with analytic hex coordinates, three recursive vortex domains, sink-driven local subdivision, heavy black outlines and inset-cell detail.
-- WORLD_06 Soft Hex Cell Field is implemented as layered variable-size analytic hex fields with real black gaps, pastel shading, bevel depth, selective glints and slow parallax.
+- WORLD_05/06 first implementations were rejected in local acceptance and replaced in merged PR #67 with explicit projected 3D geometry benchmarked against the Graph1ks/website background architecture.
+- WORLD_05 now uses moving 3D hex prisms, three logarithmic sinks, real z-depth, perspective/parallax, occlusion/depth sorting and visible extrusion.
+- WORLD_06 now uses mathematically packed axial hex placement, real prism heights, look-at camera projection, controlled narrow gaps, depth sorting and side/top geometry.
+- WORLD_07 Particle Spiral Vortex candidate uses projected 3D particles moving autonomously inward/deeper along several spiral arms.
+- WORLD_08 Minimal Rainbow Waveform candidate consumes the real renderer spectrum buffer, applies per-bin smoothing and draws mirrored rainbow spikes with restrained glow.
 - Motion/audio semantics are durable in `docs/WORLD_MOTION_AUDIO_REACTIVITY.md`.
 - Rendering-tech research keeps both in Pixi custom shaders for now; WORLD_03 escalates to a Three.js comparison only if local acceptance still requires true projected-room geometry/parallax.
 - **WORLD_01 / WORLD_02 merged baseline (PR #59):** `prism-stage-beams` and `laser-canopy-grid` are first-class Background presets, selectable in Director, exposed to AUTO/presets and rendered as specialized Pixi worlds that suppress generic legacy background layers.
@@ -199,10 +202,11 @@ Replace the rejected flat WORLD_05/06 implementations with explicit projected 3D
 
 ## Next concrete action
 
-1. User verifies **Disco Mirrorball Room** rotates smoothly independent of music while glints/reflections still react.
-2. User verifies **Neon Energy Burst Tunnel** is continuously outward and transient hits read as one-way surges/shock fronts with no retract phase.
-3. Test **Fractal Hex Spiral Mosaic** and **Soft Hex Cell Field** at 50/100/200/300% World Power + Detail.
-4. Tune 05/06 from local-display feedback, then continue to WORLD_07/WORLD_08.
+1. Finish Linux + Windows CI for WORLD_07/WORLD_08 and merge only after all gates pass.
+2. User can later test the rebuilt WORLD_05/06; no acceptance pause is required before continuing.
+3. Test **Particle Spiral Vortex** for obvious 3D arm depth, clean inward funnel motion and a bright chromatic core.
+4. Test **Minimal Rainbow Waveform** with real music for precise mirrored spectrum response, smooth bins and large negative space.
+5. Continue to WORLD_09/WORLD_10 after 07/08 merge.
 
 ### Previous visual-acceptance queue
 
