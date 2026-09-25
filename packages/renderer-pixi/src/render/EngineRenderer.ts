@@ -31,6 +31,7 @@ import type {
   TypographySequenceGrammarId,
   TypographySequenceMode,
   ResolvedTypographySequence,
+  VisualAutoProfile,
   VisualMode,
   VisualPalette,
 } from "@graph1ks/emo-engine-core";
@@ -74,6 +75,7 @@ export class EngineRenderer {
   private colorCanvas: ColorCanvasMode = "auto";
   private colorFlow: ColorFlowMode = "static";
   private typographySequence: TypographySequenceMode = "auto";
+  private autoProfile?: VisualAutoProfile;
   private lastLineIndex = -1;
   private currentDirection?: DirectedScene;
   private lines: LineCue[] = [];
@@ -170,6 +172,27 @@ export class EngineRenderer {
     }
   }
 
+  setAutoProfile(profile?: VisualAutoProfile) {
+    this.autoProfile = profile;
+    this.director.setAutoProfile(profile);
+    this.background.setAutoAllowed(profile?.backgrounds);
+    this.renderGraph.resetFeedback();
+
+    if (this.lastLineIndex >= 0) {
+      const directed = this.director.sceneFor(this.lastLineIndex);
+      this.currentDirection = directed;
+      this.applyMode(directed.mode, true);
+      this.lyrics.setCinematicDirection(directed.typography);
+      this.refreshTypographyPresentation();
+      this.emitTypographyPreset();
+      this.emitTypographyLayout();
+      this.emitCompositionMotion();
+      this.emitBackgroundPreset();
+    }
+
+    this.refreshPalette(this.lastLyricTime);
+  }
+
   setVisualMode(mode: VisualMode) {
     this.director.setMode(mode);
     if (mode !== "auto") {
@@ -218,6 +241,9 @@ export class EngineRenderer {
       scene: this.activeMode,
       lineIndex: this.lastLineIndex,
       hueShift: this.colorFlow === "rainbow" ? this.lastLyricTime * 2.4 : 0,
+      allowedHarmonies: this.autoProfile?.harmonies,
+      allowedMoods: this.autoProfile?.moods,
+      allowedCanvases: this.autoProfile?.canvases,
     }).resolvedHarmony;
   }
 
@@ -240,6 +266,9 @@ export class EngineRenderer {
       scene: this.activeMode,
       lineIndex: this.lastLineIndex,
       hueShift: this.colorFlow === "rainbow" ? this.lastLyricTime * 2.4 : 0,
+      allowedHarmonies: this.autoProfile?.harmonies,
+      allowedMoods: this.autoProfile?.moods,
+      allowedCanvases: this.autoProfile?.canvases,
     }).resolvedMood;
   }
 
@@ -262,6 +291,9 @@ export class EngineRenderer {
       scene: this.activeMode,
       lineIndex: this.lastLineIndex,
       hueShift: this.colorFlow === "rainbow" ? this.lastLyricTime * 2.4 : 0,
+      allowedHarmonies: this.autoProfile?.harmonies,
+      allowedMoods: this.autoProfile?.moods,
+      allowedCanvases: this.autoProfile?.canvases,
     }).resolvedCanvas;
   }
 
@@ -565,6 +597,9 @@ export class EngineRenderer {
       scene: this.activeMode,
       lineIndex: this.lastLineIndex,
       hueShift: this.colorFlow === "rainbow" ? time * 2.4 : 0,
+      allowedHarmonies: this.autoProfile?.harmonies,
+      allowedMoods: this.autoProfile?.moods,
+      allowedCanvases: this.autoProfile?.canvases,
     });
     this.background.setPalette(palette, !dynamic);
     this.sequenceLyrics.setPalette(palette, !dynamic);
