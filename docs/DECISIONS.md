@@ -178,3 +178,45 @@ The baseline `camera-handoff` moves the typography stage rather than the global 
 - glyph effects remain reusable inside moving/rotating/scaling words;
 - project files need a separate `compositionMotion` field;
 - visual acceptance must test layout × grammar × glyph combinations and constrain AUTO compatibility where necessary.
+
+
+---
+
+## ADR-007 — Readability field, directional layout constraints and restrained color backgrounds
+
+**Status:** accepted  
+**Date:** 2026-09-25
+
+### Context
+
+The first composition engine could create visually interesting layouts that were still cognitively expensive: consecutive words could jump across the frame, vertical words could appear mid-sequence, large words could overlap, and warm low-light OKLCH backgrounds could repeatedly resolve to muddy brown.
+
+Lyric video prioritizes immediate reading under time pressure. More variation is not useful if the viewer must reconstruct the reading path.
+
+### Decision
+
+For the Latin/LTR baseline:
+
+- normal readable lyrics target a central attention field inside title-safe space;
+- the planner clamps transformed word bounds to that field;
+- deterministic collision resolution is mandatory;
+- row flow remains left-to-right and rows progress top-to-bottom;
+- a 90° word is permitted as a single logical edge accent, not an arbitrary mid-sequence obstacle;
+- fullscreen Takeover/Portal effects may deliberately exceed the attention field.
+
+Color direction separates **mood** from **harmony**. Mood chooses the base OKLCH region/profile; harmony chooses hue relationships. The darkest background role remains low-chroma and near-neutral, while accents/surfaces/glow carry most saturation.
+
+Rainbow Drift is derived from lyric time at 2.4 degrees/second. It rotates palette hue slowly rather than displaying simultaneous rainbow colors.
+
+### Why
+
+This preserves expressive kinetic motion without making the reading path itself random. It also prevents warm palettes from dominating the whole frame as low-light brown while retaining colored accents and contrast.
+
+### Scope / limits
+
+- The current layout contract is explicitly Latin/LTR-first.
+- Full RTL/bidirectional typography is not claimed and requires later script-aware rendering work.
+- The central field is a product design rule informed by title-safe practice and center-bias research; it is not presented as a universal scientific "golden center".
+- Mood labels are creative art-direction categories, not universal psychological claims.
+
+See `docs/VISUAL_READABILITY_COLOR_RULES.md`.

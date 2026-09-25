@@ -29,6 +29,8 @@ Manifest mode is the stable path for projects that use nested media, multiple au
     "compositionMotion": "auto",
     "backgroundPreset": "auto",
     "colorHarmony": "split-complement",
+    "colorMood": "heartbreak",
+    "colorFlow": "static",
     "intensity": 1.15,
     "quality": "cinema",
     "syncMs": 40
@@ -53,6 +55,8 @@ Manifest mode is the stable path for projects that use nested media, multiple au
 - `defaults.compositionMotion`: `auto`, `handoff`, `conveyor`, `anchor-build`, `collapse`, `takeover`, `flip`, `camera-handoff`, `portal` or `panel`.
 - `defaults.backgroundPreset`: `auto`, `cinematic`, `nebula`, `grid`, `starfield`, `rays`, `vortex`, `liquid`, `spectrum`, `sparks`, `lyrics` or `minimal`.
 - `defaults.colorHarmony`: `auto`, `split-complement`, `analogous`, `complement`, `triad`, `tetrad` or `monochrome`.
+- `defaults.colorMood`: `auto`, `tender`, `heartbreak`, `longing`, `euphoria`, `rage`, `dream`, `tension` or `calm`.
+- `defaults.colorFlow`: `static` or `rainbow`. Rainbow is a slow hue drift; backgrounds remain intentionally low-chroma while accents carry most of the color movement.
 - `defaults.intensity`: number from `0.2` to `1.8`.
 - `defaults.quality`: `performance` or `cinema`.
 - `defaults.syncMs`: integer-like millisecond trim from `-1500` to `1500`.

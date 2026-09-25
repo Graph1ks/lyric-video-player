@@ -177,11 +177,10 @@ export class KineticLyrics {
     return this.resolvedMotion;
   }
 
-  setPalette(palette: VisualPalette) {
+  setPalette(palette: VisualPalette, refreshStatic = true) {
     this.palette = palette;
-    if (this.line) {
+    if (this.line && refreshStatic) {
       this.configureStyle();
-      this.remeasureWords();
       this.rebuildEchoLayers();
     }
   }
@@ -919,6 +918,7 @@ export class KineticLyrics {
       height: this.h,
       lineIndex: this.lineIndex,
       wordWidths: this.words.map(word => word.width),
+      wordHeight: this.fontSize,
       wordTexts: this.words.map(word => word.cue.text),
     });
     this.resolvedLayout = plan.layout;

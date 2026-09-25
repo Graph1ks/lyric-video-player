@@ -113,6 +113,19 @@ These operate on word/layout containers rather than individual glyphs.
 
 **Acceptance:** switching grammar must visibly change the motion logic of the complete composition without changing its authored layout or breaking glyph-level typography effects.
 
+## Readability + Color Stabilization — active candidate
+
+Before adding more worlds, enforce the constraints every world must respect:
+
+- central attention field for routine readable lyrics;
+- deterministic collision avoidance;
+- LTR row-order and edge-only vertical accents for the current Latin baseline;
+- emotion-named OKLCH color direction;
+- low-chroma dark background roles;
+- slow timestamp-derived Rainbow Drift.
+
+See `docs/VISUAL_READABILITY_COLOR_RULES.md`.
+
 ## Step 4 — Visual World Expansion
 
 Move from effect variants to distinct art-direction worlds:

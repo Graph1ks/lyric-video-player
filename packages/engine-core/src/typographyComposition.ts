@@ -5,6 +5,15 @@ import type {
   TypographyLayoutPreset,
 } from "./types.js";
 
+export type ReadingDirection = "ltr" | "rtl";
+
+export interface TypographyAttentionField {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export interface TypographyCompositionInput {
   preset: TypographyLayoutPreset;
   scene: SceneMode;
@@ -12,7 +21,9 @@ export interface TypographyCompositionInput {
   height: number;
   lineIndex: number;
   wordWidths: number[];
+  wordHeight?: number;
   wordTexts?: string[];
+  readingDirection?: ReadingDirection;
 }
 
 export interface WordCompositionPlacement {
@@ -30,6 +41,8 @@ export interface WordCompositionPlacement {
 export interface TypographyCompositionPlan {
   layout: TypographyLayoutId;
   anchorIndex: number;
+  readingDirection: ReadingDirection;
+  attentionField: TypographyAttentionField;
   words: WordCompositionPlacement[];
 }
 
@@ -61,13 +74,185 @@ function longestWordIndex(widths: number[]) {
   return winner;
 }
 
-function fitScale(wordWidth: number, desired: number, maxWidth: number, min = 0.42, max = 1.45) {
+function fitScale(wordWidth: number, desired: number, maxWidth: number, min = 0.36, max = 1.45) {
   if (!(wordWidth > 0)) return clamp(desired, min, max);
   return clamp(Math.min(desired, maxWidth / wordWidth), min, max);
 }
 
-function mirrorForLine(lineIndex: number) {
-  return lineIndex % 2 === 0 ? 1 : -1;
+function attentionField(width: number, height: number): TypographyAttentionField {
+  // Deliberately stricter than conventional 80%-of-frame title safe. The
+  // baseline lyric layout lives in a centered attention field; explicit
+  // takeover/portal motion is allowed to escape it for full-frame moments.
+  return {
+    x: 0,
+    y: -height * 0.035,
+    width: width * 0.76,
+    height: height * 0.62,
+  };
+}
+
+function isVertical(rotation: number) {
+  return Math.abs(Math.abs(rotation) - Math.PI / 2) < 0.2;
+}
+
+function boundsFor(
+  placement: WordCompositionPlacement,
+  wordWidth: number,
+  wordHeight: number,
+) {
+  const vertical = isVertical(placement.rotation);
+  const w = (vertical ? wordHeight : wordWidth) * placement.scale;
+  const h = (vertical ? wordWidth : wordHeight) * placement.scale;
+  return {
+    left: placement.x - w * 0.5,
+    right: placement.x + w * 0.5,
+    top: placement.y - h * 0.5,
+    bottom: placement.y + h * 0.5,
+    width: w,
+    height: h,
+  };
+}
+
+function clampToAttentionField(
+  placement: WordCompositionPlacement,
+  wordWidth: number,
+  wordHeight: number,
+  field: TypographyAttentionField,
+) {
+  const bounds = boundsFor(placement, wordWidth, wordHeight);
+  const minX = field.x - field.width * 0.5 + bounds.width * 0.5;
+  const maxX = field.x + field.width * 0.5 - bounds.width * 0.5;
+  const minY = field.y - field.height * 0.5 + bounds.height * 0.5;
+  const maxY = field.y + field.height * 0.5 - bounds.height * 0.5;
+
+  if (minX <= maxX) placement.x = clamp(placement.x, minX, maxX);
+  else placement.x = field.x;
+  if (minY <= maxY) placement.y = clamp(placement.y, minY, maxY);
+  else placement.y = field.y;
+}
+
+function overlapAmount(
+  a: ReturnType<typeof boundsFor>,
+  b: ReturnType<typeof boundsFor>,
+) {
+  return {
+    x: Math.min(a.right, b.right) - Math.max(a.left, b.left),
+    y: Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top),
+  };
+}
+
+function stabilizeComposition(
+  words: WordCompositionPlacement[],
+  wordWidths: number[],
+  wordHeight: number,
+  field: TypographyAttentionField,
+  direction: ReadingDirection,
+  anchorIndex: number,
+) {
+  if (words.length < 2) {
+    if (words[0]) clampToAttentionField(words[0], wordWidths[0], wordHeight, field);
+    return;
+  }
+
+  const gap = Math.max(10, wordHeight * 0.16);
+  const flowSign = direction === "ltr" ? 1 : -1;
+
+  // First keep every readable word inside the central title/attention field.
+  words.forEach((word, index) => {
+    clampToAttentionField(word, wordWidths[index], wordHeight, field);
+  });
+
+  // Deterministic collision relaxation. The later cue yields more than the
+  // earlier cue so reading order remains visually recoverable.
+  for (let pass = 0; pass < 8; pass++) {
+    let changed = false;
+    for (let i = 0; i < words.length; i++) {
+      for (let j = i + 1; j < words.length; j++) {
+        const a = boundsFor(words[i], wordWidths[i], wordHeight);
+        const b = boundsFor(words[j], wordWidths[j], wordHeight);
+        const overlap = overlapAmount(a, b);
+        if (overlap.x <= gap || overlap.y <= gap) continue;
+
+        changed = true;
+        const jIsAnchor = j === anchorIndex;
+        const iIsAnchor = i === anchorIndex;
+        const xShift = overlap.x + gap;
+        const yShift = overlap.y + gap;
+
+        // Prefer preserving row reading by pushing the later word forward.
+        const tryX = words[j].x + flowSign * xShift * (jIsAnchor ? 0.28 : 0.72);
+        const originalX = words[j].x;
+        words[j].x = tryX;
+        clampToAttentionField(words[j], wordWidths[j], wordHeight, field);
+        const movedX = Math.abs(words[j].x - originalX);
+
+        if (movedX < xShift * 0.42) {
+          // No horizontal room: open a new visual row instead of creating a
+          // diagonal reverse-reading path.
+          words[j].x = originalX;
+          const verticalDirection = words[j].y >= words[i].y ? 1 : -1;
+          words[j].y += verticalDirection * yShift * (jIsAnchor ? 0.34 : 0.72);
+          if (!iIsAnchor) words[i].y -= verticalDirection * yShift * 0.16;
+        } else if (!iIsAnchor) {
+          words[i].x -= flowSign * xShift * 0.10;
+        }
+
+        clampToAttentionField(words[i], wordWidths[i], wordHeight, field);
+        clampToAttentionField(words[j], wordWidths[j], wordHeight, field);
+      }
+    }
+    if (!changed) break;
+  }
+
+  // Last resort: scale down only the words that still collide. This is safer
+  // than allowing unreadable overlaps or sending text outside the focal field.
+  for (let pass = 0; pass < 5; pass++) {
+    let collision = false;
+    for (let i = 0; i < words.length; i++) {
+      for (let j = i + 1; j < words.length; j++) {
+        const overlap = overlapAmount(
+          boundsFor(words[i], wordWidths[i], wordHeight),
+          boundsFor(words[j], wordWidths[j], wordHeight),
+        );
+        if (overlap.x <= gap * 0.7 || overlap.y <= gap * 0.7) continue;
+        collision = true;
+        const target = words[j].emphasis <= words[i].emphasis ? j : i;
+        words[target].scale = Math.max(0.34, words[target].scale * 0.9);
+        clampToAttentionField(words[target], wordWidths[target], wordHeight, field);
+      }
+    }
+    if (!collision) break;
+  }
+}
+
+function placeHorizontalRow(
+  indices: number[],
+  words: WordCompositionPlacement[],
+  widths: number[],
+  y: number,
+  maxWidth: number,
+  gap: number,
+  direction: ReadingDirection,
+  desiredScale: (index: number) => number,
+) {
+  if (!indices.length) return;
+  const scales = indices.map(index => fitScale(widths[index], desiredScale(index), maxWidth * 0.55));
+  const total = indices.reduce((sum, index, position) => (
+    sum + widths[index] * scales[position] + (position ? gap : 0)
+  ), 0);
+  let cursor = -total * 0.5;
+  const sequence = direction === "ltr" ? indices : [...indices].reverse();
+
+  sequence.forEach(index => {
+    const originalPosition = indices.indexOf(index);
+    const scale = scales[originalPosition];
+    const scaledWidth = widths[index] * scale;
+    words[index].x = cursor + scaledWidth * 0.5;
+    words[index].y = y;
+    words[index].scale = scale;
+    words[index].rotation = 0;
+    cursor += scaledWidth + gap;
+  });
 }
 
 export function resolveTypographyLayout(
@@ -89,242 +274,191 @@ export function planTypographyComposition(
   const width = Math.max(1, input.width);
   const height = Math.max(1, input.height);
   const wordWidths = input.wordWidths.map(value => Math.max(1, value));
+  const wordHeight = Math.max(24, input.wordHeight ?? Math.min(112, height * 0.105));
   const count = wordWidths.length;
+  const direction = input.readingDirection ?? "ltr";
   const layout = resolveTypographyLayout(input.preset, input.scene, input.lineIndex, count);
   const anchorIndex = longestWordIndex(wordWidths);
+  const field = attentionField(width, height);
   const words = Array.from({ length: count }, emptyPlacement);
-  if (!count) return { layout, anchorIndex: 0, words };
+  if (!count) return { layout, anchorIndex: 0, readingDirection: direction, attentionField: field, words };
 
-  const mirror = mirrorForLine(input.lineIndex);
-  const safeW = width * 0.82;
-  const safeH = height * 0.62;
+  const gap = Math.max(14, Math.min(52, width * 0.018));
+  const verticalEdgeIndex = count <= 1
+    ? 0
+    : input.lineIndex % 2 === 0
+      ? count - 1
+      : 0;
 
   if (layout === "center-stack") {
-    const gap = Math.max(16, Math.min(64, width * 0.022));
     const rows: number[][] = [[]];
     let rowWidth = 0;
-
     for (let index = 0; index < count; index++) {
-      const next = wordWidths[index] + (rows[rows.length - 1].length ? gap : 0);
-      if (rowWidth + next > safeW && rows[rows.length - 1].length) {
+      const targetScale = index === anchorIndex ? 1.04 : 0.92;
+      const projected = wordWidths[index] * targetScale + (rows[rows.length - 1].length ? gap : 0);
+      if (rowWidth + projected > field.width * 0.94 && rows[rows.length - 1].length) {
         rows.push([]);
         rowWidth = 0;
       }
       rows[rows.length - 1].push(index);
-      rowWidth += wordWidths[index] + (rows[rows.length - 1].length > 1 ? gap : 0);
+      rowWidth += projected;
     }
 
-    const lineHeight = Math.min(height * 0.15, 132);
-    let y = -((rows.length - 1) * lineHeight) * 0.5;
+    const rowGap = Math.min(wordHeight * 1.28, height * 0.15);
+    const startY = field.y - ((rows.length - 1) * rowGap) * 0.5;
     rows.forEach((row, rowIndex) => {
-      const total = row.reduce((sum, index, position) => (
-        sum + wordWidths[index] + (position ? gap : 0)
-      ), 0);
-      let x = -total * 0.5;
+      placeHorizontalRow(
+        row,
+        words,
+        wordWidths,
+        startY + rowIndex * rowGap,
+        field.width * 0.94,
+        gap,
+        direction,
+        index => index === anchorIndex ? 1.04 : 0.92,
+      );
       row.forEach((index, position) => {
-        const scale = fitScale(wordWidths[index], index === anchorIndex ? 1.08 : 1, safeW * 0.72);
-        words[index] = {
-          x: x + wordWidths[index] * 0.5,
-          y,
-          rotation: 0,
-          scale,
-          entryX: position % 2 ? width * 0.22 : -width * 0.22,
-          entryY: rowIndex % 2 ? height * 0.08 : -height * 0.08,
-          entryScale: index === anchorIndex ? 0.34 : 0.64,
-          entryRotation: position % 2 ? 0.06 : -0.06,
-          emphasis: index === anchorIndex ? 1 : 0.55,
-        };
-        x += wordWidths[index] + gap;
+        words[index].entryX = (position % 2 ? 1 : -1) * width * 0.18;
+        words[index].entryY = rowIndex % 2 ? height * 0.06 : -height * 0.06;
+        words[index].entryScale = index === anchorIndex ? 0.38 : 0.68;
+        words[index].entryRotation = position % 2 ? 0.05 : -0.05;
+        words[index].emphasis = index === anchorIndex ? 1 : 0.56;
       });
-      y += lineHeight;
     });
-    return { layout, anchorIndex, words };
-  }
+  } else if (layout === "directional-stage") {
+    const split = Math.ceil(count / 2);
+    const top = Array.from({ length: split }, (_, index) => index);
+    const bottom = Array.from({ length: count - split }, (_, index) => index + split);
+    const yTop = field.y - field.height * 0.19;
+    const yBottom = field.y + field.height * 0.18;
 
-  if (layout === "directional-stage") {
-    const slots = [
-      [-0.27, -0.22, 0, 0.9, -0.46, 0, 0.68, -0.08],
-      [0.23, -0.12, Math.PI / 2, 0.72, 0, 0.48, 0.72, -0.18],
-      [-0.12, 0.11, 0, 1.24, 0.45, 0, 0.28, 0.08],
-      [0.27, 0.24, 0, 0.82, 0, -0.46, 1.55, 0.1],
-      [-0.31, 0.27, -0.08, 0.74, -0.4, 0.24, 0.58, -0.12],
-      [0.08, -0.31, 0.05, 0.78, 0.34, -0.34, 0.5, 0.08],
-    ] as const;
+    placeHorizontalRow(top, words, wordWidths, yTop, field.width * 0.92, gap, direction, index => index === anchorIndex ? 1.02 : 0.80);
+    placeHorizontalRow(bottom, words, wordWidths, yBottom, field.width * 0.92, gap, direction, index => index === anchorIndex ? 1.06 : 0.84);
 
-    for (let index = 0; index < count; index++) {
-      const slot = slots[index % slots.length];
-      const rotate = slot[2] * mirror;
-      const vertical = Math.abs(rotate) > 1;
-      const maxWordWidth = vertical ? safeH * 0.76 : safeW * 0.48;
-      const scale = fitScale(wordWidths[index], slot[3] * (index === anchorIndex ? 1.08 : 1), maxWordWidth);
-      words[index] = {
-        x: slot[0] * width * mirror,
-        y: slot[1] * height,
-        rotation: rotate,
-        scale,
-        entryX: slot[4] * width * mirror,
-        entryY: slot[5] * height,
-        entryScale: slot[6],
-        entryRotation: slot[7] * mirror,
-        emphasis: index === anchorIndex ? 1 : 0.58,
-      };
+    // A single edge word may be vertical. Never place a vertical word in the
+    // middle of the logical reading path.
+    if (count >= 3) {
+      const vertical = words[verticalEdgeIndex];
+      vertical.rotation = verticalEdgeIndex === 0 ? -Math.PI / 2 : Math.PI / 2;
+      vertical.scale = fitScale(wordWidths[verticalEdgeIndex], 0.72, field.height * 0.48, 0.38, 0.88);
+      vertical.x = verticalEdgeIndex === 0
+        ? field.x - field.width * 0.40
+        : field.x + field.width * 0.40;
+      vertical.y = field.y;
+      vertical.emphasis = verticalEdgeIndex === anchorIndex ? 1 : 0.68;
     }
-    return { layout, anchorIndex, words };
+
+    words.forEach((word, index) => {
+      const lane = index % 4;
+      word.entryX = lane === 0 ? -width * 0.34 : lane === 1 ? width * 0.30 : 0;
+      word.entryY = lane === 2 ? -height * 0.32 : lane === 3 ? height * 0.32 : 0;
+      word.entryScale = index === anchorIndex ? 0.32 : lane === 3 ? 1.38 : 0.66;
+      word.entryRotation = lane % 2 ? 0.08 : -0.08;
+      if (word.emphasis === 0.5) word.emphasis = index === anchorIndex ? 1 : 0.58;
+    });
+  } else if (layout === "editorial") {
+    const before = Array.from({ length: anchorIndex }, (_, index) => index);
+    const after = Array.from({ length: count - anchorIndex - 1 }, (_, index) => index + anchorIndex + 1);
+
+    placeHorizontalRow(before, words, wordWidths, field.y - field.height * 0.27, field.width * 0.90, gap, direction, () => 0.64);
+    words[anchorIndex] = {
+      x: 0,
+      y: field.y,
+      rotation: 0,
+      scale: fitScale(wordWidths[anchorIndex], 1.28, field.width * 0.67, 0.52, 1.42),
+      entryX: direction === "ltr" ? width * 0.36 : -width * 0.36,
+      entryY: 0,
+      entryScale: 0.24,
+      entryRotation: 0,
+      emphasis: 1,
+    };
+    placeHorizontalRow(after, words, wordWidths, field.y + field.height * 0.27, field.width * 0.90, gap, direction, () => 0.68);
+
+    [...before, ...after].forEach((index, position) => {
+      words[index].entryX = position % 2 ? width * 0.28 : -width * 0.28;
+      words[index].entryY = index < anchorIndex ? -height * 0.12 : height * 0.12;
+      words[index].entryScale = 0.58;
+      words[index].entryRotation = 0;
+      words[index].emphasis = 0.43;
+    });
+  } else if (layout === "vertical-accent") {
+    const rest = Array.from({ length: count }, (_, index) => index).filter(index => index !== verticalEdgeIndex);
+    const edgeX = verticalEdgeIndex === 0 ? -field.width * 0.39 : field.width * 0.39;
+    words[verticalEdgeIndex] = {
+      x: edgeX,
+      y: field.y,
+      rotation: verticalEdgeIndex === 0 ? -Math.PI / 2 : Math.PI / 2,
+      scale: fitScale(wordWidths[verticalEdgeIndex], 0.90, field.height * 0.54, 0.40, 1.02),
+      entryX: 0,
+      entryY: verticalEdgeIndex === 0 ? -height * 0.34 : height * 0.34,
+      entryScale: 0.5,
+      entryRotation: 0,
+      emphasis: verticalEdgeIndex === anchorIndex ? 1 : 0.74,
+    };
+
+    const rows = rest.length > 3 ? [rest.slice(0, Math.ceil(rest.length / 2)), rest.slice(Math.ceil(rest.length / 2))] : [rest];
+    rows.forEach((row, rowIndex) => {
+      const y = field.y + (rowIndex - (rows.length - 1) * 0.5) * wordHeight * 1.35;
+      placeHorizontalRow(row, words, wordWidths, y, field.width * 0.68, gap, direction, index => index === anchorIndex ? 1.04 : 0.80);
+      row.forEach((index, position) => {
+        words[index].entryX = verticalEdgeIndex === 0 ? width * 0.30 : -width * 0.30;
+        words[index].entryY = position % 2 ? height * 0.06 : -height * 0.06;
+        words[index].entryScale = index === anchorIndex ? 0.38 : 0.64;
+        words[index].entryRotation = 0;
+        words[index].emphasis = index === anchorIndex ? 1 : 0.56;
+      });
+    });
+  } else if (layout === "split-stage") {
+    const split = Math.ceil(count / 2);
+    const first = Array.from({ length: split }, (_, index) => index);
+    const second = Array.from({ length: count - split }, (_, index) => index + split);
+    placeHorizontalRow(first, words, wordWidths, field.y - field.height * 0.20, field.width * 0.88, gap, direction, index => index === anchorIndex ? 1.05 : 0.78);
+    placeHorizontalRow(second, words, wordWidths, field.y + field.height * 0.20, field.width * 0.88, gap, direction, index => index === anchorIndex ? 1.05 : 0.82);
+
+    const shift = field.width * 0.07;
+    first.forEach(index => { words[index].x -= direction === "ltr" ? shift : -shift; });
+    second.forEach(index => { words[index].x += direction === "ltr" ? shift : -shift; });
+    words.forEach((word, index) => {
+      word.entryX = index < split ? -width * 0.30 : width * 0.30;
+      word.entryY = index < split ? -height * 0.08 : height * 0.08;
+      word.entryScale = index === anchorIndex ? 0.34 : 0.68;
+      word.entryRotation = 0;
+      word.emphasis = index === anchorIndex ? 1 : 0.52;
+    });
+  } else {
+    // Crossword: one edge word can run vertically while the remaining logical
+    // sequence stays in a horizontal band. No diagonal cue traversal.
+    const rest = Array.from({ length: count }, (_, index) => index).filter(index => index !== verticalEdgeIndex);
+    placeHorizontalRow(rest, words, wordWidths, field.y, field.width * 0.72, gap, direction, index => index === anchorIndex ? 1.10 : 0.76);
+
+    words[verticalEdgeIndex] = {
+      x: verticalEdgeIndex === 0 ? -field.width * 0.39 : field.width * 0.39,
+      y: field.y,
+      rotation: verticalEdgeIndex === 0 ? -Math.PI / 2 : Math.PI / 2,
+      scale: fitScale(wordWidths[verticalEdgeIndex], 0.76, field.height * 0.5, 0.38, 0.90),
+      entryX: 0,
+      entryY: verticalEdgeIndex === 0 ? -height * 0.32 : height * 0.32,
+      entryScale: 0.58,
+      entryRotation: 0,
+      emphasis: verticalEdgeIndex === anchorIndex ? 1 : 0.72,
+    };
+
+    rest.forEach((index, position) => {
+      words[index].entryX = position % 2 ? width * 0.22 : -width * 0.22;
+      words[index].entryY = position % 2 ? height * 0.06 : -height * 0.06;
+      words[index].entryScale = index === anchorIndex ? 0.36 : 0.66;
+      words[index].entryRotation = 0;
+      words[index].emphasis = index === anchorIndex ? 1 : 0.50;
+    });
   }
 
-  if (layout === "editorial") {
-    const satellites = [
-      [-0.31, -0.24, 0, 0.68, -0.42, 0],
-      [0.29, -0.27, Math.PI / 2, 0.58, 0, -0.42],
-      [0.31, 0.22, 0, 0.7, 0.42, 0],
-      [-0.28, 0.28, -0.06, 0.62, -0.35, 0.28],
-      [0.05, -0.33, 0.04, 0.64, 0, -0.38],
-    ] as const;
-    let satelliteIndex = 0;
+  stabilizeComposition(words, wordWidths, wordHeight, field, direction, anchorIndex);
 
-    for (let index = 0; index < count; index++) {
-      if (index === anchorIndex) {
-        words[index] = {
-          x: -width * 0.04 * mirror,
-          y: height * 0.03,
-          rotation: 0,
-          scale: fitScale(wordWidths[index], 1.36, safeW * 0.68, 0.55, 1.5),
-          entryX: width * 0.42 * mirror,
-          entryY: 0,
-          entryScale: 0.22,
-          entryRotation: 0.04 * mirror,
-          emphasis: 1,
-        };
-        continue;
-      }
-      const slot = satellites[satelliteIndex++ % satellites.length];
-      const rotation = slot[2] * mirror;
-      const vertical = Math.abs(rotation) > 1;
-      words[index] = {
-        x: slot[0] * width * mirror,
-        y: slot[1] * height,
-        rotation,
-        scale: fitScale(wordWidths[index], slot[3], vertical ? safeH * 0.54 : safeW * 0.34, 0.38, 0.9),
-        entryX: slot[4] * width * mirror,
-        entryY: slot[5] * height,
-        entryScale: 0.58,
-        entryRotation: (satelliteIndex % 2 ? -0.12 : 0.12) * mirror,
-        emphasis: 0.42,
-      };
-    }
-    return { layout, anchorIndex, words };
-  }
-
-  if (layout === "vertical-accent") {
-    const verticalIndex = anchorIndex;
-    let horizontalSlot = 0;
-    const horizontalCount = Math.max(1, count - 1);
-    for (let index = 0; index < count; index++) {
-      if (index === verticalIndex) {
-        words[index] = {
-          x: -width * 0.27 * mirror,
-          y: 0,
-          rotation: (Math.PI / 2) * mirror,
-          scale: fitScale(wordWidths[index], 1.1, safeH * 0.76, 0.46, 1.2),
-          entryX: 0,
-          entryY: height * 0.5 * mirror,
-          entryScale: 0.45,
-          entryRotation: -0.18 * mirror,
-          emphasis: 1,
-        };
-        continue;
-      }
-      const t = horizontalCount <= 1 ? 0.5 : horizontalSlot / (horizontalCount - 1);
-      words[index] = {
-        x: width * 0.17 * mirror,
-        y: (t - 0.5) * safeH * 0.74,
-        rotation: horizontalSlot % 3 === 2 ? 0.035 * mirror : 0,
-        scale: fitScale(wordWidths[index], horizontalSlot % 2 ? 0.78 : 0.92, safeW * 0.45, 0.42, 1.05),
-        entryX: width * 0.43 * mirror,
-        entryY: horizontalSlot % 2 ? height * 0.12 : -height * 0.12,
-        entryScale: horizontalSlot % 3 === 1 ? 1.45 : 0.62,
-        entryRotation: horizontalSlot % 2 ? -0.08 : 0.08,
-        emphasis: 0.55,
-      };
-      horizontalSlot++;
-    }
-    return { layout, anchorIndex, words };
-  }
-
-  if (layout === "split-stage") {
-    const rows = Math.ceil(count / 2);
-    for (let index = 0; index < count; index++) {
-      const side = index % 2 === 0 ? -1 : 1;
-      const row = Math.floor(index / 2);
-      const t = rows <= 1 ? 0.5 : row / (rows - 1);
-      const x = side * width * (0.19 + (row % 2) * 0.055) * mirror;
-      const y = (t - 0.5) * safeH * 0.82;
-      const desired = index === anchorIndex ? 1.05 : 0.76 + (index % 3) * 0.08;
-      words[index] = {
-        x,
-        y,
-        rotation: side * 0.025 * mirror,
-        scale: fitScale(wordWidths[index], desired, safeW * 0.42, 0.42, 1.16),
-        entryX: side * width * 0.46 * mirror,
-        entryY: row % 2 ? height * 0.08 : -height * 0.08,
-        entryScale: index === anchorIndex ? 0.3 : 0.7,
-        entryRotation: side * 0.1 * mirror,
-        emphasis: index === anchorIndex ? 1 : 0.5,
-      };
-    }
-    return { layout, anchorIndex, words };
-  }
-
-  // crossword
-  const verticalIndex = count > 1
-    ? (anchorIndex + 1 + (input.lineIndex % Math.max(1, count - 1))) % count
-    : anchorIndex;
-  let satellite = 0;
-  for (let index = 0; index < count; index++) {
-    if (index === anchorIndex) {
-      words[index] = {
-        x: 0,
-        y: 0,
-        rotation: 0,
-        scale: fitScale(wordWidths[index], 1.26, safeW * 0.68, 0.5, 1.4),
-        entryX: -width * 0.42 * mirror,
-        entryY: 0,
-        entryScale: 0.3,
-        entryRotation: -0.04 * mirror,
-        emphasis: 1,
-      };
-    } else if (index === verticalIndex) {
-      words[index] = {
-        x: -width * 0.12 * mirror,
-        y: -height * 0.015,
-        rotation: (Math.PI / 2) * mirror,
-        scale: fitScale(wordWidths[index], 0.84, safeH * 0.58, 0.4, 0.96),
-        entryX: 0,
-        entryY: height * 0.46,
-        entryScale: 0.62,
-        entryRotation: -0.16 * mirror,
-        emphasis: 0.78,
-      };
-    } else {
-      const positions = [
-        [0.25, -0.23],
-        [-0.27, 0.24],
-        [0.26, 0.25],
-        [-0.28, -0.27],
-      ] as const;
-      const position = positions[satellite++ % positions.length];
-      words[index] = {
-        x: position[0] * width * mirror,
-        y: position[1] * height,
-        rotation: satellite % 2 ? 0.045 * mirror : -0.035 * mirror,
-        scale: fitScale(wordWidths[index], 0.62, safeW * 0.3, 0.38, 0.78),
-        entryX: position[0] * width * 1.4 * mirror,
-        entryY: position[1] * height * 0.8,
-        entryScale: 0.56,
-        entryRotation: satellite % 2 ? 0.13 : -0.13,
-        emphasis: 0.38,
-      };
-    }
-  }
-  return { layout, anchorIndex, words };
+  return {
+    layout,
+    anchorIndex,
+    readingDirection: direction,
+    attentionField: field,
+    words,
+  };
 }

@@ -2,12 +2,12 @@
 
 **Last updated:** 2026-09-25  
 **Merged baseline:** `ce612363c52bf4067927cabc5d6d37ad1f883c12`  
-**Active candidate:** none  
+**Active candidate:** `feature/readability-color-director-v0.8`  
 **Current phase/milestone:** v0.8 lyric-scene composition + color direction
 
 ## Current objective
 
-Begin Step 4 art-direction world expansion on top of the merged typography-composition, composition-motion and OKLCH palette contracts.
+Land the readability/color stabilization layer before continuing Step 4 visual-world expansion.
 
 ## Current implementation state
 
@@ -87,6 +87,30 @@ React exposes **Composition Motion** and keyboard `G`; `M` remains mute. `emo.pr
 
 See `docs/COMPOSITION_MOTION_GRAMMAR.md` for the runtime contract and known tuning risks.
 
+### Active readability/color candidate
+
+The candidate changes two foundational contracts before adding more visual worlds.
+
+**Composition safety**
+
+- default readable lyrics target a centered attention field (76% width × 62% height, center Y ≈ 46.5%);
+- word bounds are estimated after scale/90° rotation;
+- deterministic collision relaxation keeps words inside that field;
+- lower-emphasis words scale down as a last resort instead of overlapping;
+- LTR rows preserve left-to-right cue order and wrap top-to-bottom;
+- Vertical Accent/Crossword may use one vertical word only at a logical sequence edge;
+- Split Stage is now row-based rather than alternating every cue across left/right sides.
+
+**Color direction**
+
+- emotion-named creative presets: Tender, Heartbreak, Longing, Euphoria, Rage, Dream, Tension, Calm;
+- darkest background colors use very low chroma so warm palettes no longer become persistent brown;
+- harmony remains independent from mood;
+- Rainbow Drift rotates hue at 2.4°/s from lyric time, preserves harmony, and keeps readable text/background restrained;
+- UI exposes mood and Rainbow Drift; project defaults persist both.
+
+Research and exact product rules are in `docs/VISUAL_READABILITY_COLOR_RULES.md`.
+
 ## Important files / entry points
 
 | Path | Why it matters |
@@ -95,7 +119,8 @@ See `docs/COMPOSITION_MOTION_GRAMMAR.md` for the runtime contract and known tuni
 | `packages/engine-core/src/typographyComposition.ts` | pure word composition planner |
 | `packages/engine-core/src/typographyMotionGrammar.ts` | pure timestamp-driven composition-motion evaluator |
 | `docs/COMPOSITION_MOTION_GRAMMAR.md` | motion grammar contract, transform ownership and tuning notes |
-| `packages/engine-core/src/colorHarmony.ts` | OKLCH conversion + palette director |
+| `packages/engine-core/src/colorHarmony.ts` | OKLCH conversion + harmony + lyric mood palette director |
+| `docs/VISUAL_READABILITY_COLOR_RULES.md` | source-backed readability/color rules and non-goals |
 | `packages/renderer-pixi/src/effects/typography/KineticLyrics.ts` | composition + glyph-motion consumer |
 | `packages/renderer-pixi/src/effects/backgrounds/CinematicBackground.ts` | palette/background consumer |
 | `packages/renderer-pixi/src/render/EngineRenderer.ts` | composition/palette orchestration |
@@ -104,7 +129,7 @@ See `docs/COMPOSITION_MOTION_GRAMMAR.md` for the runtime contract and known tuni
 
 ## Known risks / pending acceptance
 
-- Mixed word compositions require real-track tuning for very long words/lines and small mobile viewports.
+- The new collision solver still requires real-track tuning for very long words/lines and small mobile viewports.
 - The baseline palette is wired into primary text/background/geometry; some specialist shader worlds still retain internal scene-specific shading and should migrate to palette uniforms in Step 4.
 - The Visual Director is increasingly dense; a later UI pass should group controls without hiding the engine features.
 - Real browser/Desktop visual acceptance remains required even after compile/CI validation.
@@ -125,9 +150,11 @@ Windows packaging remains a separate required gate.
 
 ## Next concrete work
 
-1. Migrate specialist background shaders to full palette-role uniforms / build Step 4 visual worlds.
-2. Complete remaining typography primitives.
-3. Stabilize scene-stack serialization before timeline/editor work.
+1. Validate the readability/color candidate on Linux + Windows and merge.
+2. Visually test dense Enhanced LRC lines at desktop + narrow/mobile sizes.
+3. Migrate specialist background shaders to full palette-role uniforms / build Step 4 visual worlds.
+4. Complete remaining typography primitives.
+5. Stabilize scene-stack serialization before timeline/editor work.
 
 ## Resume instruction
 

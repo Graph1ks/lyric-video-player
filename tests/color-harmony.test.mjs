@@ -44,3 +44,53 @@ test("all harmony families produce finite in-gamut packed colors", () => {
     }
   }
 });
+
+
+test("lyric mood palettes keep dark fields near-neutral instead of muddy brown", () => {
+  const rage = createVisualPalette({
+    harmony: "split-complement",
+    mood: "rage",
+    scene: "poster",
+    lineIndex: 0,
+  });
+  const tension = createVisualPalette({
+    harmony: "complement",
+    mood: "tension",
+    scene: "poster",
+    lineIndex: 1,
+  });
+
+  assert.equal(rage.resolvedMood, "rage");
+  assert.equal(tension.resolvedMood, "tension");
+  assert.ok(rage.primaryContrast >= 7);
+  assert.ok(tension.primaryContrast >= 7);
+
+  const rageRgb = [
+    (rage.background >> 16) & 255,
+    (rage.background >> 8) & 255,
+    rage.background & 255,
+  ];
+  assert.ok(Math.max(...rageRgb) - Math.min(...rageRgb) < 18);
+});
+
+test("rainbow hue drift moves accents gradually while preserving contrast", () => {
+  const a = createVisualPalette({
+    harmony: "triad",
+    mood: "dream",
+    scene: "neon",
+    lineIndex: 2,
+    hueShift: 0,
+  });
+  const b = createVisualPalette({
+    harmony: "triad",
+    mood: "dream",
+    scene: "neon",
+    lineIndex: 2,
+    hueShift: 2.4,
+  });
+
+  assert.notEqual(a.accentA, b.accentA);
+  assert.ok(Math.abs(a.baseHue - b.baseHue) <= 3);
+  assert.ok(b.primaryContrast >= 7);
+  assert.ok(b.secondaryContrast >= 4.5);
+});

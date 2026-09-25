@@ -147,10 +147,10 @@ export class CinematicBackground {
     }
   }
 
-  setPalette(palette: VisualPalette) {
+  setPalette(palette: VisualPalette, refreshStatic = true) {
     this.palette = palette;
     this.applyModePalette();
-    this.rebuildLyricBackdrop();
+    if (refreshStatic) this.rebuildLyricBackdrop();
   }
 
   setIntensity(value: number) {

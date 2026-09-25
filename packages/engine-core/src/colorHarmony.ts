@@ -2,6 +2,8 @@ import { clamp } from "./math.js";
 import type {
   ColorHarmonyId,
   ColorHarmonyMode,
+  ColorMoodId,
+  ColorMoodMode,
   SceneMode,
 } from "./types.js";
 
@@ -13,6 +15,7 @@ export interface OklchColor {
 
 export interface VisualPalette {
   resolvedHarmony: ColorHarmonyId;
+  resolvedMood: ColorMoodId;
   baseHue: number;
   accentAHue: number;
   accentBHue: number;
@@ -30,15 +33,55 @@ export interface VisualPalette {
 
 export interface VisualPaletteInput {
   harmony: ColorHarmonyMode;
+  mood?: ColorMoodMode;
   scene: SceneMode;
   lineIndex: number;
   baseHue?: number;
+  hueShift?: number;
 }
+
+interface MoodProfile {
+  hue: number;
+  backgroundL: number;
+  backgroundC: number;
+  surfaceL: number;
+  surfaceC: number;
+  accentL: number;
+  accentC: number;
+}
+
+export const COLOR_MOOD_LABELS: Record<ColorMoodId, string> = {
+  tender: "Tender",
+  heartbreak: "Heartbreak",
+  longing: "Longing",
+  euphoria: "Euphoria",
+  rage: "Rage",
+  dream: "Dream",
+  tension: "Tension",
+  calm: "Calm",
+};
+
+const MOOD_PROFILES: Record<ColorMoodId, MoodProfile> = {
+  tender: { hue: 342, backgroundL: 0.073, backgroundC: 0.010, surfaceL: 0.15, surfaceC: 0.026, accentL: 0.78, accentC: 0.17 },
+  heartbreak: { hue: 258, backgroundL: 0.067, backgroundC: 0.012, surfaceL: 0.14, surfaceC: 0.030, accentL: 0.73, accentC: 0.16 },
+  longing: { hue: 304, backgroundL: 0.070, backgroundC: 0.012, surfaceL: 0.145, surfaceC: 0.030, accentL: 0.75, accentC: 0.18 },
+  euphoria: { hue: 168, backgroundL: 0.076, backgroundC: 0.010, surfaceL: 0.155, surfaceC: 0.028, accentL: 0.80, accentC: 0.19 },
+  rage: { hue: 28, backgroundL: 0.064, backgroundC: 0.008, surfaceL: 0.135, surfaceC: 0.024, accentL: 0.69, accentC: 0.22 },
+  dream: { hue: 286, backgroundL: 0.072, backgroundC: 0.012, surfaceL: 0.15, surfaceC: 0.034, accentL: 0.77, accentC: 0.18 },
+  tension: { hue: 18, backgroundL: 0.061, backgroundC: 0.006, surfaceL: 0.13, surfaceC: 0.020, accentL: 0.72, accentC: 0.21 },
+  calm: { hue: 214, backgroundL: 0.071, backgroundC: 0.010, surfaceL: 0.15, surfaceC: 0.028, accentL: 0.76, accentC: 0.15 },
+};
 
 const AUTO_HARMONIES: Record<SceneMode, ColorHarmonyId[]> = {
   poster: ["split-complement", "monochrome", "complement", "triad"],
   neon: ["split-complement", "analogous", "triad", "tetrad"],
   vortex: ["complement", "split-complement", "tetrad", "monochrome"],
+};
+
+const AUTO_MOODS: Record<SceneMode, ColorMoodId[]> = {
+  poster: ["rage", "heartbreak", "tension", "longing"],
+  neon: ["dream", "euphoria", "calm", "tender"],
+  vortex: ["tension", "rage", "dream", "longing"],
 };
 
 function normalizeHue(value: number) {
@@ -148,6 +191,17 @@ export function resolveColorHarmony(
   return options[safeLine % options.length];
 }
 
+export function resolveColorMood(
+  mood: ColorMoodMode = "auto",
+  scene: SceneMode,
+  lineIndex: number,
+): ColorMoodId {
+  if (mood !== "auto") return mood;
+  const options = AUTO_MOODS[scene];
+  const safeLine = Math.max(0, lineIndex);
+  return options[safeLine % options.length];
+}
+
 function harmonyHues(baseHue: number, harmony: ColorHarmonyId) {
   if (harmony === "analogous") return [baseHue - 32, baseHue + 32] as const;
   if (harmony === "complement") return [baseHue + 180, baseHue + 8] as const;
@@ -159,46 +213,53 @@ function harmonyHues(baseHue: number, harmony: ColorHarmonyId) {
 
 export function createVisualPalette(input: VisualPaletteInput): VisualPalette {
   const resolvedHarmony = resolveColorHarmony(input.harmony, input.scene, input.lineIndex);
-  const sceneBase = input.scene === "poster" ? 14 : input.scene === "neon" ? 198 : 350;
-  const cueDrift = ((Math.max(0, input.lineIndex) % 5) - 2) * 6;
-  const baseHue = normalizeHue(input.baseHue ?? sceneBase + cueDrift);
+  const resolvedMood = resolveColorMood(input.mood, input.scene, input.lineIndex);
+  const profile = MOOD_PROFILES[resolvedMood];
+  const cueDrift = input.mood && input.mood !== "auto"
+    ? ((Math.max(0, input.lineIndex) % 3) - 1) * 2
+    : ((Math.max(0, input.lineIndex) % 5) - 2) * 4;
+  const baseHue = normalizeHue((input.baseHue ?? profile.hue) + cueDrift + (input.hueShift ?? 0));
   const [rawA, rawB] = harmonyHues(baseHue, resolvedHarmony);
   const accentAHue = normalizeHue(rawA);
   const accentBHue = normalizeHue(rawB);
 
+  // Readability rule: color lives primarily in accents/surfaces, not in the
+  // darkest field. This deliberately prevents low-light red/orange palettes
+  // from collapsing into muddy brown backgrounds.
   const background = oklchToHex({
-    l: input.scene === "poster" ? 0.095 : 0.075,
-    c: resolvedHarmony === "monochrome" ? 0.025 : 0.04,
+    l: profile.backgroundL,
+    c: Math.min(profile.backgroundC, resolvedHarmony === "monochrome" ? 0.010 : 0.014),
     h: baseHue,
   });
   const surface = oklchToHex({
-    l: 0.155,
-    c: resolvedHarmony === "monochrome" ? 0.035 : 0.055,
+    l: profile.surfaceL,
+    c: Math.min(profile.surfaceC, 0.035),
     h: baseHue,
   });
 
   const accentA = oklchToHex({
-    l: resolvedHarmony === "monochrome" ? 0.72 : 0.74,
-    c: resolvedHarmony === "monochrome" ? 0.08 : 0.2,
+    l: resolvedHarmony === "monochrome" ? Math.max(0.68, profile.accentL - 0.03) : profile.accentL,
+    c: resolvedHarmony === "monochrome" ? 0.075 : profile.accentC,
     h: accentAHue,
   });
   const accentB = oklchToHex({
-    l: resolvedHarmony === "monochrome" ? 0.58 : 0.68,
-    c: resolvedHarmony === "monochrome" ? 0.055 : 0.18,
+    l: resolvedHarmony === "monochrome" ? 0.60 : Math.max(0.62, profile.accentL - 0.07),
+    c: resolvedHarmony === "monochrome" ? 0.055 : Math.max(0.12, profile.accentC - 0.025),
     h: accentBHue,
   });
   const glow = oklchToHex({
-    l: 0.8,
-    c: resolvedHarmony === "monochrome" ? 0.09 : 0.18,
+    l: Math.max(0.78, profile.accentL + 0.04),
+    c: resolvedHarmony === "monochrome" ? 0.08 : Math.max(0.13, profile.accentC - 0.02),
     h: accentAHue,
   });
 
-  const textPrimary = foregroundForContrast(background, baseHue, 0.965, 0.018, 7);
-  const textSecondary = foregroundForContrast(background, baseHue, 0.78, 0.03, 4.5);
-  const muted = foregroundForContrast(background, baseHue, 0.58, 0.025, 3);
+  const textPrimary = foregroundForContrast(background, baseHue, 0.965, 0.012, 7);
+  const textSecondary = foregroundForContrast(background, baseHue, 0.80, 0.022, 4.5);
+  const muted = foregroundForContrast(background, baseHue, 0.59, 0.020, 3);
 
   return {
     resolvedHarmony,
+    resolvedMood,
     baseHue,
     accentAHue,
     accentBHue,

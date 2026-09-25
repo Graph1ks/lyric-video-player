@@ -2,12 +2,12 @@
 
 **Last updated:** 2026-09-25  
 **Last known good merged baseline:** `ce612363c52bf4067927cabc5d6d37ad1f883c12`  
-**Active candidate:** none  
+**Active candidate:** `feature/readability-color-director-v0.8`  
 **Current phase/milestone:** v0.8 lyric-scene composition + color direction
 
 ## Current objective
 
-Move into Step 4: distinct art-direction/background worlds built on the merged composition, motion and OKLCH contracts.
+Stabilize readability and color direction before deeper Step 4 visual-world expansion: central attention field, collision-safe LTR composition, emotion palettes and deterministic Rainbow Drift.
 
 ## Current state
 
@@ -47,6 +47,12 @@ Move into Step 4: distinct art-direction/background worlds built on the merged c
 - Grammar evaluation is pure/timestamp-driven from Enhanced LRC time and produces whole-stage + per-word transforms.
 - `camera-handoff` currently moves the typography stage only; global background/camera motion remains owned by CameraRig.
 - Motion AUTO is deterministic from scene family + cue index.
+- Active readability/color candidate adds a **central lyric attention field** inside title-safe space and deterministic collision resolution.
+- LTR AUTO layouts now preserve readable row order; vertical words are limited to logical edge accents instead of arbitrary mid-sequence rotations.
+- Split Stage no longer alternates consecutive cues left/right across the frame.
+- Color Director adds lyric-oriented mood presets: Tender, Heartbreak, Longing, Euphoria, Rage, Dream, Tension and Calm.
+- Dark background roles are now deliberately near-neutral/low-chroma to prevent persistent muddy brown fields.
+- Optional Rainbow Drift rotates hue slowly from explicit lyric time while primary text/background remain restrained.
 
 ## Last verified checks
 
@@ -57,9 +63,10 @@ Move into Step 4: distinct art-direction/background worlds built on the merged c
 
 ## Next concrete action
 
-1. Expand Step 4 art-direction worlds using the palette-role contract rather than hard-coded scene colors.
-2. Finish remaining typography primitives.
-3. Stabilize serializable scene-stack directives before editor work.
+1. Get the readability/color candidate green on Linux + Windows and visually tune on real tracks.
+2. Expand Step 4 art-direction worlds using the palette-role contract rather than hard-coded scene colors.
+3. Finish remaining typography primitives.
+4. Stabilize serializable scene-stack directives before editor work.
 
 ## Do not redo
 
@@ -76,5 +83,8 @@ Move into Step 4: distinct art-direction/background worlds built on the merged c
 - Composition plans and composition-motion frames are pure/testable engine-core output; Pixi only consumes them.
 - Palette AUTO and Composition AUTO are deterministic by cue index.
 - Primary text contrast is measured against the generated background before a palette is exposed.
+- There is no claimed scientific "golden center"; E-MO uses a deliberate central attention field informed by title-safe practice and documented center-bias research.
+- Current layout baseline is Latin/LTR. Full bidi/RTL typography remains future work.
+- See `docs/VISUAL_READABILITY_COLOR_RULES.md` for source-backed rules and product decisions.
 
 For implementation order, read `docs/LYRIC_VISUALIZATION_ENGINE_PLAN.md`.

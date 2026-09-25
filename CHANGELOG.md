@@ -34,6 +34,9 @@ Git history remains the complete technical history. This file records meaningful
 - Word-level typography composition engine with six deterministic layout families.
 - OKLCH palette director with harmony generation, gamut reduction, semantic color roles and contrast checks.
 - Deterministic composition-motion grammar with Handoff, Conveyor, Anchor Build, Collapse, Takeover, Flip, Camera Handoff, Portal and Panel families.
+- Lyric-oriented color moods: Tender, Heartbreak, Longing, Euphoria, Rage, Dream, Tension and Calm.
+- Slow timestamp-derived Rainbow Drift for restrained spectrum movement.
+- Central lyric attention field and collision-aware composition stabilization.
 
 ### Changed
 
@@ -46,6 +49,8 @@ Git history remains the complete technical history. This file records meaningful
 - Typography composition is now independent from glyph animation, allowing fixed 90°/editorial stage layouts while glyph effects continue inside each word.
 - Primary lyric and background layers now share one generated OKLCH palette contract.
 - Whole-layout motion is separated from fixed composition targets and glyph animation; all three layers remain independently selectable and timestamp-driven.
+- Dark palette backgrounds now use near-neutral low chroma; saturation is concentrated in accents/surfaces to avoid persistent muddy brown fields.
+- AUTO word layouts preserve LTR row progression and limit vertical words to logical edge accents instead of arbitrary zig-zag cue paths.
 - GSAP remains excluded because the planned visual-editor direction could intersect its visual-animation-builder restriction.
 
 ### Security / Privacy

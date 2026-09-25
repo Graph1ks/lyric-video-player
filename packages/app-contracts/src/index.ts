@@ -38,6 +38,17 @@ export type ProjectColorHarmony =
   | "triad"
   | "tetrad"
   | "monochrome";
+export type ProjectColorMood =
+  | "auto"
+  | "tender"
+  | "heartbreak"
+  | "longing"
+  | "euphoria"
+  | "rage"
+  | "dream"
+  | "tension"
+  | "calm";
+export type ProjectColorFlow = "static" | "rainbow";
 export type ProjectBackgroundPreset =
   | "auto"
   | "cinematic"
@@ -61,6 +72,8 @@ export interface EmoProjectDefaults {
   compositionMotion?: ProjectCompositionMotion;
   backgroundPreset?: ProjectBackgroundPreset;
   colorHarmony?: ProjectColorHarmony;
+  colorMood?: ProjectColorMood;
+  colorFlow?: ProjectColorFlow;
   syncMs?: number;
 }
 
