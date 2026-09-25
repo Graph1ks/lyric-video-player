@@ -1,13 +1,13 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `fdb8889d6898e34c2c6094baebddbe5e9eab726e`  
-**Active candidate:** `feature/composition-motion-v0.8`  
+**Last known good merged baseline:** `ce612363c52bf4067927cabc5d6d37ad1f883c12`  
+**Active candidate:** none  
 **Current phase/milestone:** v0.8 lyric-scene composition + color direction
 
 ## Current objective
 
-Complete Step 3: deterministic word/layout-level composition motion grammar, then move into art-direction world expansion.
+Move into Step 4: distinct art-direction/background worlds built on the merged composition, motion and OKLCH contracts.
 
 ## Current state
 
@@ -34,7 +34,7 @@ Complete Step 3: deterministic word/layout-level composition motion grammar, the
 - Generated palettes expose semantic background/text/accent/glow/muted roles and enforce minimum lyric/background contrast.
 - Primary typography and background layers share the same palette.
 - Composition and harmony are controllable from React, keyboard and `emo.project/v1`.
-- Active Step 3 candidate adds a separate **Composition Motion Grammar** above glyph animation:
+- Step 3 adds a merged **Composition Motion Grammar** above glyph animation:
   - Handoff
   - Conveyor
   - Anchor Build
@@ -52,14 +52,14 @@ Complete Step 3: deterministic word/layout-level composition motion grammar, the
 
 - v0.8 Composition + Palette: Linux install/typecheck/build/tests/publication audit — passed.
 - v0.8 Composition + Palette: Windows full build, NSIS packaging, portable x64 packaging and artifact upload — passed.
-- Composition Motion candidate still requires fresh Linux + Windows gates before merge.
+- Composition Motion: Linux install/typecheck/build/tests/publication audit — passed.
+- Composition Motion: Windows full build, NSIS packaging, portable x64 packaging and artifact upload — passed.
 
 ## Next concrete action
 
-1. Land Step 3 Composition Motion after green Linux + Windows gates.
-2. Expand Step 4 art-direction worlds using the palette-role contract rather than hard-coded scene colors.
-3. Finish remaining typography primitives.
-4. Stabilize serializable scene-stack directives before editor work.
+1. Expand Step 4 art-direction worlds using the palette-role contract rather than hard-coded scene colors.
+2. Finish remaining typography primitives.
+3. Stabilize serializable scene-stack directives before editor work.
 
 ## Do not redo
 

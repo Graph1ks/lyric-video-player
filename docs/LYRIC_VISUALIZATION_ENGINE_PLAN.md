@@ -84,7 +84,7 @@ The audio/LRC clock remains authoritative. All automatic layout, palette and mot
 
 **Acceptance:** changing harmony changes the whole scene coherently while primary lyric text remains clearly readable against the generated background.
 
-## Step 3 — Composition Motion Grammar — active candidate
+## Step 3 — Composition Motion Grammar — complete baseline
 
 Build transitions above glyph effects:
 
@@ -100,7 +100,7 @@ Build transitions above glyph effects:
 
 These operate on word/layout containers rather than individual glyphs.
 
-**Implemented candidate baseline:**
+**Implemented baseline:**
 
 - pure timestamp-driven evaluator in `engine-core`;
 - deterministic AUTO routing by scene family + cue index;
