@@ -1,13 +1,13 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `bf7a358ce22adab13f1ed81dd498e15e9f55036c`  
-**Active candidate:** `fix/memory-edge-safety-v0.11.2`  
-**Current phase/milestone:** renderer resource lifetime + physical-edge safety
+**Last known good merged baseline:** `89f2ac1680d13f6ec126ab3258ad4659507e2272`  
+**Active candidate:** none  
+**Current phase/milestone:** v0.11.2 long-play + physical-edge visual acceptance
 
 ## Current objective
 
-Correct the two real-display regressions found during spatial-typography acceptance: runaway renderer memory during ordinary lyric playback and black physical-edge reveals under strong warped/glitch effects. Then repeat long-play and fullscreen acceptance before resuming cinematic sequencing.
+Visually verify merged PR #53 on real tracks/displays: renderer memory should plateau after warm-up instead of growing with lyric-line count, and strong warped/glitch/liquid effects must no longer expose black at the physical output edge.
 
 ## Current state
 
@@ -59,8 +59,8 @@ Correct the two real-display regressions found during spatial-typography accepta
 - Poster AUTO direction now exposes Hero/Echo, Manifesto Wall, Shape Fill and classic outline-panel families.
 - Edge safety v0.11 adds 12% opaque world bleed, shader edge guards for displacement/smear/barrel/chroma and opaque final post-FX output.
 - Real-display acceptance exposed a remaining compositor-level edge fault: nonzero Pixi filter padding creates transparent input gutters outside a full-frame Sprite, which warped taps can pull into the visible frame as black.
-- The v0.11.2 candidate removes padding from full-frame spatial filters, keeps an unfiltered current-frame safety Sprite beneath the filtered presentation and makes Liquid background output explicitly opaque.
-- Long-play acceptance also exposed a renderer resource-lifetime fault: ordinary glyph/echo Text objects and Recursive Lyrics backdrop Text objects were detached with `removeChildren()` without being destroyed. The v0.11.2 candidate explicitly destroys those transient Pixi resources and does not build Recursive Lyrics text while that background is inactive.
+- Merged PR #53 removes padding from full-frame spatial filters, keeps an unfiltered current-frame safety Sprite beneath the filtered presentation and makes Liquid background output explicitly opaque.
+- Long-play acceptance also exposed a renderer resource-lifetime fault: ordinary glyph/echo Text objects and Recursive Lyrics backdrop Text objects were detached with `removeChildren()` without being destroyed. Merged PR #53 explicitly destroys those transient Pixi resources and does not build Recursive Lyrics text while that background is inactive.
 - DOM bloom/scanline/grain treatment now fades before the physical output edge while remaining overscanned.
 - Design/implementation contract is `docs/SHAPE_FILL_MANIFESTO_EDGE_SAFETY.md`.
 - Phrase-level cinematic direction keeps AUTO typography preset, layout and composition motion in coherent phrase-stable bundles instead of independently cycling every line.
