@@ -1,8 +1,8 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `bfd0d95f5e44eecd06663c40027143dcbd9ba261`  
-**Active candidate:** none  
+**Merged baseline:** `120c247de32316ece937d0f2abe1bb374f3dc196`  
+**Active candidate:** `feat/legacy-world-rehab-phase-a` — draft PR #74 (`38c15ba07701d27f2712518c12e372ede77d6826`)  
 **Current phase/milestone:** legacy world/background rehabilitation
 
 ## Current objective
@@ -15,7 +15,7 @@ Read `docs/WORLD_BACKGROUND_REHABILITATION_PLAN.md` before touching runtime code
 
 ### Confirmed systemic defect
 
-The old background stack has the same motion-semantics class of defect previously found in Neon Energy Burst Tunnel. Current code directly feeds raw audio into geometry in multiple places:
+The merged old background stack has the same motion-semantics class of defect previously found in Neon Energy Burst Tunnel. Before draft PR #74, it directly fed raw audio into geometry in multiple places:
 
 - `CinematicBackground.updateBlobs()`: raw bass changes scale;
 - legacy vortex paths: raw energy changes radial "breathe";
@@ -63,6 +63,17 @@ The Color Director remains the art-direction source of truth:
 5. ArtDirectionWorlds rehabilitation;
 6. full palette/readability acceptance across 0–300% World Power;
 7. only then resume WORLD_09/10.
+
+### Candidate implementation state — draft PR #74
+
+- Phase A audit is durable in `docs/LEGACY_WORLD_MOTION_AUDIT.md` and classifies all 15 legacy presets before further rebuilds.
+- `WorldAudioReactivity` is now the allocation-light legacy adapter: attack/release-smoothed bands, rising-edge transient event, positive decay envelope, long-energy envelope and seek/discontinuity reset.
+- The legacy shared stack consumes those primitives while WORLD_01–08 keep their already-authored dedicated audio semantics.
+- Raw bass/transient whole-geometry pumping is removed from shared blob/ring/beam/particle scale/push paths and from editorial/architecture whole-form scaling.
+- `ProceduralLiquidFX` no longer multiplies absolute-time phase speed or field spatial frequency by audio.
+- `WorldColorContext` is defined in engine-core with title-safe luminance, highlight risk, busyness/chroma pressure, stable text-polarity recommendation and outline-support pressure.
+- Legacy `vortex` is now isolated in `LegacyVortexWorld`: projected helix ribbons + depth hoops establish paused-frame identity, and monotonic timestamp tracers provide one-way motion. Audio is restricted to lighting/glow.
+- Vortex remains **visual-acceptance pending**; do not describe it as fidelity-accepted until real browser/Desktop review passes.
 
 ## Merged baseline — Resource lifetime + physical-edge safety v0.11.2
 
@@ -757,14 +768,16 @@ Windows packaging remains a separate required gate.
 
 PR #51 Linux validation and Windows packaging passed: typecheck, build, tests, publication audit, Node 22/24 launcher smokes, NSIS, portable x64 and artifact upload.
 
+Draft PR #74 code head `38c15ba`: Linux typecheck/build/tests/publication audit passed; Windows Node 22/24 dev-launcher smokes passed. Full Windows packaging remains a required gate, and real-display Vortex acceptance remains separate from CI.
+
 ## Next concrete work
 
-1. Re-test the exact real-display edge failures that motivated PR #48.
-2. Visually validate Shape Fill silhouette recognition and Manifesto progressive page rhythm on real tracks.
-3. Check Rapid/Burst readability, anchor hierarchy, vertical brackets, 12-line manual page chapters and camera reading flow.
-4. Resume section-level tension/release and shot-size sequencing after visual acceptance.
-5. Integrate PLAN/Lower Third persistence with serialized sequence directives; playlist support should reference the same per-song plan contract.
+1. Run real browser/Desktop visual acceptance of legacy `vortex` at 1080p/1440p/4K in Performance and Cinema, including 0%, 100% and high World Power/Detail stress.
+2. If Vortex is accepted, keep its preset ID and continue directly with dedicated `rays`; if rejected, iterate its depth composition rather than restoring generic shared layers.
+3. Continue `starfield` → `nebula` → `grid`, preserving deterministic seek-safe motion and semantic palette roles.
+4. Rehabilitate the remaining legacy presets, then connect per-world `WorldColorContext` into contrast-safe typography treatment.
+5. Do not resume WORLD_09/10 until the full legacy motion/color/readability acceptance matrix is complete.
 
 ## Resume instruction
 
-Read `AGENTS.md`, `PROJECT.md`, `STATUS.md`, this file, `docs/LYRIC_VISUALIZATION_ENGINE_PLAN.md`, `ROADMAP.md`, `docs/PROJECT_FORMAT.md`, `docs/PLATFORM_ARCHITECTURE.md` and `docs/DECISIONS.md`.
+Read `AGENTS.md`, `PROJECT.md`, `STATUS.md`, this file, `docs/WORLD_BACKGROUND_REHABILITATION_PLAN.md`, `docs/LEGACY_WORLD_MOTION_AUDIT.md`, `docs/WORLD_MOTION_AUDIO_REACTIVITY.md`, `docs/VISUAL_READABILITY_COLOR_RULES.md`, then the broader engine/platform docs as needed.
