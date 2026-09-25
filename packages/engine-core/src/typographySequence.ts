@@ -12,12 +12,16 @@ export interface SequenceWordRef {
   end: number;
   role: SequenceWordRole;
   age: number;
+  scopeOrdinal: number;
 }
 
 export interface TypographySequenceWindow {
   time: number;
   activeLineIndex: number;
   activeWordId?: string;
+  scopeStartLineIndex: number;
+  scopeEndLineIndex: number;
+  scopeWordCount: number;
   words: SequenceWordRef[];
   omittedWordCount: number;
 }
@@ -61,13 +65,21 @@ export function deriveTypographySequenceWindow(
 
   let activeLineIndex = -1;
   const candidates: SequenceWordRef[] = [];
+  let scopeWordCount = 0;
+  for (let lineIndex = lineStartIndex; lineIndex <= lineEndIndex; lineIndex++) {
+    scopeWordCount += lines[lineIndex]?.words.length ?? 0;
+  }
+  let scopeOrdinal = 0;
 
   for (let lineIndex = lineStartIndex; lineIndex <= lineEndIndex; lineIndex++) {
     const line = lines[lineIndex];
+    if (!line) continue;
     if (safeTime >= line.start && safeTime < line.end) activeLineIndex = lineIndex;
 
     for (let wordIndex = 0; wordIndex < line.words.length; wordIndex++) {
       const word = line.words[wordIndex];
+      const wordScopeOrdinal = scopeOrdinal;
+      scopeOrdinal += 1;
       const role = roleAtTime(word, safeTime, historySeconds, recentSeconds, leadSeconds);
       if (!role) continue;
 
@@ -82,6 +94,7 @@ export function deriveTypographySequenceWindow(
         age: role === "incoming"
           ? word.start - safeTime
           : Math.max(0, safeTime - word.end),
+        scopeOrdinal: wordScopeOrdinal,
       });
     }
   }
@@ -96,6 +109,9 @@ export function deriveTypographySequenceWindow(
     time: safeTime,
     activeLineIndex,
     activeWordId: kept.find(word => word.role === "active")?.id,
+    scopeStartLineIndex: lineStartIndex,
+    scopeEndLineIndex: lineEndIndex,
+    scopeWordCount,
     words: kept,
     omittedWordCount: Math.max(0, candidates.length - kept.length),
   };

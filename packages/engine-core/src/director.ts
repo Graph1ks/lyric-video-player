@@ -31,11 +31,11 @@ export interface DirectedScene {
 const TYPOGRAPHY_BUNDLES: Record<SceneMode, CinematicTypographyDirection[]> = {
   poster: [
     { family: "impact-editorial", typographyPreset: "impact", layout: "editorial", motion: "takeover", sequenceGrammar: "hero-echo" },
-    { family: "cascade-build", typographyPreset: "cascade", layout: "split-stage", motion: "anchor-build" },
+    { family: "cascade-build", typographyPreset: "cascade", layout: "split-stage", motion: "anchor-build", sequenceGrammar: "shape-build" },
     { family: "outline-panel", typographyPreset: "outline", layout: "center-stack", motion: "panel" },
   ],
   neon: [
-    { family: "elastic-handoff", typographyPreset: "elastic", layout: "directional-stage", motion: "handoff" },
+    { family: "elastic-handoff", typographyPreset: "elastic", layout: "directional-stage", motion: "handoff", sequenceGrammar: "ribbon-path" },
     { family: "wave-conveyor", typographyPreset: "wave", layout: "split-stage", motion: "conveyor" },
     { family: "outline-camera", typographyPreset: "outline", layout: "editorial", motion: "camera-handoff", sequenceGrammar: "hero-echo" },
   ],

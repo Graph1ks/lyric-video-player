@@ -108,11 +108,16 @@ export class PersistentTypographySequences {
         })
       : undefined;
     const echoBudget = readability?.motion.echoScale ?? 1;
-    const historySeconds = (cinema ? 7.5 : 4.5) * (0.48 + echoBudget * 0.52);
-    const maxWords = Math.max(
-      8,
-      Math.round((cinema ? 42 : 24) * (0.42 + echoBudget * 0.58)),
-    );
+    const structuralShape = this.grammar === "shape-build";
+    const historySeconds = structuralShape
+      ? (cinema ? 24 : 16)
+      : (cinema ? 7.5 : 4.5) * (0.48 + echoBudget * 0.52);
+    const maxWords = structuralShape
+      ? (cinema ? 64 : 40)
+      : Math.max(
+          8,
+          Math.round((cinema ? 42 : 24) * (0.42 + echoBudget * 0.58)),
+        );
     const window = deriveTypographySequenceWindow(this.lines, time, {
       historySeconds,
       recentSeconds: Math.min(historySeconds, cinema ? 1.55 : 1.15),
@@ -142,26 +147,48 @@ export class PersistentTypographySequences {
         : 0;
       const focusPulse = ref.role === "active" ? Math.sin(progress * Math.PI) : 0;
       const activeLift = 1 + focusPulse * 0.055 * this.intensity + audio.bass * 0.018 * this.intensity;
-      const maxWidthRatio = placement.id === plan.heroId
-        ? (this.grammar === "hero-echo" ? 0.62 : 0.72)
-        : 0.72;
-      const travelScale = readability
-        ? 0.7 + readability.motion.travelScale * 0.3
-        : 1;
+      const maxWidthRatio = this.grammar === "shape-build"
+        ? 0.34
+        : this.grammar === "ribbon-path"
+          ? 0.46
+          : placement.id === plan.heroId
+            ? (this.grammar === "hero-echo" ? 0.62 : 0.72)
+            : 0.72;
+      const structuralGeometry = this.grammar === "shape-build"
+        || this.grammar === "ribbon-path";
+      const travelScale = structuralGeometry
+        ? 1
+        : readability
+          ? 0.7 + readability.motion.travelScale * 0.3
+          : 1;
       const rotationScale = readability?.motion.rotationScale ?? 1;
       const scaleExcursion = readability?.motion.scaleExcursion ?? 1;
       const directedScale = 1 + (placement.scale - 1) * scaleExcursion;
       const desiredScale = directedScale * activeLift;
-      const fitScale = node.width > 0
-        ? Math.min(1, (this.w * maxWidthRatio) / Math.max(1, node.width * desiredScale))
-        : 1;
+      const baseWidth = Math.max(1, node.width * desiredScale);
+      const baseHeight = Math.max(1, node.height * desiredScale);
+      const cos = Math.abs(Math.cos(placement.rotation));
+      const sin = Math.abs(Math.sin(placement.rotation));
+      const rotatedWidth = baseWidth * cos + baseHeight * sin;
+      const rotatedHeight = baseWidth * sin + baseHeight * cos;
+      const maxHeightRatio = this.grammar === "shape-build"
+        ? 0.28
+        : this.grammar === "ribbon-path"
+          ? 0.42
+          : 0.72;
+      const fitScale = Math.min(
+        1,
+        (this.w * maxWidthRatio) / rotatedWidth,
+        (this.h * maxHeightRatio) / rotatedHeight,
+      );
       const finalScale = Math.max(0.08, desiredScale * fitScale);
+      const focusLift = structuralGeometry ? 0.005 : 0.012;
 
       node.position.set(
         this.w * 0.5 + placement.x * travelScale,
         this.h * 0.5
           + placement.y * travelScale
-          - focusPulse * this.h * 0.012 * this.intensity,
+          - focusPulse * this.h * focusLift * this.intensity,
       );
       node.scale.set(finalScale);
       node.rotation = placement.rotation * rotationScale;
