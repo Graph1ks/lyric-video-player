@@ -8,3 +8,5 @@ export * from "./typographyComposition.js";
 export * from "./colorHarmony.js";
 export * from "./typographyMotionGrammar.js";
 export * from "./kineticReadability.js";
+export * from "./typographySequence.js";
+export * from "./typographySequenceComposition.js";

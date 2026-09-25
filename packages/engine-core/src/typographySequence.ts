@@ -1,0 +1,135 @@
+import { clamp } from "./math.js";
+import type { LineCue, WordCue } from "./types.js";
+
+export type SequenceWordRole = "active" | "recent" | "history" | "incoming";
+
+export interface SequenceWordRef {
+  id: string;
+  lineIndex: number;
+  wordIndex: number;
+  text: string;
+  start: number;
+  end: number;
+  role: SequenceWordRole;
+  age: number;
+}
+
+export interface TypographySequenceWindow {
+  time: number;
+  activeLineIndex: number;
+  activeWordId?: string;
+  words: SequenceWordRef[];
+  omittedWordCount: number;
+}
+
+export interface TypographySequenceWindowOptions {
+  historySeconds?: number;
+  recentSeconds?: number;
+  leadSeconds?: number;
+  maxWords?: number;
+}
+
+const DEFAULT_HISTORY_SECONDS = 6;
+const DEFAULT_RECENT_SECONDS = 1.35;
+const DEFAULT_LEAD_SECONDS = 0.16;
+const DEFAULT_MAX_WORDS = 36;
+
+export function typographyWordId(lineIndex: number, wordIndex: number) {
+  return `line:${Math.max(0, lineIndex)}/word:${Math.max(0, wordIndex)}`;
+}
+
+export function deriveTypographySequenceWindow(
+  lines: LineCue[],
+  time: number,
+  options: TypographySequenceWindowOptions = {},
+): TypographySequenceWindow {
+  const historySeconds = Math.max(0, options.historySeconds ?? DEFAULT_HISTORY_SECONDS);
+  const recentSeconds = Math.min(
+    historySeconds,
+    Math.max(0, options.recentSeconds ?? DEFAULT_RECENT_SECONDS),
+  );
+  const leadSeconds = Math.max(0, options.leadSeconds ?? DEFAULT_LEAD_SECONDS);
+  const maxWords = Math.max(1, Math.floor(options.maxWords ?? DEFAULT_MAX_WORDS));
+  const safeTime = Number.isFinite(time) ? time : 0;
+
+  let activeLineIndex = -1;
+  const candidates: SequenceWordRef[] = [];
+
+  for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+    const line = lines[lineIndex];
+    if (safeTime >= line.start && safeTime < line.end) activeLineIndex = lineIndex;
+
+    for (let wordIndex = 0; wordIndex < line.words.length; wordIndex++) {
+      const word = line.words[wordIndex];
+      const role = roleAtTime(word, safeTime, historySeconds, recentSeconds, leadSeconds);
+      if (!role) continue;
+
+      candidates.push({
+        id: typographyWordId(lineIndex, wordIndex),
+        lineIndex,
+        wordIndex,
+        text: word.text,
+        start: word.start,
+        end: word.end,
+        role,
+        age: role === "incoming"
+          ? word.start - safeTime
+          : Math.max(0, safeTime - word.end),
+      });
+    }
+  }
+
+  const kept = candidates.length <= maxWords
+    ? candidates
+    : selectMostRelevantWords(candidates, maxWords);
+
+  kept.sort(compareChronological);
+
+  return {
+    time: safeTime,
+    activeLineIndex,
+    activeWordId: kept.find(word => word.role === "active")?.id,
+    words: kept,
+    omittedWordCount: Math.max(0, candidates.length - kept.length),
+  };
+}
+
+function roleAtTime(
+  word: WordCue,
+  time: number,
+  historySeconds: number,
+  recentSeconds: number,
+  leadSeconds: number,
+): SequenceWordRole | undefined {
+  if (time >= word.start && time < word.end) return "active";
+
+  if (time < word.start) {
+    return word.start - time <= leadSeconds ? "incoming" : undefined;
+  }
+
+  const age = time - word.end;
+  if (age <= recentSeconds) return "recent";
+  if (age <= historySeconds) return "history";
+  return undefined;
+}
+
+function selectMostRelevantWords(words: SequenceWordRef[], maxWords: number) {
+  return [...words]
+    .sort((a, b) => relevanceScore(b) - relevanceScore(a) || compareNewest(a, b))
+    .slice(0, maxWords);
+}
+
+function relevanceScore(word: SequenceWordRef) {
+  if (word.role === "active") return 4_000 - word.age;
+  if (word.role === "incoming") return 3_000 - word.age;
+  if (word.role === "recent") return 2_000 - word.age;
+  return 1_000 - clamp(word.age, 0, 999);
+}
+
+function compareNewest(a: SequenceWordRef, b: SequenceWordRef) {
+  return b.start - a.start || b.lineIndex - a.lineIndex || b.wordIndex - a.wordIndex;
+}
+
+function compareChronological(a: SequenceWordRef, b: SequenceWordRef) {
+  return a.start - b.start || a.lineIndex - b.lineIndex || a.wordIndex - b.wordIndex;
+}

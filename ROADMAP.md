@@ -72,14 +72,14 @@
 ## Cross-cutting — Cinematic Sequence Direction — active
 
 - research-backed temporal direction contract — documented
-- phrase-level cinematic grouping — active candidate
-- coherent AUTO typography/layout/motion bundles — active candidate
-- Establish / Develop / Accent / Release shot roles — active candidate
-- cue-density readability pressure + adaptive motion budget — active candidate
-- fast passages remain kinetic while reducing travel/rotation/overshoot/clutter — active candidate
-- persistent multi-cue typography scene graph — next
-- Spiral Depth / rounded-rectangle spiral — next
-- Hero / Echo Field — next
+- phrase-level cinematic grouping — complete baseline
+- coherent AUTO typography/layout/motion bundles — complete baseline
+- Establish / Develop / Accent / Release shot roles — complete baseline
+- cue-density readability pressure + adaptive motion budget — complete baseline
+- fast passages remain kinetic while reducing travel/rotation/overshoot/clutter — complete baseline
+- persistent multi-cue typography scene model + stable word IDs — active candidate
+- Spiral Depth pure placement grammar — active candidate; Pixi integration next
+- Hero / Echo Field pure placement grammar — active candidate; Pixi integration next
 - Shape Build / circle / frame calligrams — planned
 - Ribbon / Path composition — planned
 - Elastic Tether / stretch-squeeze — planned
