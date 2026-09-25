@@ -3591,3 +3591,45 @@ kbd {
     font-size: 18px;
   }
 }
+
+
+/* User-authored preset deletion + FX factory controls */
+.performance-preset-editor__head button.is-confirming {
+  background: rgba(255,72,94,.2);
+  border-color: rgba(255,92,112,.6);
+  color: #fff;
+  box-shadow: 0 0 0 1px rgba(255,92,112,.12) inset;
+}
+.director-fx-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 10px 0 12px;
+  padding: 10px 11px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 10px;
+  background: rgba(255,255,255,.025);
+}
+.director-fx-toolbar button {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid rgba(132,255,242,.28);
+  border-radius: 8px;
+  background: rgba(132,255,242,.06);
+  color: rgba(235,255,252,.9);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .075em;
+  cursor: pointer;
+}
+.director-fx-toolbar button:hover {
+  background: rgba(132,255,242,.11);
+  border-color: rgba(132,255,242,.5);
+}
+.director-fx-toolbar small {
+  max-width: 360px;
+  color: rgba(255,255,255,.42);
+  font-size: 9px;
+  line-height: 1.45;
+}
