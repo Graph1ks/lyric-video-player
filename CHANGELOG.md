@@ -62,6 +62,8 @@ Git history remains the complete technical history. This file records meaningful
 - Manifesto Wall persistent grammar with progressive editorial-page writing, rigid snap-ins, moderate hierarchy and occasional vertical bracket words.
 - Editable Director Performance Presets that constrain AUTO scene/type/sequence/layout/motion/world/color pools, with curated emotion + pace profiles and local custom-preset persistence.
 - Lower Third scheduling with Off / Scheduled / Always modes, configurable start/duration, optional pre-outro trigger and an immediate Director trigger.
+- Professional web-player and detached-Director control surfaces with persistent transport, large playhead counters, session readouts and monitoring controls.
+- Explicit Visual FX Rack for camera motion, impact/pulse, displacement, smear, bloom, temporal feedback, cinematic post FX, world power/detail and DOM screen finishing.
 
 ### Changed
 
@@ -91,6 +93,9 @@ Git history remains the complete technical history. This file records meaningful
 - Background/filter edge safety now combines source bleed, shader edge guards, opaque final output and DOM overlay edge fades.
 - Cinematic camera consumes the actually resolved/manual persistent grammar instead of the AUTO bundle's nominated grammar.
 - AUTO can now be intentionally narrowed by an active Performance Preset instead of drawing from the complete visual catalog; manual axis overrides remain available.
+- Performance Preset pools may now be left empty to mean unrestricted ANY; compositor/screen FX use explicit 0–300% amounts where 0% is fully off.
+- Curated emotion/pace presets were tightened into smaller visual vocabularies and now include explicit renderer FX racks instead of inheriting hidden effects.
+- Background World Power and World Detail now span from effectively absent through deliberately extreme performance-showpiece ranges, with density affecting actual structural detail.
 - Detached Director transport uses a two-row responsive control bar so playback, seek, metadata and volume are no longer crushed by operator actions.
 - GSAP remains excluded because the planned visual-editor direction could intersect its visual-animation-builder restriction.
 
@@ -101,6 +106,8 @@ Git history remains the complete technical history. This file records meaningful
 - Full-frame displacement, velocity-smear and cinematic post filters no longer request transparent Pixi filter padding; the compositor also keeps an unfiltered current-frame safety plane beneath filtered output.
 - Procedural Liquid now guarantees an opaque background output so downstream warps cannot expose the canvas clear color.
 - Player HUD text button now owns an explicit auto-width border box instead of inheriting the square icon-button width.
+- Detached Director playback telemetry no longer depends on the main Pixi requestAnimationFrame loop; media events plus a transport heartbeat keep playback time/duration current, while the Director interpolates its visible playhead locally.
+- Scheduled Lower Third timing therefore continues to advance even when the detached Director has focus and the main renderer window is background-throttled.
 
 ### Security / Privacy
 
