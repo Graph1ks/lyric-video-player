@@ -1,4 +1,23 @@
 export type ProjectAssetKind = "audio" | "lyrics" | "manifest" | "image" | "video" | "preset" | "other";
+export type ProjectVisualMode = "auto" | "poster" | "neon" | "vortex";
+export type ProjectQualityMode = "performance" | "cinema";
+
+export interface EmoProjectDefaults {
+  visualMode?: ProjectVisualMode;
+  intensity?: number;
+  quality?: ProjectQualityMode;
+  syncMs?: number;
+}
+
+export interface EmoProjectManifestV1 {
+  schema: "emo.project/v1";
+  name?: string;
+  audio: string;
+  lyrics: string;
+  assets?: string[];
+  presets?: string[];
+  defaults?: EmoProjectDefaults;
+}
 
 export interface ProjectAssetDescriptor {
   id: string;
@@ -13,6 +32,7 @@ export interface ProjectDescriptor {
   name: string;
   relativeDirectory: string;
   manifestFile?: string;
+  manifest?: EmoProjectManifestV1;
   audio?: ProjectAssetDescriptor;
   lyrics?: ProjectAssetDescriptor;
   assets: ProjectAssetDescriptor[];

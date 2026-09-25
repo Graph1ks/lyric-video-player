@@ -339,6 +339,16 @@ export function App() {
       lyricsRef.current = parsed;
       audioNameRef.current = project.audio.fileName;
       lyricsNameRef.current = project.lyrics.fileName;
+
+      const defaults = project.manifest?.defaults;
+      if (defaults?.visualMode !== undefined) setMode(defaults.visualMode);
+      if (defaults?.intensity !== undefined) setIntensity(defaults.intensity);
+      if (defaults?.quality !== undefined) setQuality(defaults.quality);
+      if (defaults?.syncMs !== undefined) {
+        syncRef.current = defaults.syncMs;
+        setSyncMs(defaults.syncMs);
+      }
+
       rendererRef.current?.setLyrics(parsed.lines);
       setHasContent(true);
       updateTrackMeta();
