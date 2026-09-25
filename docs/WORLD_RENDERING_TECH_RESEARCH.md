@@ -3,6 +3,8 @@
 **Status:** accepted direction for the 13-world expansion  
 **Decision:** keep PixiJS as the primary renderer for full-screen procedural worlds; do **not** add Three.js merely to fix WORLD_01/WORLD_02 fidelity.
 
+Detailed 3D object/camera/projection architecture, escalation rules and WORLD_09/10 implementation direction are durable in `docs/3D_WORLD_RENDERING_ARCHITECTURE.md`.
+
 ## Why the first WORLD_01 / WORLD_02 pass looked primitive
 
 The limitation was the implementation, not PixiJS.
@@ -117,7 +119,9 @@ Relevant implementation patterns from that repository:
 - fullscreen WebGL effects use custom shaders for structure, depth and raymarched/volumetric material rather than simply distorting a flat image;
 - visual motion is autonomous and continuous, with effects controlling geometry/material intentionally.
 
-The resulting E-MO rule is stricter: a reference that visually depends on depth must use one of **projected 3D geometry, raymarched volume/surface, or a true 3D renderer**. A 2D domain warp is not an acceptable substitute.
+The resulting E-MO rule is stricter: a reference that visually depends on depth must use one of **projected 3D geometry, Pixi Mesh/Geometry, raymarched volume/surface, or a true 3D renderer**. A 2D domain warp is not an acceptable substitute.
+
+The website benchmark also establishes an important non-result: convincing 3D does **not** automatically require Three.js. Its Circuit Grid owns world coordinates, relief, tilt, camera distance and perspective projection explicitly, while other backgrounds obtain depth through structural/raymarched shaders.
 
 ## Motion/audio-reactivity finding
 
@@ -273,6 +277,8 @@ The renderer:
 ## Rule for the remaining 5 worlds
 
 Do not prototype a reference-grade world using only primitive `Graphics` shapes unless the reference itself is graphic/flat.
+
+For WORLD_09/10 specifically, start from the spatial plan in `docs/3D_WORLD_RENDERING_ARCHITECTURE.md`: WORLD_09 as projected/batched 3D equalizer geometry and WORLD_10 as a dynamic heightfield Mesh.
 
 Choose the rendering technique from the target:
 

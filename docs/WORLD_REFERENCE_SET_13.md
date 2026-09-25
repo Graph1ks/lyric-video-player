@@ -298,9 +298,9 @@ WORLD_05/06 now follow that same standard inside E-MO:
 
 ## Research notes
 
-The implementation direction is cross-checked against GPU rendering practice rather than treated as a tracing exercise. WORLD_01/02 use continuous shader fields instead of primitive drawing; WORLD_03 uses spherical/facet coordinate quantization plus layered reflection fields; WORLD_04 uses polar/logarithmic depth and procedural noise; WORLD_05/06 use analytic hex-grid coordinates, procedural domain warping and layered shading. Motion/audio mapping follows `docs/WORLD_MOTION_AUDIO_REACTIVITY.md`.
+The implementation direction is cross-checked against GPU rendering practice rather than treated as a tracing exercise. WORLD_01/02 use continuous shader fields instead of primitive drawing; WORLD_03 uses spherical/facet coordinate quantization plus layered reflection fields; WORLD_04 uses polar/logarithmic depth and procedural noise; WORLD_05/06 use explicit projected 3D hex-prism geometry with real z-depth, perspective and depth sorting; WORLD_07 uses projected 3D particles; WORLD_08 consumes the real spectrum buffer. Motion/audio mapping follows `docs/WORLD_MOTION_AUDIO_REACTIVITY.md`.
 
-No third-party image asset or code is bundled. The worlds are original procedural implementations using the existing PixiJS stack. Rendering-technology research and the current decision not to add Three.js prematurely are documented in `docs/WORLD_RENDERING_TECH_RESEARCH.md`.
+No third-party image asset or code is bundled. The worlds are original procedural implementations using the existing PixiJS stack. Rendering-technology research and the current decision not to add Three.js prematurely are documented in `docs/WORLD_RENDERING_TECH_RESEARCH.md`; reusable 3D object/camera/projection rules and the WORLD_09/10 direction are documented in `docs/3D_WORLD_RENDERING_ARCHITECTURE.md`.
 
 ## Integration status
 

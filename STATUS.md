@@ -26,8 +26,9 @@ Visually accept the projected-3D WORLD_05/06 rebuild and merged WORLD_07 Particl
 - WORLD_05/06 first implementations were rejected in local acceptance and replaced in merged PR #67 with explicit projected 3D geometry benchmarked against the Graph1ks/website background architecture.
 - WORLD_05 now uses moving 3D hex prisms, three logarithmic sinks, real z-depth, perspective/parallax, occlusion/depth sorting and visible extrusion.
 - WORLD_06 now uses mathematically packed axial hex placement, real prism heights, look-at camera projection, controlled narrow gaps, depth sorting and side/top geometry.
-- WORLD_07 Particle Spiral Vortex candidate uses projected 3D particles moving autonomously inward/deeper along several spiral arms.
-- WORLD_08 Minimal Rainbow Waveform candidate consumes the real renderer spectrum buffer, applies per-bin smoothing and draws mirrored rainbow spikes with restrained glow.
+- WORLD_07 Particle Spiral Vortex is merged in PR #68 and uses projected 3D particles moving autonomously inward/deeper along several spiral arms.
+- WORLD_08 Minimal Rainbow Waveform is merged in PR #68 and consumes the real renderer spectrum buffer, applies per-bin smoothing and draws mirrored rainbow spikes with restrained glow.
+- Durable 3D architecture is now captured in `docs/3D_WORLD_RENDERING_ARCHITECTURE.md`: world-space state, camera projection, perspective, depth sorting, Graphics-vs-Mesh-vs-raymarch-vs-Three escalation, performance rules and concrete WORLD_09/10 plans.
 - Motion/audio semantics are durable in `docs/WORLD_MOTION_AUDIO_REACTIVITY.md`.
 - Rendering-tech research keeps both in Pixi custom shaders for now; WORLD_03 escalates to a Three.js comparison only if local acceptance still requires true projected-room geometry/parallax.
 - **WORLD_01 / WORLD_02 merged baseline (PR #59):** `prism-stage-beams` and `laser-canopy-grid` are first-class Background presets, selectable in Director, exposed to AUTO/presets and rendered as specialized Pixi worlds that suppress generic legacy background layers.
@@ -202,10 +203,13 @@ Visually accept the projected-3D WORLD_05/06 rebuild and merged WORLD_07 Particl
 
 ## Next concrete action
 
-1. User can test rebuilt **Fractal Hex Spiral Mosaic** and **Soft Hex Cell Field** later; both now use explicit projected 3D geometry rather than flat screen warps.
-2. Test **Particle Spiral Vortex** for obvious 3D arm depth, clean inward funnel motion and a bright chromatic core.
-3. Test **Minimal Rainbow Waveform** with real music for precise mirrored spectrum response, smooth bins and large negative space.
-4. Continue to WORLD_09 Neon Equalizer Grid City and WORLD_10 Holographic Audio Terrain.
+1. Continue in a fresh thread with **WORLD_09 Neon Equalizer Grid City** and **WORLD_10 Holographic Audio Terrain**.
+2. Read `docs/3D_WORLD_RENDERING_ARCHITECTURE.md` before implementation; do not restart the Pixi-vs-Three research.
+3. WORLD_09 should begin as projected/batched 3D equalizer geometry sharing one perspective camera with its floor grid.
+4. WORLD_10 should begin as a dynamic Pixi Mesh/Geometry heightfield driven by live spectrum/history.
+5. User feedback for WORLD_05–08 can arrive asynchronously and should be folded into later tuning.
+
+For the next thread, start with the resume protocol plus `docs/3D_WORLD_RENDERING_ARCHITECTURE.md`.
 
 ### Previous visual-acceptance queue
 
