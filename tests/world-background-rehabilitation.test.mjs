@@ -282,18 +282,25 @@ test("spectrum and sparks meet the dedicated fidelity floor", async () => {
   assert.match(spectrum, /setPalette\(palette: VisualPalette\)/);
   assert.doesNotMatch(spectrum, /Math\.random\(/);
 
-  // Sparks: analytic ballistic trajectories with history-derived trails.
-  assert.match(sparks, /const cycle = seed\.phase \+ time \* seed\.rate/);
-  assert.match(sparks, /const gravity =/);
-  assert.match(sparks, /const previous3 = sparkPosition/);
-  assert.match(sparks, /Transient response creates extra freshly-born emission only/);
+  // Sparks: fullscreen distributed flow field, never four repeating fountain emitters.
+  assert.match(sparks, /GlProgram\.from/);
+  assert.match(sparks, /vec3 streakField\(/);
+  assert.match(sparks, /room-wide spark storm/i);
+  assert.match(sparks, /There are no[\s\S]*fixed emitters or ballistic fountain arcs/i);
+  assert.match(sparks, /Cinema adds two quieter depth strata/);
+  assert.match(sparks, /Fine embers rise slowly across the whole scene/);
   assert.match(sparks, /setPalette\(palette: VisualPalette\)/);
+  assert.doesNotMatch(sparks, /function emitter\(/);
+  assert.doesNotMatch(sparks, /sparkPosition\(/);
+  assert.doesNotMatch(sparks, /const gravity =/);
   assert.doesNotMatch(sparks, /Math\.random\(/);
 
-  const motionStart = sparks.indexOf("function sparkPosition(");
-  assert.ok(motionStart >= 0);
-  const motionSource = sparks.slice(motionStart);
-  assert.doesNotMatch(motionSource, /audio\.|transientEnvelope/);
+  const motionStart = sparks.indexOf("vec3 streakField(");
+  const motionEnd = sparks.indexOf("void main(void)", motionStart);
+  assert.ok(motionStart >= 0 && motionEnd > motionStart);
+  const motionSource = sparks.slice(motionStart, motionEnd);
+  assert.doesNotMatch(motionSource, /u(?:Energy|Mid|Treble|Burst)/);
+  assert.match(sparks, /float burstLight = 1\.0 \+ uBurst \* 0\.72/);
 });
 
 
