@@ -48,34 +48,43 @@ function planSpiralDepth(input: TypographySequencePlanInput): TypographySequence
     .filter(word => word.role !== "incoming")
     .sort(compareNewest);
 
-  const denominator = Math.max(1, visible.length - 1);
+  const active = visible.find(word => word.role === "active");
+  const activeProgress = active
+    ? clamp((input.window.time - active.start) / Math.max(0.04, active.end - active.start))
+    : 0;
+  const maxDepthUnits = 13;
+
   const placements = visible.map((word, rank) => {
-    const depth = rank / denominator;
-    const angle = -Math.PI * 0.18 - rank * 0.72;
-    const radius = minDimension * lerp(0.245, 0.045, Math.pow(depth, 0.82));
-    const active = word.role === "active";
+    // Continuous rank handoff: the old hero approaches depth unit 1 while it
+    // is active; when the next word starts it becomes rank 1 at the same unit.
+    // This avoids a whole-spiral snap at every word boundary.
+    const depthUnits = rank + activeProgress;
+    const depth = clamp(depthUnits / maxDepthUnits);
+    const angle = -Math.PI * 0.16 - depthUnits * 0.64;
+    const radius = minDimension * lerp(0.255, 0.028, Math.pow(depth, 0.8));
+    const isActive = word.role === "active";
     const recent = word.role === "recent";
-    const scale = lerp(1.34, 0.24, Math.pow(depth, 0.72));
-    const alpha = active
+    const scale = lerp(1.42, 0.17, Math.pow(depth, 0.7));
+    const alpha = isActive
       ? 1
-      : clamp(lerp(recent ? 0.8 : 0.62, 0.08, Math.pow(depth, 0.9)), 0.06, 0.9);
+      : clamp(lerp(recent ? 0.84 : 0.64, 0.07, Math.pow(depth, 0.9)), 0.06, 0.9);
 
     return {
       id: word.id,
       role: word.role,
       x: Math.cos(angle) * radius * Math.min(1.55, width / minDimension),
-      y: Math.sin(angle) * radius * 0.76,
+      y: Math.sin(angle) * radius * 0.78,
       scale,
-      rotation: active ? 0 : normalizeAngle(angle + Math.PI * 0.5) * 0.74,
+      rotation: isActive ? 0 : normalizeAngle(angle + Math.PI * 0.5) * 0.72,
       alpha,
-      zIndex: visible.length - rank,
-      treatment: active || recent ? "solid" : "outline",
+      zIndex: Math.max(1, maxDepthUnits * 10 - Math.round(depthUnits * 10)),
+      treatment: isActive || recent ? "solid" : "outline",
     } satisfies TypographySequencePlacement;
   });
 
   return {
     grammar: "spiral-depth",
-    heroId: visible[0]?.id,
+    heroId: active?.id ?? visible[0]?.id,
     words: placements,
   };
 }

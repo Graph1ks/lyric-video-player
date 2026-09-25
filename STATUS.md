@@ -1,20 +1,22 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `c58be3e7e9b20fce0656bc71f537a93f65f33fe5`  
-**Active candidate:** `feat/persistent-typography-sequences-v0.9`  
+**Last known good merged baseline:** `7d9c6570868198b2e7cfa159ba70a3b03376dccc`  
+**Active candidate:** `feat/render-persistent-typography-sequences-v0.9`  
 **Current phase/milestone:** cinematic sequence direction + temporal readability
 
 ## Current objective
 
-Build the seek-safe persistent multi-cue typography model required for Spiral Depth, Hero/Echo, Shape Build and path-based lyric cinematography. Keep visual history bounded and reconstructable from absolute Enhanced LRC time.
+Render the merged seek-safe multi-cue model as actual cinematic AUTO shots: Spiral Depth and Hero/Echo first, with phrase-scoped history and explicit manual-control fallback.
 
 ## Current state
 
 - Phrase-level cinematic direction + adaptive readability pressure are merged in `c58be3e`.
-- Active candidate adds a pure multi-cue typography window with stable word IDs and `active/recent/history/incoming` roles derived only from absolute lyric time.
-- Active candidate bounds visual history by time + word budget while prioritizing active/incoming/recent content.
-- Active candidate adds renderer-independent Spiral Depth and Hero/Echo placement planners.
+- The pure multi-cue typography window + Spiral Depth/Hero-Echo planners are merged in `7d9c657`.
+- Active candidate adds a bounded Pixi word cache driven by the pure plan; Pixi state remains disposable and non-authoritative.
+- Spiral Depth and Hero/Echo become real AUTO sequence shots and replace, rather than overlay, normal current-line typography while active.
+- Persistent history is scoped to the current directed phrase.
+- Any manual Typography, Composition or Composition Motion selection disables the persistent AUTO grammar immediately and restores the explicit current-line composition.
 - Active candidate introduces phrase-level cinematic direction: AUTO typography preset, layout and composition motion are selected as coherent bundles and held across a phrase instead of independently cycling every line.
 - Phrases expose Establish / Develop / Accent / Release shot roles for the next sequence/camera layer.
 - Active candidate adds kinetic readability pressure from line duration, words/s, chars/s and shortest word duration.
@@ -102,11 +104,11 @@ Build the seek-safe persistent multi-cue typography model required for Spiral De
 
 ## Next concrete action
 
-1. Verify the pure multi-cue window + Spiral/Hero planners in CI.
-2. Add a bounded Pixi display-object cache/diff driven by the pure plan.
-3. Integrate Spiral Depth and Hero/Echo into the renderer without making cache state authoritative.
-4. Add Shape Build / Ribbon Path, then Elastic Tether and continuity-aware camera direction.
-5. Calibrate Rapid/Burst budgets and persistent sequences on real Enhanced LRC tracks.
+1. Get visible Spiral/Hero renderer integration green in Linux + Windows CI.
+2. Visually calibrate Spiral Depth and Hero/Echo on real Enhanced LRC tracks, including dense passages and mobile.
+3. Add Shape Build / Ribbon Path.
+4. Add Elastic Tether, then continuity-aware camera direction.
+5. Extend the cinematic acceptance matrix with gaze continuity, sequence persistence and shot-scale variation.
 
 ## Do not redo
 

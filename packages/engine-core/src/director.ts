@@ -6,6 +6,7 @@ import type {
   TypographyPresetId,
   VisualMode,
 } from "./types.js";
+import type { TypographySequenceGrammarId } from "./typographySequenceComposition.js";
 
 export type CinematicShotRole = "establish" | "develop" | "accent" | "release";
 
@@ -14,29 +15,32 @@ export interface CinematicTypographyDirection {
   typographyPreset: TypographyPresetId;
   layout: TypographyLayoutId;
   motion: CompositionMotionId;
+  sequenceGrammar?: TypographySequenceGrammarId;
 }
 
 export interface DirectedScene {
   mode: SceneMode;
   reason: "hook" | "short-hit" | "dense" | "chapter";
   phraseIndex: number;
+  phraseStartLine: number;
+  phraseEndLine: number;
   shotRole: CinematicShotRole;
   typography: CinematicTypographyDirection;
 }
 
 const TYPOGRAPHY_BUNDLES: Record<SceneMode, CinematicTypographyDirection[]> = {
   poster: [
-    { family: "impact-editorial", typographyPreset: "impact", layout: "editorial", motion: "takeover" },
+    { family: "impact-editorial", typographyPreset: "impact", layout: "editorial", motion: "takeover", sequenceGrammar: "hero-echo" },
     { family: "cascade-build", typographyPreset: "cascade", layout: "split-stage", motion: "anchor-build" },
     { family: "outline-panel", typographyPreset: "outline", layout: "center-stack", motion: "panel" },
   ],
   neon: [
     { family: "elastic-handoff", typographyPreset: "elastic", layout: "directional-stage", motion: "handoff" },
     { family: "wave-conveyor", typographyPreset: "wave", layout: "split-stage", motion: "conveyor" },
-    { family: "outline-camera", typographyPreset: "outline", layout: "editorial", motion: "camera-handoff" },
+    { family: "outline-camera", typographyPreset: "outline", layout: "editorial", motion: "camera-handoff", sequenceGrammar: "hero-echo" },
   ],
   vortex: [
-    { family: "tunnel-depth", typographyPreset: "tunnel", layout: "center-stack", motion: "portal" },
+    { family: "tunnel-depth", typographyPreset: "tunnel", layout: "center-stack", motion: "portal", sequenceGrammar: "spiral-depth" },
     { family: "scatter-camera", typographyPreset: "scatter", layout: "crossword", motion: "camera-handoff" },
     { family: "wave-collapse", typographyPreset: "wave", layout: "vertical-accent", motion: "collapse" },
   ],
@@ -92,6 +96,8 @@ export class SceneDirector {
           mode,
           reason,
           phraseIndex: phrase.phraseIndex,
+          phraseStartLine: phrase.start,
+          phraseEndLine: phrase.end,
           shotRole: shotRoleFor(position, length),
           typography,
         };
@@ -189,6 +195,8 @@ function fallbackDirection(lineIndex: number): DirectedScene {
     mode: "neon",
     reason: "chapter",
     phraseIndex,
+    phraseStartLine: Math.max(0, lineIndex),
+    phraseEndLine: Math.max(0, lineIndex),
     shotRole: "accent",
     typography: typographyFor("neon", phraseIndex),
   };

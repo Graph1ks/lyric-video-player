@@ -7,4 +7,5 @@ export * from "./render/ReactiveBloomThresholdFX.js";
 export * from "./render/SceneRenderGraph.js";
 export * from "./effects/backgrounds/CinematicBackground.js";
 export * from "./effects/typography/KineticLyrics.js";
+export * from "./effects/typography/PersistentTypographySequences.js";
 export * from "./effects/backgrounds/ProceduralLiquidFX.js";

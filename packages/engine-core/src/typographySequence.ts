@@ -27,6 +27,8 @@ export interface TypographySequenceWindowOptions {
   recentSeconds?: number;
   leadSeconds?: number;
   maxWords?: number;
+  lineStartIndex?: number;
+  lineEndIndex?: number;
 }
 
 const DEFAULT_HISTORY_SECONDS = 6;
@@ -51,11 +53,16 @@ export function deriveTypographySequenceWindow(
   const leadSeconds = Math.max(0, options.leadSeconds ?? DEFAULT_LEAD_SECONDS);
   const maxWords = Math.max(1, Math.floor(options.maxWords ?? DEFAULT_MAX_WORDS));
   const safeTime = Number.isFinite(time) ? time : 0;
+  const lineStartIndex = Math.max(0, Math.floor(options.lineStartIndex ?? 0));
+  const lineEndIndex = Math.min(
+    Math.max(-1, lines.length - 1),
+    Math.floor(options.lineEndIndex ?? Math.max(-1, lines.length - 1)),
+  );
 
   let activeLineIndex = -1;
   const candidates: SequenceWordRef[] = [];
 
-  for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+  for (let lineIndex = lineStartIndex; lineIndex <= lineEndIndex; lineIndex++) {
     const line = lines[lineIndex];
     if (safeTime >= line.start && safeTime < line.end) activeLineIndex = lineIndex;
 
