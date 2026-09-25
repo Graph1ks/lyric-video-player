@@ -113,7 +113,7 @@ These operate on word/layout containers rather than individual glyphs.
 
 **Acceptance:** switching grammar must visibly change the motion logic of the complete composition without changing its authored layout or breaking glyph-level typography effects.
 
-## Readability + Color Stabilization — active candidate
+## Readability + Color Stabilization — complete baseline
 
 Before adding more worlds, enforce the constraints every world must respect:
 
