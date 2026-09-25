@@ -1,7 +1,7 @@
 import { Application, Container } from "pixi.js";
 import type { AudioBands } from "@graph1ks/emo-audio-web";
 import { SceneDirector } from "@graph1ks/emo-engine-core";
-import type { LineCue, QualityMode, SceneMode, VisualMode } from "@graph1ks/emo-engine-core";
+import type { LineCue, QualityMode, SceneMode, TypographyPreset, TypographyPresetId, VisualMode } from "@graph1ks/emo-engine-core";
 import { CinematicBackground } from "../effects/backgrounds/CinematicBackground";
 import { KineticLyrics } from "../effects/typography/KineticLyrics";
 import { CameraRig } from "./CameraRig";
@@ -36,6 +36,8 @@ export class EngineRenderer {
   private intensity = 1;
   private host?: HTMLElement;
   private modeListeners = new Set<(mode: SceneMode) => void>();
+  private typographyListeners = new Set<(preset: TypographyPresetId) => void>();
+  private lastTypographyPreset?: TypographyPresetId;
   private sceneTransition = 0;
   private previousTime = 0;
   private resizeListener?: () => void;
@@ -93,6 +95,24 @@ export class EngineRenderer {
     else if (this.lastLineIndex >= 0) this.applyMode(this.director.sceneFor(this.lastLineIndex).mode, true);
   }
 
+  setTypographyPreset(preset: TypographyPreset) {
+    this.lyrics.setPreset(preset);
+    this.emitTypographyPreset();
+  }
+
+  onTypographyPresetChange(listener: (preset: TypographyPresetId) => void) {
+    this.typographyListeners.add(listener);
+    return () => this.typographyListeners.delete(listener);
+  }
+
+  getTypographyPreset() {
+    return this.lyrics.getPreset();
+  }
+
+  getResolvedTypographyPreset() {
+    return this.lyrics.getResolvedPreset();
+  }
+
   setIntensity(value: number) {
     this.intensity = Math.max(0.2, Math.min(1.8, value));
     this.background.setIntensity(this.intensity);
@@ -137,6 +157,7 @@ export class EngineRenderer {
     }
 
     this.lyrics.setLine(line, index);
+    this.emitTypographyPreset();
     if (line) {
       this.background.hit(0.92 + (index % 3) * 0.08);
       this.cameraRig.lineHit(index);
@@ -184,6 +205,7 @@ export class EngineRenderer {
     this.activeMode = mode;
     this.background.setMode(mode);
     this.lyrics.setMode(mode);
+    this.emitTypographyPreset();
     this.cameraRig.setMode(mode);
     this.displacementFX.setMode(mode);
     this.velocitySmearFX.setMode(mode);
@@ -195,6 +217,13 @@ export class EngineRenderer {
     if (animate) this.sceneTransition = 1;
 
     for (const listener of this.modeListeners) listener(mode);
+  }
+
+  private emitTypographyPreset() {
+    const preset = this.lyrics.getResolvedPreset();
+    if (preset === this.lastTypographyPreset) return;
+    this.lastTypographyPreset = preset;
+    for (const listener of this.typographyListeners) listener(preset);
   }
 
   private resize() {

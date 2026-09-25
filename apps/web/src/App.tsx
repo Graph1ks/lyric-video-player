@@ -9,6 +9,8 @@ import {
   type ParsedLyrics,
   type QualityMode,
   type SceneMode,
+  type TypographyPreset,
+  type TypographyPresetId,
   type VisualMode,
 } from "@graph1ks/emo-engine-core";
 import {
@@ -22,6 +24,18 @@ import { EngineRenderer } from "@graph1ks/emo-renderer-pixi";
 import { useUiStore } from "./store";
 
 const EMPTY_LYRICS: ParsedLyrics = { offsetMs: 0, lines: [], meta: {} };
+
+const TYPOGRAPHY_PRESETS: TypographyPreset[] = [
+  "auto",
+  "impact",
+  "cascade",
+  "wave",
+  "scatter",
+  "elastic",
+  "outline",
+  "tunnel",
+  "glitch",
+];
 
 export function App() {
   const queryClient = useQueryClient();
@@ -47,17 +61,20 @@ export function App() {
   const mode = useUiStore(state => state.mode);
   const intensity = useUiStore(state => state.intensity);
   const quality = useUiStore(state => state.quality);
+  const typographyPreset = useUiStore(state => state.typographyPreset);
   const syncMs = useUiStore(state => state.syncMs);
   const projectDrawerOpen = useUiStore(state => state.projectDrawerOpen);
   const setHudVisible = useUiStore(state => state.setHudVisible);
   const setMode = useUiStore(state => state.setMode);
   const setIntensity = useUiStore(state => state.setIntensity);
   const setQuality = useUiStore(state => state.setQuality);
+  const setTypographyPreset = useUiStore(state => state.setTypographyPreset);
   const setSyncMs = useUiStore(state => state.setSyncMs);
   const setProjectDrawerOpen = useUiStore(state => state.setProjectDrawerOpen);
 
   const [engineStatus, setEngineStatus] = useState("ENGINE READY");
   const [activeScene, setActiveScene] = useState<SceneMode>("neon");
+  const [activeTypography, setActiveTypography] = useState<TypographyPresetId>("elastic");
   const [hasContent, setHasContent] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
@@ -95,6 +112,9 @@ export function App() {
 
     const offMode = renderer.onModeChange(scene => {
       if (!disposed) setActiveScene(scene);
+    });
+    const offTypography = renderer.onTypographyPresetChange(preset => {
+      if (!disposed) setActiveTypography(preset);
     });
 
     const offTick = clock.onTick(time => {
@@ -142,6 +162,7 @@ export function App() {
     void renderer.init(stage).then(() => {
       if (disposed) return;
       renderer.setVisualMode(useUiStore.getState().mode);
+      renderer.setTypographyPreset(useUiStore.getState().typographyPreset);
       renderer.setIntensity(useUiStore.getState().intensity);
       renderer.setQuality(useUiStore.getState().quality);
       clock.start();
@@ -152,6 +173,7 @@ export function App() {
       clock.stop();
       offTick();
       offMode();
+      offTypography();
       audio.element.removeEventListener("play", onPlay);
       audio.element.removeEventListener("pause", onPause);
       audio.element.removeEventListener("ended", onEnded);
@@ -168,6 +190,10 @@ export function App() {
   useEffect(() => {
     rendererRef.current?.setVisualMode(mode);
   }, [mode]);
+
+  useEffect(() => {
+    rendererRef.current?.setTypographyPreset(typographyPreset);
+  }, [typographyPreset]);
 
   useEffect(() => {
     rendererRef.current?.setIntensity(intensity);
@@ -209,13 +235,17 @@ export function App() {
       else if (event.code === "Digit1") setMode("poster");
       else if (event.code === "Digit2") setMode("neon");
       else if (event.code === "Digit3") setMode("vortex");
-      else if (event.code === "Comma") adjustSync(-50);
+      else if (event.code === "KeyT") {
+        const current = useUiStore.getState().typographyPreset;
+        const index = TYPOGRAPHY_PRESETS.indexOf(current);
+        setTypographyPreset(TYPOGRAPHY_PRESETS[(index + 1) % TYPOGRAPHY_PRESETS.length]);
+      } else if (event.code === "Comma") adjustSync(-50);
       else if (event.code === "Period") adjustSync(50);
     };
 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [setHudVisible, setMode, setSyncMs]);
+  }, [setHudVisible, setMode, setSyncMs, setTypographyPreset]);
 
   useEffect(() => {
     const onDragEnter = (event: DragEvent) => {
@@ -344,6 +374,7 @@ export function App() {
       if (defaults?.visualMode !== undefined) setMode(defaults.visualMode);
       if (defaults?.intensity !== undefined) setIntensity(defaults.intensity);
       if (defaults?.quality !== undefined) setQuality(defaults.quality);
+      if (defaults?.typographyPreset !== undefined) setTypographyPreset(defaults.typographyPreset);
       if (defaults?.syncMs !== undefined) {
         syncRef.current = defaults.syncMs;
         setSyncMs(defaults.syncMs);
@@ -467,6 +498,25 @@ export function App() {
             <span>ACTIVE SCENE</span><strong>{SCENE_LABELS[activeScene]}</strong>
           </div>
 
+          <div className="typography-control">
+            <div className="control-heading">
+              <span>TYPOGRAPHY</span>
+              <b>{activeTypography.toUpperCase()}</b>
+            </div>
+            <div className="typography-grid" role="group" aria-label="Typography preset">
+              {TYPOGRAPHY_PRESETS.map(value => (
+                <button
+                  key={value}
+                  className={`typography-button ${typographyPreset === value ? "is-active" : ""}`}
+                  onClick={() => setTypographyPreset(value)}
+                  title={value === "auto" ? "Auto variation by scene/line · T" : `${value} typography`}
+                >
+                  {value.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="audio-meter" aria-label="Audio reactive bands">
             <div><span className="meter-track"><i ref={bassRef} /></span><b>BASS</b></div>
             <div><span className="meter-track"><i ref={midRef} /></span><b>MID</b></div>
@@ -515,7 +565,7 @@ export function App() {
             ))}
           </div>
 
-          <div className="director-footnote">AUTO uses lyric structure + repeated hooks for deterministic scene direction.</div>
+          <div className="director-footnote">Scene AUTO directs the visual family. Typography AUTO rotates deterministic glyph presets per line. Press T to cycle typography.</div>
         </aside>
 
         <section className={`empty-state ${hasContent ? "is-dismissed" : ""}`}>
