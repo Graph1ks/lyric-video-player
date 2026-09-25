@@ -1,13 +1,13 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `40a5f29a078f1983285dea984ef468f98efa23ec`  
-**Active candidate:** `feat/spatial-typography-v0.11.1` / PR #51  
-**Current phase/milestone:** spatial typography + progressive Manifesto
+**Merged baseline:** `f217908125be62c4a9ab848eb7f4008ee0813da8`  
+**Active candidate:** none  
+**Current phase/milestone:** spatial typography + progressive Manifesto visual acceptance
 
 ## Current objective
 
-Build on merged PR #48 with PR #51: make typography globally aware of its measured size in screen space, correct Manifesto into a progressive book/editorial page, and use those metrics to prevent Shape/Spiral/Ribbon/current-line collisions.
+Use merged PR #51 as the spatial-typography baseline for real-track acceptance, then continue cinematic sequencing without reintroducing heuristic word sizing or the obsolete masonry interpretation.
 
 ## Current implementation state
 
@@ -375,7 +375,7 @@ See `docs/OPERATOR_OUTPUT_LOWER_THIRDS.md`.
 See `docs/SHAPE_FILL_MANIFESTO_EDGE_SAFETY.md`.
 See `docs/TYPOGRAPHY_SPATIAL_SYSTEM.md` for the shared measurement/collision contract.
 
-## Active candidate — Spatial typography v0.11.1
+## Merged baseline — Spatial typography v0.11.1
 
 PR #51 establishes one shared spatial contract rather than fixing overlap per effect.
 
@@ -436,11 +436,13 @@ python scripts/repo_audit.py
 
 Windows packaging remains a separate required gate.
 
+PR #51 Linux validation and Windows packaging passed: typecheck, build, tests, publication audit, Node 22/24 launcher smokes, NSIS, portable x64 and artifact upload.
+
 ## Next concrete work
 
 1. Re-test the exact real-display edge failures that motivated PR #48.
-2. Visually validate Shape Fill silhouette recognition and Manifesto Wall architectural rhythm on real tracks.
-3. Check Rapid/Burst readability, anchor hierarchy, vertical brackets and camera reading flow.
+2. Visually validate Shape Fill silhouette recognition and Manifesto progressive page rhythm on real tracks.
+3. Check Rapid/Burst readability, anchor hierarchy, vertical brackets, 12-line manual page chapters and camera reading flow.
 4. Resume section-level tension/release and shot-size sequencing after visual acceptance.
 5. Integrate PLAN/Lower Third persistence with serialized sequence directives; playlist support should reference the same per-song plan contract.
 

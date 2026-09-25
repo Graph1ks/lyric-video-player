@@ -1,6 +1,6 @@
 # Typography Spatial System
 
-**Status:** active candidate — PR #51  
+**Status:** merged baseline — PR #51 / `f217908125be62c4a9ab848eb7f4008ee0813da8`  
 **Started:** 2026-09-25  
 **Scope:** shared text measurement, spatial bounds, collision ownership and stable phrase geometry for every kinetic typography family.
 
