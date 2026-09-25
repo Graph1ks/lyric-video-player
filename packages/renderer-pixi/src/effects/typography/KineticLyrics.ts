@@ -1111,5 +1111,5 @@ export class KineticLyrics {
 
 function textTextureResolution() {
   const dpr = typeof devicePixelRatio === "number" ? devicePixelRatio : 1;
-  return Math.max(2, Math.min(4, dpr * 2));
+  return Math.max(3, Math.min(4, dpr * 2));
 }
