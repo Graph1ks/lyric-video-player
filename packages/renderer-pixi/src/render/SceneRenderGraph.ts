@@ -2,6 +2,7 @@ import { BlurFilter, Container, RenderTexture, Sprite } from "pixi.js";
 import type { QualityMode, SceneMode } from "@graph1ks/emo-engine-core";
 import { CinematicPostFX } from "./CinematicPostFX";
 import { ReactiveDisplacementFX } from "./ReactiveDisplacementFX";
+import { ReactiveVelocitySmearFX } from "./ReactiveVelocitySmearFX";
 
 interface RenderLike {
   render(options: {
@@ -44,6 +45,7 @@ export class SceneRenderGraph {
 
   constructor(
     private readonly displacementFX: ReactiveDisplacementFX,
+    private readonly velocitySmearFX: ReactiveVelocitySmearFX,
     private readonly postFX: CinematicPostFX,
   ) {}
 
@@ -100,7 +102,7 @@ export class SceneRenderGraph {
 
     if (!this.sharp) {
       this.sharp = new Sprite(this.sceneTexture);
-      this.sharp.filters = [this.displacementFX.filter, this.postFX.filter];
+      this.sharp.filters = [this.displacementFX.filter, this.velocitySmearFX.filter, this.postFX.filter];
       this.output.addChild(this.sharp);
     } else {
       this.sharp.texture = this.sceneTexture;
