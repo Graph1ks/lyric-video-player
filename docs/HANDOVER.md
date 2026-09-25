@@ -1,13 +1,13 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `e9a01d5524efff9fdc8a7e111815ea9c9003f8a5`  
-**Active candidate:** `feat/worlds-mirrorball-energy-tunnel`  
-**Current phase/milestone:** 13-world expansion — WORLD_03 + WORLD_04 shader implementation
+**Merged baseline:** `16881100f0318786e0aaf0faf611b0fb5678333c`  
+**Active candidate:** none  
+**Current phase/milestone:** 13-world expansion — WORLD_03 + WORLD_04 visual acceptance
 
 ## Current objective
 
-Finish and visually accept WORLD_03 Disco Mirrorball Room and WORLD_04 Neon Energy Burst Tunnel, preserving the no-primitive-prototype fidelity rule established after WORLD_01/WORLD_02.
+Visually accept merged WORLD_03 Disco Mirrorball Room and WORLD_04 Neon Energy Burst Tunnel, preserving the no-primitive-prototype fidelity rule established after WORLD_01/WORLD_02.
 
 ## Merged baseline — Resource lifetime + physical-edge safety v0.11.2
 
@@ -126,7 +126,7 @@ Preset policy also changes: E-MO no longer ships authored Performance Presets. O
 
 WORLD_01/WORLD_02 first-pass Graphics implementations are superseded by full-screen GPU fragment shaders. This was based on research into Pixi v8 custom Filters/Mesh and volumetric-light rendering. Three.js is MIT and technically capable, but adding a second renderer is not justified yet. See `docs/WORLD_RENDERING_TECH_RESEARCH.md`.
 
-## Active candidate — WORLD_03 + WORLD_04
+## Merged baseline — WORLD_03 + WORLD_04
 
 ### WORLD_03 Disco Mirrorball Room
 
