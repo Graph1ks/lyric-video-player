@@ -37,12 +37,22 @@ export type TypographyPresetId =
   | "tunnel"
   | "glitch";
 export type TypographyPreset = "auto" | TypographyPresetId;
+export type BackgroundPresetId =
+  | "cinematic"
+  | "nebula"
+  | "grid"
+  | "starfield"
+  | "rays"
+  | "vortex"
+  | "minimal";
+export type BackgroundPreset = "auto" | BackgroundPresetId;
 
 export interface VisualSettings {
   mode: VisualMode;
   intensity: number;
   quality: QualityMode;
   typographyPreset?: TypographyPreset;
+  backgroundPreset?: BackgroundPreset;
 }
 
 export interface AudioBands {

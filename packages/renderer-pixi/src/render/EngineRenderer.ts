@@ -1,7 +1,16 @@
 import { Application, Container } from "pixi.js";
 import type { AudioBands } from "@graph1ks/emo-audio-web";
 import { SceneDirector } from "@graph1ks/emo-engine-core";
-import type { LineCue, QualityMode, SceneMode, TypographyPreset, TypographyPresetId, VisualMode } from "@graph1ks/emo-engine-core";
+import type {
+  BackgroundPreset,
+  BackgroundPresetId,
+  LineCue,
+  QualityMode,
+  SceneMode,
+  TypographyPreset,
+  TypographyPresetId,
+  VisualMode,
+} from "@graph1ks/emo-engine-core";
 import { CinematicBackground } from "../effects/backgrounds/CinematicBackground";
 import { KineticLyrics } from "../effects/typography/KineticLyrics";
 import { CameraRig } from "./CameraRig";
@@ -37,7 +46,9 @@ export class EngineRenderer {
   private host?: HTMLElement;
   private modeListeners = new Set<(mode: SceneMode) => void>();
   private typographyListeners = new Set<(preset: TypographyPresetId) => void>();
+  private backgroundListeners = new Set<(preset: BackgroundPresetId) => void>();
   private lastTypographyPreset?: TypographyPresetId;
+  private lastBackgroundPreset?: BackgroundPresetId;
   private sceneTransition = 0;
   private previousTime = 0;
   private resizeListener?: () => void;
@@ -93,6 +104,24 @@ export class EngineRenderer {
     this.director.setMode(mode);
     if (mode !== "auto") this.applyMode(mode, true);
     else if (this.lastLineIndex >= 0) this.applyMode(this.director.sceneFor(this.lastLineIndex).mode, true);
+  }
+
+  setBackgroundPreset(preset: BackgroundPreset) {
+    this.background.setPreset(preset);
+    this.emitBackgroundPreset();
+  }
+
+  onBackgroundPresetChange(listener: (preset: BackgroundPresetId) => void) {
+    this.backgroundListeners.add(listener);
+    return () => this.backgroundListeners.delete(listener);
+  }
+
+  getBackgroundPreset() {
+    return this.background.getPreset();
+  }
+
+  getResolvedBackgroundPreset() {
+    return this.background.getResolvedPreset();
   }
 
   setTypographyPreset(preset: TypographyPreset) {
@@ -151,11 +180,14 @@ export class EngineRenderer {
       this.renderGraph.resetFeedback();
     }
 
+    this.background.setLineIndex(index);
+
     if (index >= 0) {
       const directed = this.director.sceneFor(index);
       this.applyMode(directed.mode, true);
     }
 
+    this.emitBackgroundPreset();
     this.lyrics.setLine(line, index);
     this.emitTypographyPreset();
     if (line) {
@@ -204,6 +236,7 @@ export class EngineRenderer {
     if (this.activeMode === mode && animate) return;
     this.activeMode = mode;
     this.background.setMode(mode);
+    this.emitBackgroundPreset();
     this.lyrics.setMode(mode);
     this.emitTypographyPreset();
     this.cameraRig.setMode(mode);
@@ -217,6 +250,13 @@ export class EngineRenderer {
     if (animate) this.sceneTransition = 1;
 
     for (const listener of this.modeListeners) listener(mode);
+  }
+
+  private emitBackgroundPreset() {
+    const preset = this.background.getResolvedPreset();
+    if (preset === this.lastBackgroundPreset) return;
+    this.lastBackgroundPreset = preset;
+    for (const listener of this.backgroundListeners) listener(preset);
   }
 
   private emitTypographyPreset() {

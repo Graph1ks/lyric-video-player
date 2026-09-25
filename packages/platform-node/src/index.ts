@@ -7,6 +7,7 @@ import type {
   ProjectAssetDescriptor,
   ProjectAssetKind,
   ProjectDescriptor,
+  ProjectBackgroundPreset,
   ProjectQualityMode,
   ProjectTypographyPreset,
   ProjectVisualMode,
@@ -27,6 +28,16 @@ const TYPOGRAPHY_PRESETS = new Set<ProjectTypographyPreset>([
   "outline",
   "tunnel",
   "glitch",
+]);
+const BACKGROUND_PRESETS = new Set<ProjectBackgroundPreset>([
+  "auto",
+  "cinematic",
+  "nebula",
+  "grid",
+  "starfield",
+  "rays",
+  "vortex",
+  "minimal",
 ]);
 
 function extension(fileName: string) {
@@ -105,6 +116,16 @@ function parseDefaults(value: unknown): EmoProjectDefaults | undefined {
       throw new Error("E-MO manifest defaults.typographyPreset is invalid");
     }
     defaults.typographyPreset = input.typographyPreset as ProjectTypographyPreset;
+  }
+
+  if (input.backgroundPreset !== undefined) {
+    if (
+      typeof input.backgroundPreset !== "string"
+      || !BACKGROUND_PRESETS.has(input.backgroundPreset as ProjectBackgroundPreset)
+    ) {
+      throw new Error("E-MO manifest defaults.backgroundPreset is invalid");
+    }
+    defaults.backgroundPreset = input.backgroundPreset as ProjectBackgroundPreset;
   }
 
   if (input.intensity !== undefined) {

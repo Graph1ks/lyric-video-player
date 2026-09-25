@@ -40,22 +40,27 @@
 - thresholded multi-pass bloom — complete baseline
 - per-effect quality budgets — active
 
-## Milestone 0.5 — Typography Engine
-- line / word / glyph hierarchy
-- range, stagger and wiggle selector system
-- outline stack
-- inflated / soft-3D type
-- tunnel and recursive copies
-- handwritten / stroke reveal
-- particle dissolve and smear exits
+## Milestone 0.5 — Typography Engine — active
+- line / word / glyph hierarchy — complete baseline
+- deterministic range / stagger / wave / wiggle / random / audio selector system — complete baseline
+- Impact / Cascade / Wave / Scatter / Elastic presets — complete baseline
+- outline stack — complete baseline
+- tunnel and recursive copies — complete baseline
+- glitch typography — complete baseline
+- inflated / soft-3D type — next
+- handwritten / stroke reveal — next
+- particle dissolve and smear exits — next
 
-## Milestone 0.6 — Advanced backgrounds
-- procedural noise / liquid flow
-- particles / sparks / dust / trails
-- grids and geometric repeaters
-- waveform and spectrum ribbons
-- recursive typography backgrounds
-- starfield / hyperspace scenes
+## Milestone 0.6 — Advanced backgrounds — active
+- preset routing independent from scene family — active candidate
+- Cinematic / Nebula / Grid / Starfield / Rays / Vortex / Minimal families — active candidate
+- deterministic particles / dust depth field — complete baseline
+- grids and geometric repeaters — complete baseline
+- starfield / hyperspace scenes — active candidate
+- procedural noise / liquid flow — next
+- sparks / trails — next
+- waveform and spectrum ribbons — next
+- recursive typography backgrounds — next
 
 ## Milestone 0.7 — Scene project format
 - scene JSON

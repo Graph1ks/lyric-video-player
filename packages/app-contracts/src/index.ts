@@ -11,12 +11,22 @@ export type ProjectTypographyPreset =
   | "outline"
   | "tunnel"
   | "glitch";
+export type ProjectBackgroundPreset =
+  | "auto"
+  | "cinematic"
+  | "nebula"
+  | "grid"
+  | "starfield"
+  | "rays"
+  | "vortex"
+  | "minimal";
 
 export interface EmoProjectDefaults {
   visualMode?: ProjectVisualMode;
   intensity?: number;
   quality?: ProjectQualityMode;
   typographyPreset?: ProjectTypographyPreset;
+  backgroundPreset?: ProjectBackgroundPreset;
   syncMs?: number;
 }
 

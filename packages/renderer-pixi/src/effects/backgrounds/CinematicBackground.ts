@@ -1,6 +1,11 @@
 import { Container, Graphics } from "pixi.js";
 import type { AudioBands } from "@graph1ks/emo-audio-web";
-import type { QualityMode, SceneMode } from "@graph1ks/emo-engine-core";
+import type {
+  BackgroundPreset,
+  BackgroundPresetId,
+  QualityMode,
+  SceneMode,
+} from "@graph1ks/emo-engine-core";
 import { seeded } from "@graph1ks/emo-engine-core";
 
 interface Particle {
@@ -22,6 +27,12 @@ interface Blob {
   speed: number;
 }
 
+const AUTO_BACKGROUND_PRESETS: Record<SceneMode, BackgroundPresetId[]> = {
+  poster: ["cinematic", "grid", "minimal", "rays"],
+  neon: ["nebula", "grid", "starfield", "rays"],
+  vortex: ["vortex", "starfield", "nebula", "cinematic"],
+};
+
 export class CinematicBackground {
   readonly container = new Container();
 
@@ -39,25 +50,72 @@ export class CinematicBackground {
   private w = 1;
   private h = 1;
   private mode: SceneMode = "neon";
+  private preset: BackgroundPreset = "auto";
+  private resolvedPreset: BackgroundPresetId = "nebula";
+  private lineIndex = -1;
   private quality: QualityMode = "cinema";
   private intensity = 1;
   private impact = 0;
   private previousTime = 0;
 
   constructor() {
-    this.container.addChild(this.base, this.blobLayer, this.geometry, this.ringLayer, this.beamLayer, this.particleLayer, this.flash);
+    this.container.addChild(
+      this.base,
+      this.blobLayer,
+      this.geometry,
+      this.ringLayer,
+      this.beamLayer,
+      this.particleLayer,
+      this.flash,
+    );
     this.createBlobs();
     this.createParticles();
     this.createRings();
     this.createBeams();
+    this.resolvePreset();
     this.applyModePalette();
+    this.applyPresetVisibility();
   }
 
   setMode(mode: SceneMode) {
     if (this.mode === mode) return;
     this.mode = mode;
+    const previous = this.resolvedPreset;
+    this.resolvePreset();
     this.applyModePalette();
-    this.hit(0.85);
+    this.applyPresetVisibility();
+    this.hit(previous === this.resolvedPreset ? 0.55 : 0.85);
+  }
+
+  setPreset(preset: BackgroundPreset) {
+    if (this.preset === preset) return;
+    this.preset = preset;
+    const previous = this.resolvedPreset;
+    this.resolvePreset();
+    this.applyPresetVisibility();
+    this.redrawBase();
+    if (previous !== this.resolvedPreset) this.hit(0.78);
+  }
+
+  getPreset() {
+    return this.preset;
+  }
+
+  getResolvedPreset() {
+    return this.resolvedPreset;
+  }
+
+  setLineIndex(index: number) {
+    if (index === this.lineIndex) return;
+    this.lineIndex = index;
+    if (this.preset !== "auto") return;
+    const previous = this.resolvedPreset;
+    this.resolvePreset();
+    if (previous !== this.resolvedPreset) {
+      this.applyPresetVisibility();
+      this.redrawBase();
+      this.hit(0.62);
+    }
   }
 
   setIntensity(value: number) {
@@ -66,9 +124,7 @@ export class CinematicBackground {
 
   setQuality(value: QualityMode) {
     this.quality = value;
-    const stride = value === "cinema" ? 1 : 2;
-    this.particles.forEach((p, i) => p.g.visible = i % stride === 0);
-    this.blobs.forEach((b, i) => b.g.visible = value === "cinema" || i < 3);
+    this.applyPresetVisibility();
   }
 
   resize(w: number, h: number) {
@@ -86,72 +142,15 @@ export class CinematicBackground {
     const transient = audio.transient * intensity;
 
     this.updateGeometry(time, audio);
-
-    this.blobs.forEach((blob, i) => {
-      const modeSpeed = this.mode === "vortex" ? 1.8 : this.mode === "poster" ? 0.45 : 1;
-      const t = time * blob.speed * modeSpeed + blob.phase;
-      const spread = this.mode === "poster" ? 0.5 : 1;
-      blob.g.position.set(
-        cx + Math.sin(t * 0.83 + i) * blob.orbitX * spread,
-        cy + Math.cos(t * 1.11 - i * 0.2) * blob.orbitY * spread,
-      );
-      const pulse = 1 + bass * (0.12 + i * 0.012) + Math.sin(t * 1.7) * 0.03;
-      blob.g.scale.set(pulse);
-      blob.g.alpha = (this.mode === "poster" ? 0.045 : 0.055) + energy * 0.06;
-      blob.g.rotation = t * 0.05;
-    });
-
-    const vortexFactor = this.mode === "vortex" ? 1 : 0;
-    for (let i = 0; i < this.particles.length; i++) {
-      const p = this.particles[i];
-      if (!p.g.visible) continue;
-      const phase = p.phase + time * p.speed * (this.mode === "vortex" ? 2.6 : 1);
-      let x = p.x * this.w;
-      let y = p.y * this.h;
-
-      if (this.mode === "neon") {
-        x += Math.sin(phase * 1.4) * (18 + 34 * p.depth);
-        y += Math.cos(phase) * (14 + 26 * p.depth);
-      } else if (this.mode === "poster") {
-        x += Math.sin(phase * 0.75) * 10;
-        y += time * (4 + 12 * p.depth);
-        y %= this.h + 40;
-      } else {
-        const dx = x - cx;
-        const dy = y - cy;
-        const r = Math.hypot(dx, dy) || 1;
-        const angle = Math.atan2(dy, dx) + phase * 0.36;
-        const breathe = 0.78 + ((Math.sin(phase * 0.55) + 1) * 0.18) + energy * 0.16;
-        x = cx + Math.cos(angle) * r * breathe;
-        y = cy + Math.sin(angle) * r * breathe;
-      }
-
-      const push = 1 + transient * (0.18 + p.depth * 0.35) + this.impact * 0.08;
-      p.g.position.set(cx + (x - cx) * push, cy + (y - cy) * push);
-      p.g.alpha = this.mode === "poster"
-        ? 0.04 + p.depth * 0.12
-        : 0.08 + p.depth * 0.5 + audio.treble * 0.18;
-      const s = p.size * (0.55 + p.depth * 1.2 + transient * 1.6 + vortexFactor * 0.15);
-      p.g.scale.set(s);
-    }
-
-    this.rings.forEach((ring, i) => {
-      ring.position.set(cx, cy);
-      ring.rotation = time * (0.025 + i * 0.011) * (i % 2 ? -1 : 1) * (this.mode === "vortex" ? 3.2 : 1);
-      const scale = 0.85 + i * 0.14 + bass * (0.08 + i * 0.015) + this.impact * 0.1;
-      ring.scale.set(scale);
-      ring.alpha = this.mode === "poster" ? 0.02 : 0.035 + energy * 0.08;
-    });
-
-    this.beams.forEach((beam, i) => {
-      beam.position.set(cx, cy);
-      beam.rotation = time * (0.025 + i * 0.012) + i * 1.9;
-      beam.alpha = this.mode === "neon" ? 0.035 + energy * 0.04 : this.mode === "vortex" ? 0.02 : 0.008;
-      beam.scale.y = 0.8 + audio.mid * 0.35;
-    });
+    this.updateBlobs(time, audio, cx, cy, bass, energy);
+    this.updateParticles(time, audio, cx, cy, transient, energy);
+    this.updateRings(time, audio, cx, cy, bass, energy);
+    this.updateBeams(time, audio, cx, cy, energy);
 
     this.flash.alpha = Math.max(0, this.impact * 0.12 + transient * 0.045);
-    const dt = this.previousTime ? Math.min(0.08, Math.max(1 / 240, Math.abs(time - this.previousTime))) : 1 / 60;
+    const dt = this.previousTime
+      ? Math.min(0.08, Math.max(1 / 240, Math.abs(time - this.previousTime)))
+      : 1 / 60;
     this.previousTime = time;
     this.impact *= Math.pow(0.018, dt);
   }
@@ -160,9 +159,249 @@ export class CinematicBackground {
     this.impact = Math.max(this.impact, strength);
   }
 
+  private resolvePreset() {
+    if (this.preset !== "auto") {
+      this.resolvedPreset = this.preset;
+      return;
+    }
+    const options = AUTO_BACKGROUND_PRESETS[this.mode];
+    const safeLine = Math.max(0, this.lineIndex);
+    this.resolvedPreset = options[safeLine % options.length];
+  }
+
+  private applyPresetVisibility() {
+    const cinema = this.quality === "cinema";
+    const particleStride = this.resolvedPreset === "minimal"
+      ? cinema ? 4 : 7
+      : this.resolvedPreset === "rays"
+        ? cinema ? 3 : 5
+        : this.resolvedPreset === "grid"
+          ? cinema ? 2 : 4
+          : cinema ? 1 : 2;
+
+    this.particles.forEach((particle, index) => {
+      particle.g.visible = index % particleStride === 0;
+    });
+
+    const blobLimit = this.resolvedPreset === "nebula"
+      ? cinema ? 6 : 4
+      : this.resolvedPreset === "cinematic"
+        ? cinema ? 4 : 2
+        : this.resolvedPreset === "rays"
+          ? 2
+          : this.resolvedPreset === "minimal"
+            ? 1
+            : 0;
+    this.blobs.forEach((blob, index) => {
+      blob.g.visible = index < blobLimit;
+    });
+
+    const ringsVisible = this.resolvedPreset === "vortex"
+      || this.resolvedPreset === "rays"
+      || this.resolvedPreset === "cinematic";
+    this.rings.forEach((ring, index) => {
+      ring.visible = ringsVisible && (cinema || index % 2 === 0);
+    });
+
+    const beamsVisible = this.resolvedPreset === "rays"
+      || this.resolvedPreset === "cinematic"
+      || this.resolvedPreset === "nebula";
+    this.beams.forEach((beam, index) => {
+      beam.visible = beamsVisible && (cinema || index < 2);
+    });
+  }
+
+  private updateBlobs(
+    time: number,
+    audio: AudioBands,
+    cx: number,
+    cy: number,
+    bass: number,
+    energy: number,
+  ) {
+    this.blobs.forEach((blob, index) => {
+      if (!blob.g.visible) return;
+      const speedScale = this.resolvedPreset === "nebula"
+        ? 1.6
+        : this.resolvedPreset === "rays"
+          ? 0.55
+          : this.mode === "poster"
+            ? 0.45
+            : 1;
+      const t = time * blob.speed * speedScale + blob.phase;
+      const spread = this.resolvedPreset === "nebula"
+        ? 1.16
+        : this.resolvedPreset === "minimal"
+          ? 0.22
+          : this.mode === "poster"
+            ? 0.5
+            : 1;
+
+      blob.g.position.set(
+        cx + Math.sin(t * 0.83 + index) * blob.orbitX * spread,
+        cy + Math.cos(t * 1.11 - index * 0.2) * blob.orbitY * spread,
+      );
+      const pulse = 1
+        + bass * (0.1 + index * 0.01)
+        + Math.sin(t * 1.7) * (this.resolvedPreset === "nebula" ? 0.055 : 0.025);
+      blob.g.scale.set(pulse);
+      blob.g.alpha = this.resolvedPreset === "nebula"
+        ? 0.07 + energy * 0.08
+        : this.resolvedPreset === "minimal"
+          ? 0.022 + energy * 0.018
+          : 0.04 + energy * 0.05;
+      blob.g.rotation = t * 0.05;
+    });
+  }
+
+  private updateParticles(
+    time: number,
+    audio: AudioBands,
+    cx: number,
+    cy: number,
+    transient: number,
+    energy: number,
+  ) {
+    for (let index = 0; index < this.particles.length; index++) {
+      const particle = this.particles[index];
+      if (!particle.g.visible) continue;
+
+      const phase = particle.phase + time * particle.speed;
+      let x = particle.x * this.w;
+      let y = particle.y * this.h;
+      let scaleBoost = 1;
+
+      if (this.resolvedPreset === "starfield") {
+        const nx = particle.x * 2 - 1;
+        const ny = particle.y * 2 - 1;
+        const length = Math.hypot(nx, ny) || 1;
+        const dx = nx / length;
+        const dy = ny / length;
+        const z = (particle.depth + time * (0.045 + particle.speed * 0.16)) % 1;
+        const radius = Math.pow(z, 1.8) * Math.hypot(this.w, this.h) * 0.64;
+        x = cx + dx * radius;
+        y = cy + dy * radius;
+        scaleBoost = 0.35 + z * 2.8;
+        particle.g.alpha = 0.08 + z * 0.75 + audio.treble * 0.18;
+      } else if (this.resolvedPreset === "vortex") {
+        const dx = x - cx;
+        const dy = y - cy;
+        const radius = Math.hypot(dx, dy) || 1;
+        const angle = Math.atan2(dy, dx) + phase * 0.9 + time * 0.08;
+        const breathe = 0.68 + ((Math.sin(phase * 0.7) + 1) * 0.2) + energy * 0.16;
+        x = cx + Math.cos(angle) * radius * breathe;
+        y = cy + Math.sin(angle) * radius * breathe;
+        scaleBoost = 1.15;
+        particle.g.alpha = 0.08 + particle.depth * 0.56 + audio.treble * 0.18;
+      } else if (this.resolvedPreset === "grid") {
+        x += Math.sin(phase * 0.7) * 7;
+        y = (y + time * (7 + 18 * particle.depth)) % (this.h + 30);
+        particle.g.alpha = 0.04 + particle.depth * 0.2 + audio.treble * 0.08;
+      } else if (this.resolvedPreset === "rays") {
+        const dx = x - cx;
+        const dy = y - cy;
+        const expansion = 1 + Math.sin(phase) * 0.03 + transient * 0.16;
+        x = cx + dx * expansion;
+        y = cy + dy * expansion;
+        particle.g.alpha = 0.035 + particle.depth * 0.24 + audio.treble * 0.08;
+      } else if (this.resolvedPreset === "minimal") {
+        x += Math.sin(phase * 0.33) * 3;
+        y += Math.cos(phase * 0.27) * 3;
+        particle.g.alpha = 0.018 + particle.depth * 0.08;
+        scaleBoost = 0.5;
+      } else if (this.resolvedPreset === "nebula") {
+        x += Math.sin(phase * 1.55) * (26 + 48 * particle.depth);
+        y += Math.cos(phase * 0.92) * (18 + 36 * particle.depth);
+        particle.g.alpha = 0.09 + particle.depth * 0.52 + audio.treble * 0.2;
+        scaleBoost = 1.15;
+      } else if (this.mode === "poster") {
+        x += Math.sin(phase * 0.75) * 10;
+        y = (y + time * (4 + 12 * particle.depth)) % (this.h + 40);
+        particle.g.alpha = 0.04 + particle.depth * 0.12;
+      } else if (this.mode === "vortex") {
+        const dx = x - cx;
+        const dy = y - cy;
+        const radius = Math.hypot(dx, dy) || 1;
+        const angle = Math.atan2(dy, dx) + phase * 0.36;
+        const breathe = 0.78 + ((Math.sin(phase * 0.55) + 1) * 0.18) + energy * 0.16;
+        x = cx + Math.cos(angle) * radius * breathe;
+        y = cy + Math.sin(angle) * radius * breathe;
+        particle.g.alpha = 0.08 + particle.depth * 0.5 + audio.treble * 0.18;
+      } else {
+        x += Math.sin(phase * 1.4) * (18 + 34 * particle.depth);
+        y += Math.cos(phase) * (14 + 26 * particle.depth);
+        particle.g.alpha = 0.08 + particle.depth * 0.5 + audio.treble * 0.18;
+      }
+
+      const push = 1 + transient * (0.18 + particle.depth * 0.35) + this.impact * 0.08;
+      particle.g.position.set(cx + (x - cx) * push, cy + (y - cy) * push);
+      const scale = particle.size
+        * scaleBoost
+        * (0.55 + particle.depth * 1.2 + transient * 1.6);
+      particle.g.scale.set(scale);
+    }
+  }
+
+  private updateRings(
+    time: number,
+    audio: AudioBands,
+    cx: number,
+    cy: number,
+    bass: number,
+    energy: number,
+  ) {
+    this.rings.forEach((ring, index) => {
+      if (!ring.visible) return;
+      ring.position.set(cx, cy);
+      const speed = this.resolvedPreset === "vortex"
+        ? 4.4
+        : this.resolvedPreset === "rays"
+          ? 1.7
+          : this.mode === "vortex"
+            ? 3.2
+            : 1;
+      ring.rotation = time * (0.025 + index * 0.011) * (index % 2 ? -1 : 1) * speed;
+      const scale = 0.85 + index * 0.14 + bass * (0.08 + index * 0.015) + this.impact * 0.1;
+      ring.scale.set(scale);
+      ring.alpha = this.resolvedPreset === "vortex"
+        ? 0.04 + energy * 0.12
+        : this.resolvedPreset === "rays"
+          ? 0.025 + energy * 0.07
+          : this.mode === "poster"
+            ? 0.02
+            : 0.035 + energy * 0.08;
+    });
+  }
+
+  private updateBeams(
+    time: number,
+    audio: AudioBands,
+    cx: number,
+    cy: number,
+    energy: number,
+  ) {
+    this.beams.forEach((beam, index) => {
+      if (!beam.visible) return;
+      beam.position.set(cx, cy);
+      const speed = this.resolvedPreset === "rays" ? 2.1 : this.resolvedPreset === "nebula" ? 0.7 : 1;
+      beam.rotation = time * (0.025 + index * 0.012) * speed + index * 1.9;
+      beam.alpha = this.resolvedPreset === "rays"
+        ? 0.075 + energy * 0.1
+        : this.resolvedPreset === "nebula"
+          ? 0.025 + energy * 0.04
+          : this.mode === "neon"
+            ? 0.035 + energy * 0.04
+            : this.mode === "vortex"
+              ? 0.02
+              : 0.008;
+      beam.scale.y = 0.8 + audio.mid * (this.resolvedPreset === "rays" ? 0.55 : 0.35);
+      beam.scale.x = this.resolvedPreset === "rays" ? 1.15 + audio.bass * 0.14 : 1;
+    });
+  }
+
   private createBlobs() {
     const rand = seeded(9031);
-    for (let i = 0; i < 6; i++) {
+    for (let index = 0; index < 6; index++) {
       const radius = 180 + rand() * 300;
       const g = new Graphics()
         .circle(0, 0, radius)
@@ -182,7 +421,7 @@ export class CinematicBackground {
 
   private createParticles() {
     const rand = seeded(492187);
-    for (let i = 0; i < 260; i++) {
+    for (let index = 0; index < 260; index++) {
       const g = new Graphics().circle(0, 0, 1.2).fill({ color: 0xffffff, alpha: 0.65 });
       g.blendMode = "add";
       this.particleLayer.addChild(g);
@@ -199,12 +438,19 @@ export class CinematicBackground {
   }
 
   private createRings() {
-    for (let i = 0; i < 7; i++) {
+    for (let index = 0; index < 7; index++) {
       const ring = new Graphics();
-      const radius = 120 + i * 88;
-      ring.circle(0, 0, radius).stroke({ width: i % 2 ? 1 : 1.5, color: 0xffffff, alpha: 0.12 });
-      if (i % 2 === 0) {
-        ring.moveTo(-radius * 0.7, -radius * 0.7).lineTo(radius * 0.7, radius * 0.7).stroke({ width: 1, color: 0xffffff, alpha: 0.05 });
+      const radius = 120 + index * 88;
+      ring.circle(0, 0, radius).stroke({
+        width: index % 2 ? 1 : 1.5,
+        color: 0xffffff,
+        alpha: 0.12,
+      });
+      if (index % 2 === 0) {
+        ring
+          .moveTo(-radius * 0.7, -radius * 0.7)
+          .lineTo(radius * 0.7, radius * 0.7)
+          .stroke({ width: 1, color: 0xffffff, alpha: 0.05 });
       }
       ring.blendMode = "add";
       this.ringLayer.addChild(ring);
@@ -213,7 +459,7 @@ export class CinematicBackground {
   }
 
   private createBeams() {
-    for (let i = 0; i < 3; i++) {
+    for (let index = 0; index < 3; index++) {
       const beam = new Graphics()
         .poly([-40, -900, 40, -900, 140, 900, -140, 900])
         .fill({ color: 0xffffff, alpha: 0.045 });
@@ -224,7 +470,20 @@ export class CinematicBackground {
   }
 
   private redrawBase() {
-    const baseColor = this.mode === "poster" ? 0x080707 : this.mode === "vortex" ? 0x070305 : 0x03090d;
+    const baseColor = this.resolvedPreset === "minimal"
+      ? 0x010203
+      : this.resolvedPreset === "starfield"
+        ? 0x01040a
+        : this.resolvedPreset === "nebula"
+          ? this.mode === "vortex" ? 0x080209 : 0x020910
+          : this.resolvedPreset === "grid"
+            ? this.mode === "poster" ? 0x070707 : 0x02080b
+            : this.mode === "poster"
+              ? 0x080707
+              : this.mode === "vortex"
+                ? 0x070305
+                : 0x03090d;
+
     this.base.clear().rect(0, 0, this.w, this.h).fill({ color: baseColor, alpha: 1 });
     this.flash.clear().rect(0, 0, this.w, this.h).fill({ color: 0xffffff, alpha: 1 });
   }
@@ -236,34 +495,141 @@ export class CinematicBackground {
     const cx = w * 0.5;
     const cy = h * 0.5;
 
+    if (this.resolvedPreset === "minimal") {
+      for (let index = 0; index < 3; index++) {
+        const y = h * (0.32 + index * 0.18) + Math.sin(time * 0.15 + index) * 4;
+        this.geometry.moveTo(w * 0.08, y).lineTo(w * 0.92, y).stroke({
+          width: 1,
+          color: this.mode === "vortex" ? 0xff435b : 0x7cfff2,
+          alpha: 0.018 + audio.energy * 0.012,
+        });
+      }
+      return;
+    }
+
+    if (this.resolvedPreset === "grid") {
+      const horizon = h * (this.mode === "poster" ? 0.58 : 0.63);
+      const color = this.mode === "poster" ? 0xff5362 : 0x70fff2;
+      for (let index = 0; index <= 16; index++) {
+        const t = index / 16;
+        const x = t * w;
+        this.geometry
+          .moveTo(cx + (x - cx) * 0.04, horizon)
+          .lineTo(x, h)
+          .stroke({ width: 1, color, alpha: 0.055 + audio.energy * 0.025 });
+      }
+      const scroll = (time * 0.12) % 1;
+      for (let index = 0; index < 11; index++) {
+        const t = (index + scroll) / 11;
+        const curve = t * t;
+        const y = horizon + (h - horizon) * curve;
+        this.geometry.moveTo(0, y).lineTo(w, y).stroke({
+          width: 1,
+          color,
+          alpha: 0.035 + audio.energy * 0.02,
+        });
+      }
+      return;
+    }
+
+    if (this.resolvedPreset === "rays") {
+      const color = this.mode === "vortex" ? 0xff4a54 : 0x70fff2;
+      const rotation = time * 0.045;
+      for (let index = 0; index < 14; index++) {
+        const angle = (index / 14) * Math.PI * 2 + rotation;
+        const radius = Math.max(w, h) * 0.85;
+        this.geometry
+          .moveTo(cx, cy)
+          .lineTo(cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius)
+          .stroke({ width: index % 3 === 0 ? 2 : 1, color, alpha: 0.035 + audio.energy * 0.035 });
+      }
+      return;
+    }
+
+    if (this.resolvedPreset === "vortex") {
+      const rotation = time * 0.13;
+      for (let index = 0; index < 24; index++) {
+        const angle = (index / 24) * Math.PI * 2 + rotation;
+        const radius = Math.max(w, h) * (0.72 + (index % 3) * 0.05);
+        this.geometry
+          .moveTo(cx, cy)
+          .lineTo(cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius)
+          .stroke({ width: 1, color: index % 2 ? 0xff334d : 0xff795f, alpha: 0.05 + audio.bass * 0.04 });
+      }
+      return;
+    }
+
+    if (this.resolvedPreset === "starfield") {
+      const color = this.mode === "vortex" ? 0xff5060 : 0x8cfff7;
+      const rotation = time * 0.018;
+      for (let index = 0; index < 10; index++) {
+        const angle = (index / 10) * Math.PI * 2 + rotation;
+        const radius = Math.max(w, h) * 0.72;
+        this.geometry
+          .moveTo(cx + Math.cos(angle) * 30, cy + Math.sin(angle) * 30)
+          .lineTo(cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius)
+          .stroke({ width: 1, color, alpha: 0.012 + audio.energy * 0.016 });
+      }
+      return;
+    }
+
+    if (this.resolvedPreset === "nebula") {
+      const color = this.mode === "vortex" ? 0xff4e67 : 0x72fff3;
+      const shift = Math.sin(time * 0.17) * h * 0.06;
+      for (let index = 0; index < 7; index++) {
+        const y = h * (0.16 + index * 0.115) + shift * (index % 2 ? -1 : 1);
+        this.geometry
+          .moveTo(w * 0.05, y)
+          .lineTo(w * 0.95, y + Math.sin(time * 0.23 + index) * 34)
+          .stroke({ width: 1, color, alpha: 0.018 + audio.mid * 0.025 });
+      }
+      return;
+    }
+
     if (this.mode === "poster") {
       const shift = ((time * 22) % 140) - 70;
-      for (let i = -2; i < 14; i++) {
-        const y = i * 86 + shift;
-        this.geometry.moveTo(0, y).lineTo(w, y - 90).stroke({ width: 1, color: 0xff4c57, alpha: 0.065 + audio.energy * 0.035 });
+      for (let index = -2; index < 14; index++) {
+        const y = index * 86 + shift;
+        this.geometry
+          .moveTo(0, y)
+          .lineTo(w, y - 90)
+          .stroke({ width: 1, color: 0xff4c57, alpha: 0.065 + audio.energy * 0.035 });
       }
-      for (let i = 0; i < 6; i++) {
-        const x = (i / 5) * w;
-        this.geometry.rect(x - 1, 0, 2, h).fill({ color: 0xffffff, alpha: i % 2 ? 0.018 : 0.008 });
+      for (let index = 0; index < 6; index++) {
+        const x = (index / 5) * w;
+        this.geometry.rect(x - 1, 0, 2, h).fill({
+          color: 0xffffff,
+          alpha: index % 2 ? 0.018 : 0.008,
+        });
       }
     } else if (this.mode === "neon") {
       const horizon = h * 0.66;
-      for (let i = 0; i <= 12; i++) {
-        const t = i / 12;
+      for (let index = 0; index <= 12; index++) {
+        const t = index / 12;
         const x = t * w;
-        this.geometry.moveTo(cx + (x - cx) * 0.08, horizon).lineTo(x, h).stroke({ width: 1, color: 0x70fff2, alpha: 0.06 });
+        this.geometry
+          .moveTo(cx + (x - cx) * 0.08, horizon)
+          .lineTo(x, h)
+          .stroke({ width: 1, color: 0x70fff2, alpha: 0.06 });
       }
-      for (let i = 0; i < 8; i++) {
-        const t = i / 8;
+      for (let index = 0; index < 8; index++) {
+        const t = index / 8;
         const y = horizon + (h - horizon) * t * t;
-        this.geometry.moveTo(0, y).lineTo(w, y).stroke({ width: 1, color: 0x70fff2, alpha: 0.045 });
+        this.geometry.moveTo(0, y).lineTo(w, y).stroke({
+          width: 1,
+          color: 0x70fff2,
+          alpha: 0.045,
+        });
       }
     } else {
-      const rot = time * 0.09;
-      for (let i = 0; i < 18; i++) {
-        const a = (i / 18) * Math.PI * 2 + rot;
-        const r = Math.max(w, h) * 0.82;
-        this.geometry.moveTo(cx, cy).lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r).stroke({ width: 1, color: 0xff334d, alpha: 0.055 + audio.bass * 0.03 });
+      const rotation = time * 0.09;
+      for (let index = 0; index < 18; index++) {
+        const angle = (index / 18) * Math.PI * 2 + rotation;
+        const radius = Math.max(w, h) * 0.82;
+        this.geometry
+          .moveTo(cx, cy)
+          .lineTo(cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius)
+          .stroke({ width: 1, color: 0xff334d, alpha: 0.055 + audio.bass * 0.03 });
       }
     }
   }
@@ -275,10 +641,18 @@ export class CinematicBackground {
         ? { primary: 0xff293f, secondary: 0xff6a48 }
         : { primary: 0x56fff1, secondary: 0x7c5cff };
 
-    this.blobs.forEach((blob, i) => blob.g.tint = i % 2 ? palette.primary : palette.secondary);
-    this.particles.forEach((p, i) => p.g.tint = i % 5 === 0 ? palette.secondary : palette.primary);
-    this.rings.forEach((ring, i) => ring.tint = i % 2 ? palette.primary : palette.secondary);
-    this.beams.forEach((beam, i) => beam.tint = i % 2 ? palette.primary : palette.secondary);
+    this.blobs.forEach((blob, index) => {
+      blob.g.tint = index % 2 ? palette.primary : palette.secondary;
+    });
+    this.particles.forEach((particle, index) => {
+      particle.g.tint = index % 5 === 0 ? palette.secondary : palette.primary;
+    });
+    this.rings.forEach((ring, index) => {
+      ring.tint = index % 2 ? palette.primary : palette.secondary;
+    });
+    this.beams.forEach((beam, index) => {
+      beam.tint = index % 2 ? palette.primary : palette.secondary;
+    });
     this.redrawBase();
   }
 }

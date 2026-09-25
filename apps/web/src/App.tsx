@@ -6,6 +6,8 @@ import { AudioEngine, HtmlAudioClock } from "@graph1ks/emo-audio-web";
 import {
   ELRCParser,
   SCENE_LABELS,
+  type BackgroundPreset,
+  type BackgroundPresetId,
   type ParsedLyrics,
   type QualityMode,
   type SceneMode,
@@ -37,6 +39,17 @@ const TYPOGRAPHY_PRESETS: TypographyPreset[] = [
   "glitch",
 ];
 
+const BACKGROUND_PRESETS: BackgroundPreset[] = [
+  "auto",
+  "cinematic",
+  "nebula",
+  "grid",
+  "starfield",
+  "rays",
+  "vortex",
+  "minimal",
+];
+
 export function App() {
   const queryClient = useQueryClient();
   const shellRef = useRef<HTMLElement>(null);
@@ -62,6 +75,7 @@ export function App() {
   const intensity = useUiStore(state => state.intensity);
   const quality = useUiStore(state => state.quality);
   const typographyPreset = useUiStore(state => state.typographyPreset);
+  const backgroundPreset = useUiStore(state => state.backgroundPreset);
   const syncMs = useUiStore(state => state.syncMs);
   const projectDrawerOpen = useUiStore(state => state.projectDrawerOpen);
   const setHudVisible = useUiStore(state => state.setHudVisible);
@@ -69,12 +83,14 @@ export function App() {
   const setIntensity = useUiStore(state => state.setIntensity);
   const setQuality = useUiStore(state => state.setQuality);
   const setTypographyPreset = useUiStore(state => state.setTypographyPreset);
+  const setBackgroundPreset = useUiStore(state => state.setBackgroundPreset);
   const setSyncMs = useUiStore(state => state.setSyncMs);
   const setProjectDrawerOpen = useUiStore(state => state.setProjectDrawerOpen);
 
   const [engineStatus, setEngineStatus] = useState("ENGINE READY");
   const [activeScene, setActiveScene] = useState<SceneMode>("neon");
   const [activeTypography, setActiveTypography] = useState<TypographyPresetId>("elastic");
+  const [activeBackground, setActiveBackground] = useState<BackgroundPresetId>("nebula");
   const [hasContent, setHasContent] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
@@ -115,6 +131,9 @@ export function App() {
     });
     const offTypography = renderer.onTypographyPresetChange(preset => {
       if (!disposed) setActiveTypography(preset);
+    });
+    const offBackground = renderer.onBackgroundPresetChange(preset => {
+      if (!disposed) setActiveBackground(preset);
     });
 
     const offTick = clock.onTick(time => {
@@ -163,6 +182,7 @@ export function App() {
       if (disposed) return;
       renderer.setVisualMode(useUiStore.getState().mode);
       renderer.setTypographyPreset(useUiStore.getState().typographyPreset);
+      renderer.setBackgroundPreset(useUiStore.getState().backgroundPreset);
       renderer.setIntensity(useUiStore.getState().intensity);
       renderer.setQuality(useUiStore.getState().quality);
       clock.start();
@@ -174,6 +194,7 @@ export function App() {
       offTick();
       offMode();
       offTypography();
+      offBackground();
       audio.element.removeEventListener("play", onPlay);
       audio.element.removeEventListener("pause", onPause);
       audio.element.removeEventListener("ended", onEnded);
@@ -194,6 +215,10 @@ export function App() {
   useEffect(() => {
     rendererRef.current?.setTypographyPreset(typographyPreset);
   }, [typographyPreset]);
+
+  useEffect(() => {
+    rendererRef.current?.setBackgroundPreset(backgroundPreset);
+  }, [backgroundPreset]);
 
   useEffect(() => {
     rendererRef.current?.setIntensity(intensity);
@@ -245,7 +270,7 @@ export function App() {
 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [setHudVisible, setMode, setSyncMs, setTypographyPreset]);
+  }, [setBackgroundPreset, setHudVisible, setMode, setSyncMs, setTypographyPreset]);
 
   useEffect(() => {
     const onDragEnter = (event: DragEvent) => {
@@ -375,6 +400,7 @@ export function App() {
       if (defaults?.intensity !== undefined) setIntensity(defaults.intensity);
       if (defaults?.quality !== undefined) setQuality(defaults.quality);
       if (defaults?.typographyPreset !== undefined) setTypographyPreset(defaults.typographyPreset);
+      if (defaults?.backgroundPreset !== undefined) setBackgroundPreset(defaults.backgroundPreset);
       if (defaults?.syncMs !== undefined) {
         syncRef.current = defaults.syncMs;
         setSyncMs(defaults.syncMs);
@@ -429,7 +455,7 @@ export function App() {
             <div className="brand-mark">E</div>
             <div>
               <div className="brand">E-MO-ENGINE</div>
-              <div className="brand-sub">EXTENSIVE MOTION ENGINE FOR ENHANCED LRC · v0.5</div>
+              <div className="brand-sub">EXTENSIVE MOTION ENGINE FOR ENHANCED LRC · v0.7 ALPHA</div>
             </div>
           </div>
           <div className="top-actions">
@@ -517,6 +543,25 @@ export function App() {
             </div>
           </div>
 
+          <div className="background-control">
+            <div className="control-heading">
+              <span>BACKGROUND</span>
+              <b>{activeBackground.toUpperCase()}</b>
+            </div>
+            <div className="background-grid" role="group" aria-label="Background preset">
+              {BACKGROUND_PRESETS.map(value => (
+                <button
+                  key={value}
+                  className={`background-button ${backgroundPreset === value ? "is-active" : ""}`}
+                  onClick={() => setBackgroundPreset(value)}
+                  title={value === "auto" ? "Auto background variation · B" : `${value} background`}
+                >
+                  {value.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="audio-meter" aria-label="Audio reactive bands">
             <div><span className="meter-track"><i ref={bassRef} /></span><b>BASS</b></div>
             <div><span className="meter-track"><i ref={midRef} /></span><b>MID</b></div>
@@ -565,7 +610,7 @@ export function App() {
             ))}
           </div>
 
-          <div className="director-footnote">Scene AUTO directs the visual family. Typography AUTO rotates deterministic glyph presets per line. Press T to cycle typography.</div>
+          <div className="director-footnote">Scene AUTO directs the visual family. Typography and Background AUTO rotate deterministic presets per line. T/B cycle the respective preset.</div>
         </aside>
 
         <section className={`empty-state ${hasContent ? "is-dismissed" : ""}`}>
