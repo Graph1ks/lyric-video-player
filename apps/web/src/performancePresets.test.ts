@@ -29,10 +29,21 @@ describe("Director performance preset library", () => {
     const [authored] = BUILTIN_PERFORMANCE_PRESETS;
     const cloned = clonePerformancePreset(authored);
     cloned.auto.scenes?.splice(0, 1);
+    cloned.fx.displacement = 0;
     expect(cloned.auto.scenes).not.toEqual(authored.auto.scenes);
+    expect(cloned.fx.displacement).not.toBe(authored.fx.displacement);
 
     const defaults = defaultPerformancePresets();
     expect(defaults[0]).not.toBe(BUILTIN_PERFORMANCE_PRESETS[0]);
     expect(defaults[0].auto.scenes).not.toBe(BUILTIN_PERFORMANCE_PRESETS[0].auto.scenes);
+    expect(defaults[0].fx).not.toBe(BUILTIN_PERFORMANCE_PRESETS[0].fx);
+  });
+
+  it("spans true off states through extreme world and distortion values", () => {
+    const allFx = BUILTIN_PERFORMANCE_PRESETS.flatMap(preset => Object.values(preset.fx));
+    expect(allFx.some(value => value === 0)).toBe(true);
+    expect(allFx.some(value => value >= 2)).toBe(true);
+    expect(BUILTIN_PERFORMANCE_PRESETS.some(preset => preset.fx.worldIntensity >= 2.5)).toBe(true);
+    expect(BUILTIN_PERFORMANCE_PRESETS.some(preset => preset.fx.displacement >= 2)).toBe(true);
   });
 });
