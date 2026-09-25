@@ -2,12 +2,12 @@
 
 **Last updated:** 2026-09-25  
 **Last known good merged baseline:** `df04c773b08c19b80e4f1b823ba60acc817b0b69`  
-**Active candidate:** none  
+**Active candidate:** `feature/art-direction-worlds-v0.8`  
 **Current phase/milestone:** v0.8 lyric-scene composition + color direction
 
 ## Current objective
 
-Continue Step 4 visual-world expansion on top of the merged readability, composition-motion and color-direction contracts.
+Land the first genuinely distinct Step 4 art-direction worlds on top of the merged readability, composition-motion and color-direction contracts.
 
 ## Current state
 
@@ -53,6 +53,14 @@ Continue Step 4 visual-world expansion on top of the merged readability, composi
 - Color Director adds lyric-oriented mood presets: Tender, Heartbreak, Longing, Euphoria, Rage, Dream, Tension and Calm.
 - Dark background roles are now deliberately near-neutral/low-chroma to prevent persistent muddy brown fields.
 - Optional Rainbow Drift rotates hue slowly from explicit lyric time while primary text/background remain restrained.
+- Active Step 4 candidate adds four large-scale **Art Direction Worlds**:
+  - Editorial — asymmetric plates, bars and framing marks;
+  - Print — halftone field, print bands and registration-like texture;
+  - Architecture — nested frames, vanishing-point guides and pillars;
+  - Aurora — layered edge ribbons, horizon glow and sparse motes.
+- Art worlds consume semantic OKLCH palette roles and preserve a quiet central lyric region.
+- Selecting an art world suppresses generic blob/particle/ring/beam layers so the new worlds do not collapse back into the same ambient-particle look.
+- AUTO background routing now gives the new worlds first-class exposure in Poster/Neon/Vortex families.
 
 ## Last verified checks
 
@@ -65,10 +73,11 @@ Continue Step 4 visual-world expansion on top of the merged readability, composi
 
 ## Next concrete action
 
-1. Expand Step 4 art-direction worlds using the palette-role contract rather than hard-coded scene colors.
-2. Visually tune composition/layout/grammar combinations on real Enhanced LRC tracks and narrow/mobile viewports.
-3. Finish remaining typography primitives.
-4. Stabilize serializable scene-stack directives before editor work.
+1. Get the four-world Step 4 candidate green on Linux + Windows and visually accept it on real tracks.
+2. Tune composition/layout/grammar combinations on real Enhanced LRC tracks and narrow/mobile viewports.
+3. Add only genuinely distinct next worlds (volumetric light, collage/cutout, 2.5D/image treatment) after the first four pass visual acceptance.
+4. Finish remaining typography primitives.
+5. Stabilize serializable scene-stack directives before editor work.
 
 ## Do not redo
 

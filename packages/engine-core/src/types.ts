@@ -67,7 +67,11 @@ export type BackgroundPresetId =
   | "spectrum"
   | "sparks"
   | "lyrics"
-  | "minimal";
+  | "minimal"
+  | "editorial"
+  | "print"
+  | "architecture"
+  | "aurora";
 export type BackgroundPreset = "auto" | BackgroundPresetId;
 export type ColorHarmonyId =
   | "split-complement"

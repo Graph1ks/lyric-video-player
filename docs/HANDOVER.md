@@ -2,12 +2,12 @@
 
 **Last updated:** 2026-09-25  
 **Merged baseline:** `df04c773b08c19b80e4f1b823ba60acc817b0b69`  
-**Active candidate:** none  
+**Active candidate:** `feature/art-direction-worlds-v0.8`  
 **Current phase/milestone:** v0.8 lyric-scene composition + color direction
 
 ## Current objective
 
-Continue Step 4 visual-world expansion on top of the merged readability/color stabilization layer.
+Finish and validate the first Step 4 art-direction-world candidate on top of the merged readability/color stabilization layer.
 
 ## Current implementation state
 
@@ -111,6 +111,21 @@ The candidate changes two foundational contracts before adding more visual world
 
 Research and exact product rules are in `docs/VISUAL_READABILITY_COLOR_RULES.md`.
 
+### Step 4 active candidate — Art Direction Worlds
+
+Four scene-scale visual grammars are implemented in a dedicated renderer module:
+
+- `editorial`: edge plates, bars and framing/crop marks;
+- `print`: halftone field, print bands and diagonal texture;
+- `architecture`: nested frames, vanishing guides and side pillars;
+- `aurora`: layered upper/lower ribbons, horizon glow and sparse motes.
+
+These are deliberately **not** particle variants. When active, CinematicBackground suppresses generic particles, blobs, rings and beams and bypasses legacy geometry.
+
+All four worlds consume the shared `VisualPalette`, remain timestamp/audio-driven and preserve central negative space for lyrics.
+
+See `docs/ART_DIRECTION_WORLDS.md`.
+
 ## Important files / entry points
 
 | Path | Why it matters |
@@ -122,7 +137,9 @@ Research and exact product rules are in `docs/VISUAL_READABILITY_COLOR_RULES.md`
 | `packages/engine-core/src/colorHarmony.ts` | OKLCH conversion + harmony + lyric mood palette director |
 | `docs/VISUAL_READABILITY_COLOR_RULES.md` | source-backed readability/color rules and non-goals |
 | `packages/renderer-pixi/src/effects/typography/KineticLyrics.ts` | composition + glyph-motion consumer |
-| `packages/renderer-pixi/src/effects/backgrounds/CinematicBackground.ts` | palette/background consumer |
+| `packages/renderer-pixi/src/effects/backgrounds/CinematicBackground.ts` | background routing / legacy layer coordination |
+| `packages/renderer-pixi/src/effects/backgrounds/ArtDirectionWorlds.ts` | Step 4 Editorial/Print/Architecture/Aurora worlds |
+| `docs/ART_DIRECTION_WORLDS.md` | world contracts, palette roles and readability budgets |
 | `packages/renderer-pixi/src/render/EngineRenderer.ts` | composition/palette orchestration |
 | `apps/web/src/App.tsx` | Visual Director controls |
 | `docs/PROJECT_FORMAT.md` | persisted layout/harmony defaults |
@@ -150,11 +167,12 @@ Windows packaging remains a separate required gate.
 
 ## Next concrete work
 
-1. Build genuinely distinct Step 4 visual worlds (editorial blocks, print/halftone, mesh/gradient, geometric architecture, volumetric light) on the palette-role contract.
-2. Visually test dense Enhanced LRC lines at desktop + narrow/mobile sizes.
-3. Migrate specialist shader colors to palette-role uniforms.
-4. Complete remaining typography primitives.
-5. Stabilize scene-stack serialization before timeline/editor work.
+1. Get the Step 4 world candidate through Linux + Windows gates.
+2. Visually accept Editorial / Print / Architecture / Aurora on real Enhanced LRC tracks.
+3. Test dense lyrics at desktop + narrow/mobile sizes.
+4. Add the next distinct world only after identifying a missing visual grammar (volumetric/collage/2.5D).
+5. Migrate remaining specialist shader colors to palette-role uniforms.
+6. Complete remaining typography primitives and then stabilize scene-stack serialization.
 
 ## Resume instruction
 

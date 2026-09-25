@@ -53,7 +53,7 @@
 - word-level composition planner — complete baseline
 - Center Stack / Directional Stage / Editorial / Vertical Accent / Split Stage / Crossword — complete baseline
 
-## Milestone 0.6 — Advanced backgrounds — complete baseline
+## Milestone 0.6 — Advanced backgrounds — active expansion
 - preset routing independent from scene family — complete baseline
 - Cinematic / Nebula / Grid / Starfield / Rays / Vortex / Minimal families — complete baseline
 - deterministic particles / dust depth field — complete baseline
@@ -63,6 +63,11 @@
 - waveform and spectrum ribbons — complete baseline
 - sparks / trails — complete baseline
 - recursive typography backgrounds — complete baseline
+- Editorial art-direction world — active candidate
+- Print / halftone art-direction world — active candidate
+- Architecture art-direction world — active candidate
+- Aurora ribbon art-direction world — active candidate
+- generic ambient particles suppressed for dedicated art worlds — active candidate
 
 ## Cross-cutting v0.8 — Composition + Color Direction — complete baseline
 - typography composition separated from glyph motion

@@ -89,6 +89,10 @@ const BACKGROUND_PRESETS = new Set<ProjectBackgroundPreset>([
   "sparks",
   "lyrics",
   "minimal",
+  "editorial",
+  "print",
+  "architecture",
+  "aurora",
 ]);
 
 function extension(fileName: string) {
