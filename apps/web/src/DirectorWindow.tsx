@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { VisualDirector } from "./VisualDirector";
 import { sendDirectorCommand } from "./directorSync";
 import { formatDirectorTime, parseDirectorTime } from "./directorPlanning";
@@ -18,13 +18,15 @@ export function DirectorWindow() {
   const playing = useUiStore(state => state.directorPlaying);
   const muted = useUiStore(state => state.directorMuted);
   const volume = useUiStore(state => state.directorVolume);
-  const playback = useUiStore(state => state.directorPlaybackSeconds);
+  const playbackSample = useUiStore(state => state.directorPlaybackSeconds);
   const duration = useUiStore(state => state.directorDurationSeconds);
+  const bands = useUiStore(state => state.directorAudioBands);
   const cues = useUiStore(state => state.directorCues);
   const addCue = useUiStore(state => state.addDirectorCue);
   const removeCue = useUiStore(state => state.removeDirectorCue);
   const clearCues = useUiStore(state => state.clearDirectorCues);
   const applyCue = useUiStore(state => state.applyDirectorCue);
+  const playback = useSmoothDirectorPlayback(playbackSample, duration, playing);
 
   useEffect(() => {
     document.title = "E-MO Visual Director";
@@ -42,6 +44,7 @@ export function DirectorWindow() {
   }, [view]);
 
   const trackProgress = duration > 0 ? Math.max(0, Math.min(1, playback / duration)) : 0;
+  const remaining = Math.max(0, duration - playback);
   const sortedCues = useMemo(() => [...cues].sort((a, b) => a.at - b.at), [cues]);
 
   function captureCue() {
@@ -60,37 +63,87 @@ export function DirectorWindow() {
   }
 
   return (
-    <main className="director-window-shell">
-      <header className="director-window-topbar">
-        <div className="director-window-brand">
-          <span>E</span>
-          <div>
-            <b>E-MO DIRECTOR</b>
-            <small>{t("SECOND-SCREEN VISUAL CONTROL", "VISUELLE REGIE AUF ZWEITEM BILDSCHIRM")}</small>
+    <main className="director-window-shell director-pro-shell">
+      <header className="director-command-deck">
+        <div className="director-command-strip">
+          <div className="director-window-brand director-pro-brand">
+            <span>E</span>
+            <div>
+              <b>E-MO DIRECTOR</b>
+              <small>{t("VISUAL PERFORMANCE CONSOLE", "VISUAL-PERFORMANCE-KONSOLE")}</small>
+            </div>
           </div>
-        </div>
 
-        <div className="director-window-track director-window-transport">
-          <button
-            className="director-transport-play"
-            onClick={() => sendDirectorCommand({ kind: "toggle-play" })}
-            aria-label={playing ? t("Pause", "Pause") : t("Play", "Abspielen")}
-          >
-            {playing ? "❚❚" : "▶"}
-          </button>
-          <button
-            className="director-transport-step"
-            onClick={() => sendDirectorCommand({ kind: "seek-relative", seconds: -5 })}
-            aria-label={t("Back 5 seconds", "5 Sekunden zurück")}
-          >−5</button>
-          <div className="director-window-track__meta">
+          <div className="director-session-readout">
             <span className={playing ? "is-live" : ""}><i /> {playing ? "LIVE" : t("READY", "BEREIT")}</span>
             <div>
-              <b>{title}</b>
+              <strong>{title}</strong>
               <small>{meta || t("Waiting for main player", "Warte auf Hauptplayer")}</small>
             </div>
           </div>
-          <div className="director-window-timeline">
+
+          <div className="director-top-meters" aria-label={t("Audio meters", "Audio-Meter")}>
+            {([["B", bands.bass], ["M", bands.mid], ["A", bands.treble]] as const).map(([label, value]) => (
+              <span key={label}><b style={{ transform: `scaleY(${Math.max(0.03, value)})` }} /><em>{label}</em></span>
+            ))}
+          </div>
+
+          <div className="director-workspace-switch">
+            <button className={view === "live" ? "is-active" : ""} onClick={() => setView("live")}>
+              <b>LIVE</b><small>{t("Perform", "Performen")}</small>
+            </button>
+            <button className={view === "plan" ? "is-active" : ""} onClick={() => setView("plan")}>
+              <b>PLAN</b><small>{t("Cue deck", "Cue-Deck")}</small>
+            </button>
+          </div>
+
+          <div className="director-command-actions">
+            <label className="director-window-file">{t("AUDIO", "AUDIO")}<input type="file" accept="audio/mpeg,audio/mp4,audio/x-m4a,audio/aac,.mp3,.m4a,.aac" onChange={event => {
+              const file = event.target.files?.[0];
+              if (file) sendDirectorCommand({ kind: "load-audio", file });
+              event.currentTarget.value = "";
+            }} /></label>
+            <label className="director-window-file">{t("LRC", "LRC")}<input type="file" accept=".lrc,text/plain" onChange={event => {
+              const file = event.target.files?.[0];
+              if (file) sendDirectorCommand({ kind: "load-lyrics", file });
+              event.currentTarget.value = "";
+            }} /></label>
+            <button onClick={() => sendDirectorCommand({ kind: "toggle-fullscreen" })} title={t("Player fullscreen", "Player Vollbild")}>OUTPUT ⛶</button>
+            <button className="director-window-close" onClick={() => window.close()} title={t("Close Director window", "Director-Fenster schließen")}>×</button>
+          </div>
+        </div>
+
+        <div className="director-transport-console">
+          <div className="director-main-counter">
+            <span>{t("PLAYHEAD", "PLAYHEAD")}</span>
+            <strong>{formatDirectorTime(playback)}</strong>
+            <div>
+              <small>−{formatDirectorTime(remaining)}</small>
+              <small>{formatDirectorTime(duration)}</small>
+            </div>
+          </div>
+
+          <div className="director-transport-cluster">
+            <button onClick={() => sendDirectorCommand({ kind: "seek-relative", seconds: -5 })} aria-label={t("Back 5 seconds", "5 Sekunden zurück")}>−5</button>
+            <button
+              className={`director-master-play ${playing ? "is-playing" : ""}`}
+              onClick={() => sendDirectorCommand({ kind: "toggle-play" })}
+              aria-label={playing ? t("Pause", "Pause") : t("Play", "Abspielen")}
+            >
+              {playing ? "❚❚" : "▶"}
+            </button>
+            <button onClick={() => sendDirectorCommand({ kind: "seek-relative", seconds: 5 })} aria-label={t("Forward 5 seconds", "5 Sekunden vor")}>+5</button>
+          </div>
+
+          <div
+            className="director-pro-timeline"
+            style={{ "--transport-progress": `${trackProgress * 100}%` } as React.CSSProperties}
+          >
+            <div className="director-pro-timeline__head">
+              <span>{playing ? t("PLAYING", "LÄUFT") : t("STOPPED", "GESTOPPT")}</span>
+              <b>{title}</b>
+              <time>{formatDirectorTime(playback)} / {formatDirectorTime(duration)}</time>
+            </div>
             <input
               type="range"
               min="0"
@@ -100,48 +153,29 @@ export function DirectorWindow() {
               aria-label={t("Playback position", "Wiedergabeposition")}
               onChange={event => sendDirectorCommand({ kind: "seek", seconds: Number(event.target.value) })}
             />
-            <time>{formatDirectorTime(playback)} / {formatDirectorTime(duration)}</time>
+            <div className="director-pro-progress" aria-hidden="true"><i /></div>
           </div>
-          <button
-            className="director-transport-step"
-            onClick={() => sendDirectorCommand({ kind: "seek-relative", seconds: 5 })}
-            aria-label={t("Forward 5 seconds", "5 Sekunden vor")}
-          >+5</button>
-          <button
-            className={`director-transport-mute ${muted ? "is-active" : ""}`}
-            onClick={() => sendDirectorCommand({ kind: "toggle-mute" })}
-          >{muted ? t("MUTED", "STUMM") : t("VOL", "LAUT")}</button>
-          <input
-            className="director-transport-volume"
-            type="range"
-            min="0"
-            max="1"
-            step="0.01"
-            value={volume}
-            aria-label={t("Volume", "Lautstärke")}
-            onChange={event => sendDirectorCommand({ kind: "set-volume", volume: Number(event.target.value) })}
-          />
-        </div>
 
-        <div className="director-window-actions">
-          <label className="director-window-file">AUDIO<input type="file" accept="audio/mpeg,audio/mp4,audio/x-m4a,audio/aac,.mp3,.m4a,.aac" onChange={event => {
-            const file = event.target.files?.[0];
-            if (file) sendDirectorCommand({ kind: "load-audio", file });
-            event.currentTarget.value = "";
-          }} /></label>
-          <label className="director-window-file">LRC<input type="file" accept=".lrc,text/plain" onChange={event => {
-            const file = event.target.files?.[0];
-            if (file) sendDirectorCommand({ kind: "load-lyrics", file });
-            event.currentTarget.value = "";
-          }} /></label>
-          <button onClick={() => sendDirectorCommand({ kind: "toggle-fullscreen" })}>{t("PLAYER", "PLAYER")} ⛶</button>
-          <button className={view === "live" ? "is-active" : ""} onClick={() => setView("live")}>LIVE</button>
-          <button className={view === "plan" ? "is-active" : ""} onClick={() => setView("plan")}>PLAN</button>
-          <button onClick={() => window.close()} title={t("Close Director window", "Director-Fenster schließen")}>×</button>
+          <div className="director-monitor-block">
+            <button
+              className={muted ? "is-active" : ""}
+              onClick={() => sendDirectorCommand({ kind: "toggle-mute" })}
+            >{muted ? t("MUTED", "STUMM") : t("MON", "MON")}</button>
+            <div>
+              <span>{Math.round(volume * 100)}</span>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={volume}
+                aria-label={t("Volume", "Lautstärke")}
+                onChange={event => sendDirectorCommand({ kind: "set-volume", volume: Number(event.target.value) })}
+              />
+            </div>
+          </div>
         </div>
       </header>
-
-      <div className="director-window-progress"><i style={{ transform: `scaleX(${trackProgress})` }} /></div>
 
       {view === "live" ? (
         <div className="director-window-live">
@@ -252,6 +286,36 @@ export function DirectorWindow() {
           </section>
         </div>
       )}
+
     </main>
   );
+}
+
+function useSmoothDirectorPlayback(sample: number, duration: number, playing: boolean) {
+  const [display, setDisplay] = useState(sample);
+  const anchor = useRef({ sample, at: performance.now() });
+
+  useEffect(() => {
+    anchor.current = { sample, at: performance.now() };
+    setDisplay(sample);
+  }, [sample]);
+
+  useEffect(() => {
+    if (!playing) {
+      setDisplay(sample);
+      return;
+    }
+
+    let frame = 0;
+    const tick = () => {
+      const elapsed = Math.max(0, performance.now() - anchor.current.at) / 1000;
+      const next = anchor.current.sample + elapsed;
+      setDisplay(duration > 0 ? Math.min(duration, next) : next);
+      frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [duration, playing, sample]);
+
+  return display;
 }
