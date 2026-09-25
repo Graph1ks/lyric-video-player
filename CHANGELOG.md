@@ -4,9 +4,15 @@ Git history remains the complete technical history. This file records meaningful
 
 ## Unreleased
 
+### Architecture
+
+- Renamed the product to **E-MO-Engine — Extensive Motion Engine for Enhanced LRC files**.
+- Accepted the cross-platform baseline: React/TypeScript/Vite app shell, PixiJS renderer, Node hosted runtime, Electron desktop runtime, and shared engine/platform package boundaries modeled after the current RhymeLab architecture.
+
+
 ### Added
 
-- v0.3 E-MOE-CHAIN alpha engine foundation.
+- v0.3 E-MO-Engine alpha engine foundation.
 - Local MP3/M4A/AAC playback and drag/drop ingestion.
 - Enhanced LRC parsing with line timing, word timing, offsets, and line-only fallback word timing.
 - PixiJS realtime lyric renderer with Poster, Neon, and Vortex visual families.

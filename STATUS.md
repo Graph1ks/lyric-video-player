@@ -1,52 +1,52 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good implementation commit:** `dd8e9fdfd5efd9dd75c9ca907fd07401a9c250c0`  
-**Current phase/milestone:** v0.3.0 alpha bootstrap / milestone 0.4 post-FX
+**Last known good merged baseline:** `d4f1d30d5f6db8203a6fec95656f813b96752e9a`  
+**Current phase/milestone:** E-MO-Engine platform architecture freeze
 
 ## Current objective
 
-Get pull request #1 fully green under the repository's required `validate` check, merge the baseline, then continue the RenderTexture composition/feedback graph.
+Freeze the cross-platform application architecture before adding more renderer/editor features, then restructure incrementally around stable engine/platform boundaries.
 
 ## Current state
 
-- v0.3 engine source exists on branch `build/emoe-chain-v0.3` and pull request #1 is open.
-- Audio playback, Enhanced LRC parsing, timestamp-driven glyph motion, Auto Director, virtual camera, audio-reactive backgrounds, drag/drop, sync trim, fullscreen, and the high-end HUD are implemented.
-- `Ctrl + Shift + H` hides/shows the full player HUD and is a preserved product shortcut.
-- The first custom PixiJS/WebGL post-FX pass is implemented: scene-aware RGB split, audio/transient smear, glow taps, barrel warp, scanlines, procedural grain, and vignette.
-- PixiJS 8.21.0 is the only runtime package dependency.
-- GSAP was deliberately rejected after license review because the planned visual-editor scope could intersect its visual-animation-builder restriction.
-- The RhymeLab source-available / separate-commercial-license model is mirrored in the repository license files.
-- Repository rules require all main-branch changes through a pull request and a required check named `validate`.
+- Product identity is now **E-MO-Engine — Extensive Motion Engine for Enhanced LRC files**.
+- The v0.3 realtime baseline is merged and its required `validate` CI passed typecheck, production build, and publication audit.
+- Current engine capabilities include Enhanced LRC parsing, timestamp-driven glyph motion, deterministic scene direction, audio analysis, PixiJS rendering, camera motion, procedural backgrounds, and the first custom GPU post-FX pass.
+- The platform baseline is now selected: React/TypeScript/Vite application shell, PixiJS engine, Node hosted runtime, Electron desktop runtime.
+- The selected React UI stack deliberately matches current RhymeLab experience: Base UI, Motion, Zustand, TanStack Query, TanStack Virtual where needed, CSS Modules/custom properties, Vitest.
+- React/UI state is explicitly prohibited from owning frame-critical renderer state.
+- Server and Electron modes will share root-confined Node filesystem/project adapters rather than giving the browser renderer raw filesystem access.
 
 ## Last verified checks
 
-- Latest dependency-backed GitHub Actions run successfully installed dependencies.
-- `npm run typecheck` passed against the real PixiJS 8.21.0 types.
-- `npm run build` passed with Vite 7.1.0; 734 modules transformed and production assets emitted successfully.
-- Publication audit found one README false positive because the Enhanced LRC word-timestamp example used angle brackets that matched the template-placeholder scanner. The README wording has now been changed to avoid that scanner collision.
-- Source/dependency scan confirmed no GSAP or Three.js runtime import remains.
+- PR #1 `validate`: dependency install — pass.
+- PR #1 `validate`: strict TypeScript — pass.
+- PR #1 `validate`: Vite production build — pass.
+- PR #1 `validate`: publication audit — pass.
+- RhymeLab architecture review completed against `apps/studio-react/package.json`, `docs/REACT_STUDIO_REPLATFORM.md`, and `docs/SHARED_CORE_ARCHITECTURE.md`.
 
 ## Current blocker
 
-Only CI revalidation remains after the README audit fix. No current TypeScript or production-build blocker is known.
+None. The next work is architectural extraction/scaffolding, not more visual feature growth.
 
 ## Next concrete action
 
-Inspect the newest `validate` run on pull request #1. If green, merge the bootstrap. Then implement RenderTexture composition plus ping-pong feedback; if it fails, fix only the concrete reported issue before expanding the effect stack.
+Create the npm-workspace/app/package scaffold, extract current LRC/timing/director logic into framework-independent `engine-core`, and extract current Pixi code into `renderer-pixi` without behavior changes.
 
 ## Do not redo
 
-- Do not reintroduce GSAP without reopening ADR-003 and reviewing the then-current license against the visual-editor scope.
-- Do not move frame-critical rendering or the audio master clock into React.
-- Do not replace audio time with an independent wall-clock animation timeline.
-- Do not redo the repository visibility/collaboration-mode decision; public + owner-controlled + collaborator-only PR creation is already verified.
-- Do not revert TypeScript to 5.9.0; that version is not published.
+- Do not reintroduce GSAP without reopening ADR-003.
+- Do not move frame-critical rendering/audio timing into React/Zustand.
+- Do not choose Tauri unless the Electron decision is explicitly reopened with a concrete product reason.
+- Do not add a larger Node web framework until the server surface actually outgrows the standard library.
+- Do not add FFmpeg/video-export dependencies before a dedicated export milestone/license review.
 
 ## Important context
 
-- No commercial media, lyric corpus, or font pack is bundled.
-- A package lockfile is still absent because package installation was unavailable in the current local execution environment.
-- Current post-FX is a single filter pass. True feedback, displacement, multi-pass bloom, and render-target composition are still pending.
+- Hosted mode and desktop mode must execute the same engine/project semantics.
+- Desktop targeting is by explicitly selected/configured project root, via Electron main/preload IPC.
+- Server asset access is confined to an explicitly configured root and must reject traversal.
+- The former `build/render-graph-v0.4` branch was created before this platform-architecture decision; do not continue feature work there until architecture extraction is complete.
 
-For deeper continuation context, read `docs/HANDOVER.md`.
+For deeper continuation context, read `docs/HANDOVER.md` and `docs/PLATFORM_ARCHITECTURE.md`.

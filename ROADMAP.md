@@ -1,4 +1,4 @@
-# E-MOE-CHAIN Engine Roadmap
+# E-MO-Engine Roadmap
 
 ## Milestone 0.1 — Foundation — complete
 - audio file ingestion

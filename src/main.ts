@@ -19,7 +19,7 @@ app.innerHTML = `
 
     <div class="drop-overlay" id="dropOverlay" aria-hidden="true">
       <div class="drop-card">
-        <span class="drop-kicker">E-MOE-CHAIN INGEST</span>
+        <span class="drop-kicker">E-MO-ENGINE INGEST</span>
         <strong>DROP AUDIO + ENHANCED LRC</strong>
         <span>MP3 · M4A · AAC · LRC</span>
       </div>
@@ -30,7 +30,7 @@ app.innerHTML = `
         <div class="brand-lockup">
           <div class="brand-mark">E</div>
           <div>
-            <div class="brand">E-MOE-CHAIN</div>
+            <div class="brand">E-MO-ENGINE</div>
             <div class="brand-sub">GRAPH1KS REALTIME LYRIC ENGINE · v0.3</div>
           </div>
         </div>

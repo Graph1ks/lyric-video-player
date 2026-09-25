@@ -2,11 +2,11 @@
 
 ## Product
 
-**Name:** Graph1ks Lyric Video Player — E-MOE-CHAIN Engine  
-**One-line purpose:** Local-first realtime lyric-video renderer that synchronizes MP3/M4A/AAC playback with Enhanced LRC and produces high-end kinetic typography plus audio-reactive motion graphics.  
-**Primary users:** Artists, music producers, lyric-video creators, motion designers, and developers embedding the renderer.  
+**Name:** E-MO-Engine — Extensive Motion Engine for Enhanced LRC files  
+**One-line purpose:** Cross-platform realtime motion engine and player/editor that synchronizes audio with Enhanced LRC and renders high-end kinetic typography plus audio-reactive motion graphics.  
+**Primary users:** Artists, music producers, lyric-video creators, motion designers, and developers embedding the engine.  
 **Project stage:** alpha  
-**Target platforms:** modern desktop web browsers first; mobile browser support later  
+**Target platforms:** hosted web/browser, Windows standalone desktop application, reusable engine packages  
 **Versioning/release model:** SemVer  
 **Changelog:** enabled
 
@@ -33,38 +33,51 @@
 - Enhanced LRC line and word timing, offsets, seeking, and manual sync trim.
 - Realtime GPU lyric rendering, kinetic typography, background motion graphics, particles, compositing, post-FX, virtual camera, and audio reactivity.
 - Deterministic scene direction and seek-safe timestamp-derived visual motion.
-- High-end player/HUD UX including keyboard control and full HUD hiding with `Ctrl + Shift + H`.
-- Future scene/preset project format and an optional visual editor after the renderer is stable.
+- React-based application/editor shell around a framework-independent render engine.
+- Hosted Node.js mode serving projects from a configured directory.
+- Windows Electron application that can select/target a local project directory.
+- Future scene/preset project format and visual editor.
 
 ### Explicitly out of scope for the current alpha
 
-- Mandatory cloud upload, telemetry, accounts, hosted processing, or paid runtime services.
-- Server-side song/lyric storage.
+- Mandatory telemetry, accounts, paid services, or automatic remote uploads.
+- Multi-tenant SaaS storage/authentication without an explicit later design.
 - Bundled copyrighted music or third-party lyric catalogs.
-- React in the frame-critical renderer. A future editor shell may use React without owning rendering/timing state.
+- React in the frame-critical renderer.
+- Video export/FFmpeg until a separate export milestone and license review.
 
 ## Engineering targets
 
 **Primary quality target:** deterministic audiovisual sync plus high visual quality.  
 **Performance targets:** 1920×1080 at 60 FPS on a capable desktop GPU; adaptive Performance mode for lower-power hardware; no second animation clock that can drift from audio.  
-**Availability target:** local application; no hosted availability target.  
-**Data-size assumptions:** one local audio track plus one LRC and lightweight visual presets/assets per session.  
-**Supported environments:** current Chromium/Firefox desktop browsers; Safari compatibility is a target and requires device testing.
+**Availability target:** local desktop/server operation without mandatory external services.  
+**Data-size assumptions:** project directories containing audio, Enhanced LRC, project metadata, presets, and lightweight visual assets.  
+**Supported environments:** Electron/Chromium desktop first; current Chromium/Firefox hosted browser clients; Safari compatibility remains a later device-tested target.
 
 ## Architecture
 
-**Runtime/language:** TypeScript in the browser  
-**Primary framework:** PixiJS 8.21.0 for GPU rendering; custom E-MOE timestamp motion; Web Audio API for analysis  
-**Storage:** none required; local user-selected files stay in the browser session  
-**Packaging/distribution:** Vite static web build; source distributed in this repository
+**Runtime/language:** TypeScript 5.9.x; Node.js 22.12+ for server/desktop platform code  
+**Application/UI:** React 19.3.x + Vite 8.3.x + Base UI + Motion + Zustand + TanStack Query; TanStack Virtual where justified  
+**Primary render framework:** PixiJS 8.21.x plus custom E-MO timestamp motion and shaders  
+**Audio:** HTMLAudioElement/Web Audio adapter for live browser/Electron playback  
+**Server:** Node `node:http` plus explicit sanitized filesystem/project-root adapters  
+**Desktop:** Electron main/preload/renderer boundary; electron-builder packaging  
+**Styling:** CSS Modules + CSS custom properties/OKLCH design tokens  
+**Testing:** Vitest plus existing repository build/audit gates  
+**Storage:** project-directory source adapters; browser files/handles only where applicable  
+**Packaging/distribution:** hosted static React build + Node server; Windows Electron installer/portable executable; source distributed in this repository
+
+Detailed platform boundaries are authoritative in `docs/PLATFORM_ARCHITECTURE.md`.
 
 ### Architecture constraints
 
-- The HTML audio element is the single timing source of truth.
+- Audio/playback time remains the live source of truth; timing is exposed behind an engine `Clock` interface so future fixed-frame export remains possible.
 - Lyric motion should be derivable from lyric/audio timestamps where practical so seeking is reproducible.
-- Keep rendering/timing framework-independent from any future editor UI framework.
+- Keep engine-core independent from React, Electron, Node filesystem APIs, and UI DOM.
+- Keep rendering/timing independent from the React editor shell.
 - Use deterministic seeded randomness for seek-sensitive generated visuals.
-- Required production path must remain zero-cost and local-first.
+- Required production path must remain zero-cost.
+- Desktop/server filesystem access must go through typed platform adapters and be confined to an explicitly selected/configured root.
 - Do not add a visual-animation dependency whose license could restrict a future visual editor.
 
 ## Cost policy
@@ -73,13 +86,14 @@
 
 | Integration | Required? | Cost model | Free production path? | Notes |
 |---|---:|---|---:|---|
-| Hosted services | No | N/A | Yes | Core player is local-only. |
+| Hosted third-party services | No | N/A | Yes | Self-hosted Node server is sufficient. |
+| Electron desktop runtime | Yes for desktop distribution | Open-source packaging | Yes | No mandatory paid service. |
 
 ## Licensing strategy
 
 **Source model:** source-available  
 **Commercial model:** public non-commercial terms; separate written commercial licenses may be offered by Graph1ks  
-**Deployment/distribution:** distributed source/static web build; local-only runtime by default  
+**Deployment/distribution:** distributed source, hosted self-managed server, distributed desktop binaries  
 **Copyleft posture:** permissive third-party dependencies preferred; custom/source-available dependencies require explicit review
 
 ### Code
@@ -104,11 +118,13 @@
 
 ## Dependency policy
 
-- Runtime dependencies should be minimal and directly justified by rendering needs.
+- Runtime dependencies should be minimal and directly justified.
+- Reuse the proven RhymeLab application baseline where it fits: React, TypeScript, Vite, Base UI, Motion, TanStack Query, Zustand, TanStack Virtual, Vitest.
 - MIT/BSD/ISC/Apache-2.0 dependencies are preferred when technically suitable.
+- Electron is the selected desktop shell; Tauri is not the current target.
 - Any custom/source-available license receives explicit product-scope review before adoption.
-- GSAP is intentionally not used because its current Standard License restricts certain competing visual animation builders; that conflicts with the project's possible future visual-editor scope.
-- Do not add optional 3D dependencies until a concrete scene requires them.
+- GSAP remains intentionally excluded under ADR-003.
+- Do not add optional 3D or video-export dependencies until a concrete requirement exists.
 
 ## Data sources
 
@@ -116,10 +132,10 @@ No bundled external data source is currently required. Demo lyrics in `public/de
 
 ## Security/privacy
 
-**Sensitive data handled:** none by design  
-**Secrets used:** none  
-**Network exposure:** local static web application; dependency installation/build may use normal package registries during development  
-**Important threat assumptions:** local audio/LRC imports are untrusted input and must be parsed without executing content; media is not uploaded by the core application.
+**Sensitive data handled:** local project/media files selected by the user or exposed under an explicitly configured server root  
+**Secrets used:** none required by the core runtime  
+**Network exposure:** hosted mode may bind a Node server; desktop mode remains local unless explicitly configured otherwise  
+**Important threat assumptions:** local audio/LRC/project files are untrusted input; server routes must prevent path traversal; Electron renderer must not receive unrestricted Node/filesystem access.
 
 ## QA / release gate
 
@@ -131,6 +147,8 @@ Minimum checks:
 - seek/pause/resume/sync-trim verification
 - `Ctrl + Shift + H` hide/show verification
 - Performance/Cinema mode verification
+- server-root traversal/security tests once server adapter lands
+- Electron IPC/root-boundary tests once desktop adapter lands
 - `python scripts/repo_audit.py`
 - dependency license/cost review for every new dependency
 - privacy/path-leak check
@@ -141,6 +159,6 @@ Operational state lives in `STATUS.md`. Detailed continuation context lives in `
 
 ## Current priorities
 
-1. Finish the RenderTexture composition/post-FX graph.
-2. Build the first serious post-FX pack: RGB split, displacement, directional smear, feedback, bloom/glow.
-3. Expand the timestamp-driven typography selector system while preserving deterministic sync.
+1. Scaffold the accepted cross-platform workspace/application boundaries.
+2. Extract engine-core and renderer-pixi without changing current visual behavior.
+3. Add Node server and Electron directory adapters before resuming major render-graph/editor expansion.

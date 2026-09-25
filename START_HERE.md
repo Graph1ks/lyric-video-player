@@ -1,6 +1,6 @@
 # START HERE
 
-Project: **Graph1ks Lyric Video Player / E-MOE-CHAIN Engine**
+Project: **E-MO-Engine — Extensive Motion Engine for Enhanced LRC files**
 
 Current baseline: **v0.3.0 alpha**
 
@@ -15,4 +15,4 @@ Core invariants:
 5. Keep local-first audio/LRC ingestion; no mandatory upload service.
 6. Required production path must remain zero-cost.
 
-Next engineering slice: RenderTexture/post-FX graph with RGB split, directional smear, feedback echo, displacement and scene-level color treatment.
+Next engineering slice: cross-platform workspace extraction per `docs/PLATFORM_ARCHITECTURE.md`; resume RenderTexture/post-FX expansion only after the engine/platform boundaries are stable.
