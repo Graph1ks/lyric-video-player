@@ -1,13 +1,68 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `df5e5c34f2ddf5de2ddec5e6fe7dad6da01592f1`  
-**Active candidate:** none  
-**Current phase/milestone:** WORLD_05–08 visual acceptance
+**Merged baseline:** `739a5d150e70ee8fcf5c59037e273e2823060a0d`  
+**Active candidate:** `docs/legacy-world-rehabilitation-handover`  
+**Current phase/milestone:** legacy world/background rehabilitation planning
 
 ## Current objective
 
-WORLD_05/06 projected-3D rebuild is merged in PR #67 and WORLD_07/08 are merged in PR #68. User feedback can arrive asynchronously; next implementation pair is WORLD_09/10.
+WORLD_05/06 projected-3D rebuild and WORLD_07/08 are merged. The next runtime milestone is **not WORLD_09/10 yet**: first rehabilitate all legacy backgrounds, fix their systemic raw-audio twitch/pump behavior, raise fidelity substantially, integrate the OKLCH palette into every world, and resolve typography contrast from actual world tone.
+
+## Next milestone — legacy world/background rehabilitation
+
+Read `docs/WORLD_BACKGROUND_REHABILITATION_PLAN.md` before touching runtime code.
+
+### Confirmed systemic defect
+
+The old background stack has the same motion-semantics class of defect previously found in Neon Energy Burst Tunnel. Current code directly feeds raw audio into geometry in multiple places:
+
+- `CinematicBackground.updateBlobs()`: raw bass changes scale;
+- legacy vortex paths: raw energy changes radial "breathe";
+- legacy rays: raw transient changes global expansion;
+- shared particles: transient changes global push and scale every frame;
+- `ArtDirectionWorlds`: raw bass/energy/treble feed pulse, breathe, amplitude and size geometry.
+
+Result: many old worlds twitch, pump, retract or visibly "seize" instead of maintaining coherent authored motion.
+
+### Scope
+
+Rehabilitate all 15 old presets:
+
+`cinematic`, `nebula`, `grid`, `starfield`, `rays`, `vortex`, `liquid`, `spectrum`, `sparks`, `lyrics`, `minimal`, `editorial`, `print`, `architecture`, `aurora`.
+
+The fix is **not** "turn audio down". Each preset needs:
+
+- classified motion grammar (mechanical / one-way / burst / intentional rhythmic deformation);
+- smoothed audio/event envelopes;
+- no raw audio as a phase/physics clock;
+- a much stronger dedicated rendering identity;
+- World Power/Detail that changes meaningful structure;
+- semantic OKLCH palette roles rather than disconnected hard-coded colors.
+
+### New color/readability requirement
+
+Current `createVisualPalette()` already targets 7:1 primary, 4.5:1 secondary and 3:1 muted text contrast, but evaluates those values against the nominal `VisualPalette.background`.
+
+That is insufficient for bright animated worlds.
+
+The next architecture must add a cheap, smoothed world readability/color context (representative/title-safe luminance, dominant hue/chroma, highlight risk, text polarity recommendation). Worlds should estimate/report this analytically from the palette + power + their smoothed envelopes; avoid synchronous per-frame GPU readback.
+
+Typography then resolves its OKLCH fill/outline/shadow/glow treatment against the actual world context with smoothing and polarity hysteresis so text never flickers white/black frame-to-frame.
+
+The Color Director remains the art-direction source of truth:
+
+`OKLCH palette → world materials → world readability context → contrast-safe typography treatment`.
+
+### Implementation order
+
+1. shared world-audio envelopes/event primitives;
+2. `WorldColorContext` / typography treatment contract;
+3. worst motion offenders: vortex → rays → starfield → nebula → grid;
+4. dedicated fidelity rebuilds for the remaining shared legacy presets;
+5. ArtDirectionWorlds rehabilitation;
+6. full palette/readability acceptance across 0–300% World Power;
+7. only then resume WORLD_09/10.
 
 ## Merged baseline — Resource lifetime + physical-edge safety v0.11.2
 
