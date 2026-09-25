@@ -182,7 +182,7 @@ void main(void) {
   float starSeed = hash21(starCell);
   float star = step(0.992 - detail * 0.003, starSeed);
   vec2 local = fract((p + vec2(3.0)) * mix(58.0, 92.0, detail)) - 0.5;
-  star *= smoothstep(0.055, 0.0, length(local));
+  star *= 1.0 - smoothstep(0.0, 0.055, length(local));
   star *= 1.0 - smoothstep(0.22, 0.78, body);
   color += glow * star * (0.22 + uTreble * 0.16);
 
