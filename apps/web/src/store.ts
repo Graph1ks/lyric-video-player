@@ -17,6 +17,8 @@ import type {
   TypographyLayoutPreset,
   TypographyPreset,
   TypographyPresetId,
+  TypographySequenceMode,
+  ResolvedTypographySequence,
   VisualMode,
   VisualPalette,
 } from "@graph1ks/emo-engine-core";
@@ -34,6 +36,7 @@ export interface UiState {
   intensity: number;
   quality: QualityMode;
   typographyPreset: TypographyPreset;
+  typographySequence: TypographySequenceMode;
   typographyLayout: TypographyLayoutPreset;
   compositionMotion: CompositionMotionPreset;
   backgroundPreset: BackgroundPreset;
@@ -46,6 +49,7 @@ export interface UiState {
 
   activeScene: SceneMode;
   activeTypography: TypographyPresetId;
+  activeSequence: ResolvedTypographySequence;
   activeLayout: TypographyLayoutId;
   activeMotion: CompositionMotionId;
   activeBackground: BackgroundPresetId;
@@ -67,6 +71,7 @@ export interface UiState {
   setIntensity(value: number): void;
   setQuality(value: QualityMode): void;
   setTypographyPreset(value: TypographyPreset): void;
+  setTypographySequence(value: TypographySequenceMode): void;
   setTypographyLayout(value: TypographyLayoutPreset): void;
   setCompositionMotion(value: CompositionMotionPreset): void;
   setBackgroundPreset(value: BackgroundPreset): void;
@@ -79,6 +84,7 @@ export interface UiState {
 
   setActiveScene(value: SceneMode): void;
   setActiveTypography(value: TypographyPresetId): void;
+  setActiveSequence(value: ResolvedTypographySequence): void;
   setActiveLayout(value: TypographyLayoutId): void;
   setActiveMotion(value: CompositionMotionId): void;
   setActiveBackground(value: BackgroundPresetId): void;
@@ -100,6 +106,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   intensity: 1,
   quality: "cinema",
   typographyPreset: "auto",
+  typographySequence: "auto",
   typographyLayout: "auto",
   compositionMotion: "auto",
   backgroundPreset: "auto",
@@ -112,6 +119,7 @@ export const useUiStore = create<UiState>((set, get) => ({
 
   activeScene: "neon",
   activeTypography: "elastic",
+  activeSequence: "off",
   activeLayout: "directional-stage",
   activeMotion: "handoff",
   activeBackground: "nebula",
@@ -133,6 +141,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   setIntensity: intensity => set({ intensity }),
   setQuality: quality => set({ quality }),
   setTypographyPreset: typographyPreset => set({ typographyPreset }),
+  setTypographySequence: typographySequence => set({ typographySequence }),
   setTypographyLayout: typographyLayout => set({ typographyLayout }),
   setCompositionMotion: compositionMotion => set({ compositionMotion }),
   setBackgroundPreset: backgroundPreset => set({ backgroundPreset }),
@@ -145,6 +154,7 @@ export const useUiStore = create<UiState>((set, get) => ({
 
   setActiveScene: activeScene => set({ activeScene }),
   setActiveTypography: activeTypography => set({ activeTypography }),
+  setActiveSequence: activeSequence => set({ activeSequence }),
   setActiveLayout: activeLayout => set({ activeLayout }),
   setActiveMotion: activeMotion => set({ activeMotion }),
   setActiveBackground: activeBackground => set({ activeBackground }),
@@ -194,6 +204,7 @@ export type DirectorSharedState = Pick<
   | "intensity"
   | "quality"
   | "typographyPreset"
+  | "typographySequence"
   | "typographyLayout"
   | "compositionMotion"
   | "backgroundPreset"
@@ -204,6 +215,7 @@ export type DirectorSharedState = Pick<
   | "syncMs"
   | "activeScene"
   | "activeTypography"
+  | "activeSequence"
   | "activeLayout"
   | "activeMotion"
   | "activeBackground"
@@ -226,6 +238,7 @@ export function directorSharedState(state: UiState): DirectorSharedState {
     intensity: state.intensity,
     quality: state.quality,
     typographyPreset: state.typographyPreset,
+    typographySequence: state.typographySequence,
     typographyLayout: state.typographyLayout,
     compositionMotion: state.compositionMotion,
     backgroundPreset: state.backgroundPreset,
@@ -236,6 +249,7 @@ export function directorSharedState(state: UiState): DirectorSharedState {
     syncMs: state.syncMs,
     activeScene: state.activeScene,
     activeTypography: state.activeTypography,
+    activeSequence: state.activeSequence,
     activeLayout: state.activeLayout,
     activeMotion: state.activeMotion,
     activeBackground: state.activeBackground,
@@ -259,6 +273,7 @@ function controlSnapshot(state: UiState): DirectorControlSnapshot {
     intensity: state.intensity,
     quality: state.quality,
     typographyPreset: state.typographyPreset,
+    typographySequence: state.typographySequence,
     typographyLayout: state.typographyLayout,
     compositionMotion: state.compositionMotion,
     backgroundPreset: state.backgroundPreset,

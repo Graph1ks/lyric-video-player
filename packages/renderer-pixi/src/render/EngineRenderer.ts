@@ -27,6 +27,9 @@ import type {
   TypographyLayoutPreset,
   TypographyPreset,
   TypographyPresetId,
+  TypographySequenceGrammarId,
+  TypographySequenceMode,
+  ResolvedTypographySequence,
   VisualMode,
   VisualPalette,
 } from "@graph1ks/emo-engine-core";
@@ -69,6 +72,7 @@ export class EngineRenderer {
   private colorMood: ColorMoodMode = "auto";
   private colorCanvas: ColorCanvasMode = "auto";
   private colorFlow: ColorFlowMode = "static";
+  private typographySequence: TypographySequenceMode = "auto";
   private lastLineIndex = -1;
   private currentDirection?: DirectedScene;
   private lines: LineCue[] = [];
@@ -80,7 +84,9 @@ export class EngineRenderer {
   private compositionMotionListeners = new Set<(motion: CompositionMotionId) => void>();
   private backgroundListeners = new Set<(preset: BackgroundPresetId) => void>();
   private paletteListeners = new Set<(palette: VisualPalette) => void>();
+  private sequenceListeners = new Set<(sequence: ResolvedTypographySequence) => void>();
   private lastTypographyPreset?: TypographyPresetId;
+  private lastTypographySequence?: ResolvedTypographySequence;
   private lastTypographyLayout?: TypographyLayoutId;
   private lastCompositionMotion?: CompositionMotionId;
   private lastBackgroundPreset?: BackgroundPresetId;
@@ -287,6 +293,26 @@ export class EngineRenderer {
 
   getResolvedBackgroundPreset() {
     return this.background.getResolvedPreset();
+  }
+
+  setTypographySequence(sequence: TypographySequenceMode) {
+    if (this.typographySequence === sequence) return;
+    this.typographySequence = sequence;
+    this.refreshTypographyPresentation();
+    this.renderGraph.resetFeedback();
+  }
+
+  getTypographySequence() {
+    return this.typographySequence;
+  }
+
+  getResolvedTypographySequence(): ResolvedTypographySequence {
+    return this.sequenceLyrics.getGrammar() ?? "off";
+  }
+
+  onTypographySequenceChange(listener: (sequence: ResolvedTypographySequence) => void) {
+    this.sequenceListeners.add(listener);
+    return () => this.sequenceListeners.delete(listener);
   }
 
   setTypographyPreset(preset: TypographyPreset) {
@@ -561,17 +587,23 @@ export class EngineRenderer {
     const autoAuthored = this.lyrics.getPreset() === "auto"
       && this.lyrics.getLayoutPreset() === "auto"
       && this.lyrics.getCompositionMotion() === "auto";
-    const grammar = autoAuthored ? direction?.typography.sequenceGrammar : undefined;
+    let grammar: TypographySequenceGrammarId | undefined;
+    if (this.typographySequence === "auto") {
+      grammar = autoAuthored ? direction?.typography.sequenceGrammar : undefined;
+    } else if (this.typographySequence !== "off") {
+      grammar = this.typographySequence;
+    }
 
     this.sequenceLyrics.setSequence(
       grammar,
-      direction?.phraseStartLine ?? 0,
-      direction?.phraseEndLine ?? -1,
+      direction?.phraseStartLine ?? Math.max(0, this.lastLineIndex),
+      direction?.phraseEndLine ?? Math.max(-1, this.lastLineIndex),
     );
     const persistent = Boolean(grammar);
     this.sequenceLyrics.container.visible = persistent;
     this.lyrics.container.visible = !persistent;
     this.host?.setAttribute("data-typography-sequence", grammar ?? "none");
+    this.emitTypographySequence();
   }
 
   private emitBackgroundPreset() {
@@ -579,6 +611,13 @@ export class EngineRenderer {
     if (preset === this.lastBackgroundPreset) return;
     this.lastBackgroundPreset = preset;
     for (const listener of this.backgroundListeners) listener(preset);
+  }
+
+  private emitTypographySequence() {
+    const sequence = this.getResolvedTypographySequence();
+    if (sequence === this.lastTypographySequence) return;
+    this.lastTypographySequence = sequence;
+    for (const listener of this.sequenceListeners) listener(sequence);
   }
 
   private emitTypographyPreset() {

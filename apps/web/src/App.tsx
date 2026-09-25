@@ -23,6 +23,7 @@ import {
   COMPOSITION_MOTIONS,
   TYPOGRAPHY_LAYOUTS,
   TYPOGRAPHY_PRESETS,
+  TYPOGRAPHY_SEQUENCES,
 } from "./directorCatalog";
 import { VisualDirector } from "./VisualDirector";
 import { useUiStore } from "./store";
@@ -52,6 +53,7 @@ export function App() {
   const intensity = useUiStore(state => state.intensity);
   const quality = useUiStore(state => state.quality);
   const typographyPreset = useUiStore(state => state.typographyPreset);
+  const typographySequence = useUiStore(state => state.typographySequence);
   const typographyLayout = useUiStore(state => state.typographyLayout);
   const compositionMotion = useUiStore(state => state.compositionMotion);
   const backgroundPreset = useUiStore(state => state.backgroundPreset);
@@ -67,6 +69,7 @@ export function App() {
   const setIntensity = useUiStore(state => state.setIntensity);
   const setQuality = useUiStore(state => state.setQuality);
   const setTypographyPreset = useUiStore(state => state.setTypographyPreset);
+  const setTypographySequence = useUiStore(state => state.setTypographySequence);
   const setTypographyLayout = useUiStore(state => state.setTypographyLayout);
   const setCompositionMotion = useUiStore(state => state.setCompositionMotion);
   const setBackgroundPreset = useUiStore(state => state.setBackgroundPreset);
@@ -78,6 +81,7 @@ export function App() {
   const setProjectDrawerOpen = useUiStore(state => state.setProjectDrawerOpen);
   const setActiveScene = useUiStore(state => state.setActiveScene);
   const setActiveTypography = useUiStore(state => state.setActiveTypography);
+  const setActiveSequence = useUiStore(state => state.setActiveSequence);
   const setActiveLayout = useUiStore(state => state.setActiveLayout);
   const setActiveMotion = useUiStore(state => state.setActiveMotion);
   const setActiveBackground = useUiStore(state => state.setActiveBackground);
@@ -128,6 +132,9 @@ export function App() {
     });
     const offTypography = renderer.onTypographyPresetChange(preset => {
       if (!disposed) setActiveTypography(preset);
+    });
+    const offSequence = renderer.onTypographySequenceChange(sequence => {
+      if (!disposed) setActiveSequence(sequence);
     });
     const offLayout = renderer.onTypographyLayoutChange(layout => {
       if (!disposed) setActiveLayout(layout);
@@ -198,6 +205,7 @@ export function App() {
       if (disposed) return;
       renderer.setVisualMode(useUiStore.getState().mode);
       renderer.setTypographyPreset(useUiStore.getState().typographyPreset);
+      renderer.setTypographySequence(useUiStore.getState().typographySequence);
       renderer.setTypographyLayout(useUiStore.getState().typographyLayout);
       renderer.setCompositionMotion(useUiStore.getState().compositionMotion);
       renderer.setBackgroundPreset(useUiStore.getState().backgroundPreset);
@@ -216,6 +224,7 @@ export function App() {
       offTick();
       offMode();
       offTypography();
+      offSequence();
       offLayout();
       offCompositionMotion();
       offBackground();
@@ -240,6 +249,10 @@ export function App() {
   useEffect(() => {
     rendererRef.current?.setTypographyPreset(typographyPreset);
   }, [typographyPreset]);
+
+  useEffect(() => {
+    rendererRef.current?.setTypographySequence(typographySequence);
+  }, [typographySequence]);
 
   useEffect(() => {
     rendererRef.current?.setTypographyLayout(typographyLayout);
@@ -313,6 +326,10 @@ export function App() {
         const current = useUiStore.getState().typographyPreset;
         const index = TYPOGRAPHY_PRESETS.indexOf(current);
         setTypographyPreset(TYPOGRAPHY_PRESETS[(index + 1) % TYPOGRAPHY_PRESETS.length]);
+      } else if (event.code === "KeyS") {
+        const current = useUiStore.getState().typographySequence;
+        const index = TYPOGRAPHY_SEQUENCES.indexOf(current);
+        setTypographySequence(TYPOGRAPHY_SEQUENCES[(index + 1) % TYPOGRAPHY_SEQUENCES.length]);
       } else if (event.code === "KeyL") {
         const current = useUiStore.getState().typographyLayout;
         const index = TYPOGRAPHY_LAYOUTS.indexOf(current);
@@ -346,7 +363,7 @@ export function App() {
 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [setBackgroundPreset, setColorCanvas, setColorFlow, setColorHarmony, setColorMood, setCompositionMotion, setHudVisible, setMode, setSyncMs, setTypographyLayout, setTypographyPreset]);
+  }, [setBackgroundPreset, setColorCanvas, setColorFlow, setColorHarmony, setColorMood, setCompositionMotion, setHudVisible, setMode, setSyncMs, setTypographyLayout, setTypographyPreset, setTypographySequence]);
 
   useEffect(() => {
     const onDragEnter = (event: DragEvent) => {

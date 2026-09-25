@@ -12,6 +12,7 @@ import {
   COLOR_MOOD_CATALOG,
   LAYOUT_CATALOG,
   MOTION_CATALOG,
+  SEQUENCE_CATALOG,
   TYPOGRAPHY_CATALOG,
   VISUAL_MODES,
   type DirectorCatalogItem,
@@ -42,6 +43,7 @@ export function VisualDirector({
   const resolvedStack = [
     { label: "Scene", value: SCENE_LABELS[state.activeScene] },
     { label: "Type", value: state.activeTypography.replaceAll("-", " ") },
+    { label: "Sequence", value: state.activeSequence.replaceAll("-", " ") },
     { label: "Layout", value: state.activeLayout.replaceAll("-", " ") },
     { label: "Motion", value: state.activeMotion.replaceAll("-", " ") },
     { label: "World", value: state.activeBackground.replaceAll("-", " ") },
@@ -141,6 +143,25 @@ export function VisualDirector({
                       selected={state.typographyPreset === item.value}
                       resolved={state.typographyPreset === "auto" && state.activeTypography === item.value}
                       onClick={() => state.setTypographyPreset(item.value)}
+                    />
+                  ))}
+                </CardGrid>
+
+                <SectionHeading
+                  eyebrow="CINEMATIC SEQUENCE"
+                  title="Multi-cue scenes"
+                  description="Persistent lyric history across several cues: spiral, hero/echo, calligram or ribbon."
+                  resolved={state.activeSequence.replaceAll("-", " ").toUpperCase()}
+                  compact
+                />
+                <CardGrid>
+                  {SEQUENCE_CATALOG.map(item => (
+                    <EffectCard
+                      key={item.value}
+                      item={item}
+                      selected={state.typographySequence === item.value}
+                      resolved={state.typographySequence === "auto" && state.activeSequence === item.value}
+                      onClick={() => state.setTypographySequence(item.value)}
                     />
                   ))}
                 </CardGrid>

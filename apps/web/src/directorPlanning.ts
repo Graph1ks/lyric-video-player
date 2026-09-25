@@ -8,6 +8,7 @@ import type {
   QualityMode,
   TypographyLayoutPreset,
   TypographyPreset,
+  TypographySequenceMode,
   VisualMode,
 } from "@graph1ks/emo-engine-core";
 
@@ -16,6 +17,7 @@ export interface DirectorControlSnapshot {
   intensity: number;
   quality: QualityMode;
   typographyPreset: TypographyPreset;
+  typographySequence: TypographySequenceMode;
   typographyLayout: TypographyLayoutPreset;
   compositionMotion: CompositionMotionPreset;
   backgroundPreset: BackgroundPreset;

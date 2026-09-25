@@ -9,6 +9,8 @@ export type TypographySequenceGrammarId =
   | "hero-echo"
   | "shape-build"
   | "ribbon-path";
+export type TypographySequenceMode = "auto" | "off" | TypographySequenceGrammarId;
+export type ResolvedTypographySequence = "off" | TypographySequenceGrammarId;
 export type SequenceTypographyTreatment = "solid" | "outline";
 export type TypographySequenceVariant =
   | "spiral"
