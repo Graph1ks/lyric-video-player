@@ -132,4 +132,5 @@ export interface RuntimeInfo {
 
 export interface DesktopBridge {
   chooseProjectRoot(): Promise<ProjectListResponse | null>;
+  openDirectorWindow(): Promise<boolean>;
 }

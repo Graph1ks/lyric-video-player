@@ -5,6 +5,7 @@ import { createEmoServer } from "@graph1ks/emo-server";
 
 const moduleDir = resolve(fileURLToPath(new URL(".", import.meta.url)));
 let mainWindow: BrowserWindow | null = null;
+let directorWindow: BrowserWindow | null = null;
 let server: ReturnType<typeof createEmoServer> | null = null;
 let serverUrl = "";
 
@@ -23,6 +24,11 @@ app.whenReady().then(async () => {
   });
   const listening = await server.listen(0, "127.0.0.1");
   serverUrl = listening.url;
+
+  ipcMain.handle("emo:open-director-window", async () => {
+    await createDirectorWindow();
+    return true;
+  });
 
   ipcMain.handle("emo:choose-project-root", async () => {
     if (!server) return null;
@@ -52,6 +58,39 @@ app.on("window-all-closed", () => {
 app.on("before-quit", () => {
   if (server) void server.close();
 });
+
+async function createDirectorWindow() {
+  if (directorWindow && !directorWindow.isDestroyed()) {
+    if (directorWindow.isMinimized()) directorWindow.restore();
+    directorWindow.show();
+    directorWindow.focus();
+    return;
+  }
+
+  const win = new BrowserWindow({
+    width: 1180,
+    height: 860,
+    minWidth: 760,
+    minHeight: 620,
+    backgroundColor: "#08090d",
+    show: false,
+    autoHideMenuBar: true,
+    title: "E-MO Visual Director",
+    webPreferences: {
+      preload: join(moduleDir, "preload.js"),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  });
+
+  directorWindow = win;
+  win.once("ready-to-show", () => win.show());
+  win.on("closed", () => {
+    if (directorWindow === win) directorWindow = null;
+  });
+  await win.loadURL(`${serverUrl}/?director=1`);
+}
 
 async function createMainWindow() {
   const win = new BrowserWindow({

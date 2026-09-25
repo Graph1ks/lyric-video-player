@@ -47,6 +47,9 @@ Git history remains the complete technical history. This file records meaningful
 - Ribbon Path sequences with continuous S-curve word handoffs.
 - Elastic Tether word arrivals with directional stretch/squash, overshoot and damped settle.
 - Phrase/shot/focus-driven cinematic camera planning with bounded audio micro-response.
+- Redesigned Visual Director workspace with semantic effect preview cards and task-oriented navigation.
+- Synchronized browser/Electron Director popout for second-screen live control.
+- Session cue-plan workspace for timestamped visual-look capture and live recall.
 
 ### Changed
 

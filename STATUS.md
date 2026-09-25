@@ -2,12 +2,12 @@
 
 **Last updated:** 2026-09-25  
 **Last known good merged baseline:** `0370659e5807c290414959cd32a44f15068054a8`  
-**Active candidate:** none  
+**Active candidate:** `feat/director-workspace-v0.10` / PR #44  
 **Current phase/milestone:** cinematic sequence direction + temporal readability
 
 ## Current objective
 
-Visually calibrate the merged Elastic Tether and continuity-aware camera baseline on real Enhanced LRC tracks, especially dense lyrics, mobile framing and phrase-to-phrase eye-trace continuity. Then proceed to section-level tension/release and shot-size sequencing.
+Upgrade the control plane into a professional Visual Director workspace with recognizable effect previews and a synchronized detached second-screen window, while establishing a non-persistent cue-planning foundation for future per-song/playlist direction.
 
 ## Current state
 
@@ -27,6 +27,15 @@ Visually calibrate the merged Elastic Tether and continuity-aware camera baselin
 - Ordinary and persistent typography expose deterministic focus points. Current-line focus begins handing off toward the next word near cue end.
 - CameraRig now treats bass/transient drift as bounded micro-response layered over the directed shot rather than the primary framing source.
 - Shape Build deliberately stays wider and follows focus less; Hero/Spiral/Ribbon receive stronger eye-trace following.
+- Active candidate replaces the legacy tiny-button Visual Director with preview cards and six task-oriented sections: Scene, Type, Motion, World, Color and System.
+- Effect cards expose a semantic miniature, name, short behavioral explanation, selected state and AUTO-resolved LIVE state.
+- The resolved live stack is continuously visible above the Director controls.
+- Main player and detached Director use the same `VisualDirector` component and shared control state.
+- Browser popout uses `?director=1`; Electron exposes a dedicated sandboxed/context-isolated Director BrowserWindow.
+- Same-origin BroadcastChannel synchronization shares Director controls, resolved renderer telemetry, playback/audio telemetry and cue-plan drafts without duplicating the Pixi renderer/audio engine.
+- Detached Director provides LIVE and PLAN workspaces.
+- PLAN can capture timestamped complete look snapshots, show them on a rail and recall them live; cues are explicitly session-only until project scene serialization lands.
+- Visual Director design/architecture contract is `docs/VISUAL_DIRECTOR_WORKSPACE.md`.
 - Phrase-level cinematic direction keeps AUTO typography preset, layout and composition motion in coherent phrase-stable bundles instead of independently cycling every line.
 - Phrases expose Establish / Develop / Accent / Release shot roles for the next sequence/camera layer.
 - Kinetic readability pressure uses line duration, words/s, chars/s and shortest word duration.
@@ -119,11 +128,11 @@ Visually calibrate the merged Elastic Tether and continuity-aware camera baselin
 
 ## Next concrete action
 
-1. Visually calibrate tether deformation and camera eye-trace on real tracks, especially Rapid/Burst lyrics and mobile.
-2. Extend the cinematic acceptance matrix with gaze continuity, sequence persistence, calligram integrity, tether readability and shot-scale variation.
-3. Add section-level tension/release + shot-size sequencing.
-4. Evaluate whether genuine mesh/RenderTexture Elastic deformation is visually necessary after baseline acceptance.
-5. Stabilize serializable sequence directives only after those behaviors are visually accepted.
+1. Get PR #44 Visual Director + second-screen workspace green in Linux and Windows packaging.
+2. Visually accept the new docked and detached Director at 1080p/1440p/4K plus narrow desktop widths.
+3. Return to real-track cinematic acceptance for tether/camera and the four persistent grammars.
+4. Add section-level tension/release + shot-size sequencing.
+5. Attach Director PLAN persistence/runtime execution to the later serialized scene/project format, then map that contract per song when playlist support lands.
 
 ## Do not redo
 
