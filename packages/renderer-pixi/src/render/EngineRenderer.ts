@@ -212,6 +212,7 @@ export class EngineRenderer {
   setFxRack(value: VisualFxRack) {
     this.fxRack = { ...value };
     this.cameraRig.setEffectLevels(value.cameraMotion, value.impactPulse);
+    this.background.setImpactPulse(value.impactPulse);
     this.displacementFX.setMix(value.displacement);
     this.velocitySmearFX.setMix(value.smear);
     this.bloomThresholdFX.setMix(value.bloom);
@@ -572,7 +573,7 @@ export class EngineRenderer {
     this.refreshPalette();
     this.host?.setAttribute("data-scene", mode);
 
-    if (animate) this.sceneTransition = 1;
+    if (animate) this.sceneTransition = Math.min(1, this.fxRack.impactPulse);
 
     for (const listener of this.modeListeners) listener(mode);
   }
