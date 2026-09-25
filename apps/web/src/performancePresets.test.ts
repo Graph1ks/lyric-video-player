@@ -29,7 +29,7 @@ describe("Director performance preset library", () => {
     const [authored] = BUILTIN_PERFORMANCE_PRESETS;
     const cloned = clonePerformancePreset(authored);
     cloned.auto.scenes?.splice(0, 1);
-    cloned.fx.displacement = 0;
+    cloned.fx.displacement = authored.fx.displacement === 1.23 ? 0 : 1.23;
     expect(cloned.auto.scenes).not.toEqual(authored.auto.scenes);
     expect(cloned.fx.displacement).not.toBe(authored.fx.displacement);
 
