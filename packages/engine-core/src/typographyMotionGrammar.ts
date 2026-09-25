@@ -6,6 +6,7 @@ import {
   lerp,
   smoothstep,
 } from "./math.js";
+import { analyzeKineticReadability } from "./kineticReadability.js";
 import type {
   CompositionMotionId,
   CompositionMotionPreset,
@@ -20,6 +21,7 @@ export interface CompositionMotionWordInput {
   scale: number;
   rotation: number;
   emphasis?: number;
+  text?: string;
 }
 
 export interface CompositionMotionInput {
@@ -137,6 +139,11 @@ export function evaluateCompositionMotion(input: CompositionMotionInput): Compos
   const focusProgress = wordProgress(input.time, focusWord.start, focusWord.end);
   const focusPulse = Math.sin(focusProgress * Math.PI);
   const mirror = input.lineIndex % 2 === 0 ? 1 : -1;
+  const readability = analyzeKineticReadability({
+    lineStart: input.lineStart,
+    lineEnd: input.lineEnd,
+    words: input.words,
+  });
 
   if (motion === "handoff") {
     words.forEach((wordMotion, index) => {
@@ -293,6 +300,25 @@ export function evaluateCompositionMotion(input: CompositionMotionInput): Compos
       wordMotion.alpha = clamp(0.26 + cascade * 0.74);
     });
   }
+
+  const budget = readability.motion;
+  stage.x *= budget.travelScale;
+  stage.y *= budget.travelScale;
+  stage.rotation *= budget.rotationScale;
+  stage.scale = 1 + (stage.scale - 1) * budget.scaleExcursion;
+
+  words.forEach((wordMotion, index) => {
+    wordMotion.x *= budget.travelScale;
+    wordMotion.y *= budget.travelScale;
+    wordMotion.rotation *= budget.rotationScale;
+    wordMotion.scaleX = 1 + (wordMotion.scaleX - 1) * budget.scaleExcursion;
+    wordMotion.scaleY = 1 + (wordMotion.scaleY - 1) * budget.scaleExcursion;
+
+    const cue = input.words[index];
+    if (cue && input.time >= cue.start - 0.04) {
+      wordMotion.alpha = Math.max(wordMotion.alpha, budget.alphaFloor);
+    }
+  });
 
   return { motion, activeWord, stage, words };
 }

@@ -1,8 +1,10 @@
 import { Container, Text, TextStyle } from "pixi.js";
 import type { AudioBands } from "@graph1ks/emo-audio-web";
 import {
+  analyzeKineticReadability,
   audioSelector,
   clamp,
+  DEFAULT_KINETIC_READABILITY_PROFILE,
   dampedPulse,
   easeOutBack,
   easeOutElastic,
@@ -17,9 +19,11 @@ import {
   staggerSelector,
   waveSelector,
   wiggleSelector,
+  type CinematicTypographyDirection,
   type CompositionMotionId,
   type CompositionMotionPreset,
   type GlyphSelectorContext,
+  type KineticReadabilityProfile,
   type LineCue,
   type SceneMode,
   type TypographyLayoutId,
@@ -91,6 +95,8 @@ export class KineticLyrics {
   private resolvedLayout: TypographyLayoutId = "directional-stage";
   private motionPreset: CompositionMotionPreset = "auto";
   private resolvedMotion: CompositionMotionId = "handoff";
+  private cinematicDirection?: CinematicTypographyDirection;
+  private readability: KineticReadabilityProfile = DEFAULT_KINETIC_READABILITY_PROFILE;
   private compositionAnchorIndex = 0;
   private w = 1;
   private h = 1;
@@ -205,12 +211,18 @@ export class KineticLyrics {
     }
   }
 
-  setLine(line: LineCue | undefined, index: number) {
+  setLine(
+    line: LineCue | undefined,
+    index: number,
+    cinematicDirection?: CinematicTypographyDirection,
+  ) {
     if (!line) {
       if (index === this.lineIndex && !this.line) return;
       this.line = undefined;
       this.lineIndex = index;
       this.activeWord = -1;
+      this.cinematicDirection = undefined;
+      this.readability = DEFAULT_KINETIC_READABILITY_PROFILE;
       this.clear();
       return;
     }
@@ -218,6 +230,14 @@ export class KineticLyrics {
     this.line = line;
     this.lineIndex = index;
     this.activeWord = -1;
+    this.cinematicDirection = cinematicDirection;
+    this.readability = analyzeKineticReadability({
+      lineStart: line.start,
+      lineEnd: line.end,
+      words: line.words,
+    });
+    this.echoLayer.alpha = this.readability.motion.echoScale;
+    this.chromaLayer.alpha = Math.max(0.42, this.readability.motion.echoScale);
     this.resolvePreset();
     this.resolveLayout();
     this.resolveMotion();
@@ -247,7 +267,7 @@ export class KineticLyrics {
         : 1 + audio.bass * 0.012 * this.intensity;
 
     const compositionMotion = evaluateCompositionMotion({
-      preset: this.motionPreset,
+      preset: this.motionPreset === "auto" ? this.resolvedMotion : this.motionPreset,
       scene: this.mode,
       lineIndex: this.lineIndex,
       time,
@@ -264,6 +284,7 @@ export class KineticLyrics {
         scale: word.layoutScale,
         rotation: word.layoutRotation,
         emphasis: word.layoutEmphasis,
+        text: word.cue.text,
       })),
       intensity: this.intensity,
     });
@@ -280,13 +301,13 @@ export class KineticLyrics {
       const active = wordIndex === wi;
       const past = time >= word.cue.end;
       const wordPhase = time * (active ? 3.1 : 1.25) + wordIndex * 0.87;
-      const floatAmount = this.resolvedPreset === "outline"
+      const floatAmount = (this.resolvedPreset === "outline"
         ? 0.25
         : this.mode === "poster"
           ? 0.65
           : this.mode === "vortex"
             ? 3.5
-            : 1.8;
+            : 1.8) * this.readability.motion.floatScale;
 
       this.updateWordMotion(word, wordIndex, time, audio);
       const grammar = compositionMotion.words[wordIndex];
@@ -323,14 +344,18 @@ export class KineticLyrics {
           seed: glyph.seed,
           audio,
         };
-        const motion = this.glyphMotion(
-          context,
-          glyphIndex,
-          word.glyphs.length,
+        const motion = this.applyReadabilityToGlyphMotion(
+          this.glyphMotion(
+            context,
+            glyphIndex,
+            word.glyphs.length,
+            active,
+            past,
+            current,
+            glyphProgress,
+          ),
           active,
           past,
-          current,
-          glyphProgress,
         );
 
         node.position.set(glyph.baseX + motion.x, glyph.baseY + motion.y);
@@ -438,12 +463,20 @@ export class KineticLyrics {
       this.resolvedPreset = this.preset;
       return;
     }
+    if (this.cinematicDirection) {
+      this.resolvedPreset = this.cinematicDirection.typographyPreset;
+      return;
+    }
     const options = AUTO_PRESETS[this.mode];
     const safeLine = Math.max(0, this.lineIndex);
     this.resolvedPreset = options[safeLine % options.length];
   }
 
   private resolveLayout() {
+    if (this.layoutPreset === "auto" && this.cinematicDirection) {
+      this.resolvedLayout = this.cinematicDirection.layout;
+      return;
+    }
     this.resolvedLayout = resolveTypographyLayout(
       this.layoutPreset,
       this.mode,
@@ -453,6 +486,10 @@ export class KineticLyrics {
   }
 
   private resolveMotion() {
+    if (this.motionPreset === "auto" && this.cinematicDirection) {
+      this.resolvedMotion = this.cinematicDirection.motion;
+      return;
+    }
     this.resolvedMotion = resolveCompositionMotion(
       this.motionPreset,
       this.mode,
@@ -604,6 +641,22 @@ export class KineticLyrics {
     };
   }
 
+  private applyReadabilityToGlyphMotion(
+    motion: GlyphMotion,
+    active: boolean,
+    past: boolean,
+  ): GlyphMotion {
+    const budget = this.readability.motion;
+    return {
+      x: motion.x * budget.travelScale,
+      y: motion.y * budget.travelScale,
+      rotation: motion.rotation * budget.rotationScale,
+      scaleX: 1 + (motion.scaleX - 1) * budget.scaleExcursion,
+      scaleY: 1 + (motion.scaleY - 1) * budget.scaleExcursion,
+      alpha: active || past ? Math.max(motion.alpha, budget.alphaFloor) : motion.alpha,
+    };
+  }
+
   private glyphTint(active: boolean, past: boolean, filled: boolean) {
     if (this.palette) {
       return active
@@ -670,6 +723,13 @@ export class KineticLyrics {
         rotation += sign * 0.05 * fast;
       }
     }
+
+    const budget = this.readability.motion;
+    x *= budget.travelScale;
+    y *= budget.travelScale;
+    rotation *= budget.rotationScale;
+    scaleX = 1 + (scaleX - 1) * budget.scaleExcursion;
+    scaleY = 1 + (scaleY - 1) * budget.scaleExcursion;
 
     word.motion.position.set(x, y);
     word.motion.rotation = rotation;
@@ -912,7 +972,7 @@ export class KineticLyrics {
     if (!this.words.length) return;
 
     const plan = planTypographyComposition({
-      preset: this.layoutPreset,
+      preset: this.layoutPreset === "auto" ? this.resolvedLayout : this.layoutPreset,
       scene: this.mode,
       width: this.w,
       height: this.h,

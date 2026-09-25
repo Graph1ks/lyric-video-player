@@ -331,14 +331,14 @@ export class EngineRenderer {
 
     this.background.setLine(line, index);
 
-    if (index >= 0) {
-      const directed = this.director.sceneFor(index);
+    const directed = index >= 0 ? this.director.sceneFor(index) : undefined;
+    if (directed) {
       this.applyMode(directed.mode, true);
     }
 
     this.emitBackgroundPreset();
     this.refreshPalette();
-    this.lyrics.setLine(line, index);
+    this.lyrics.setLine(line, index, directed?.typography);
     this.emitTypographyPreset();
     this.emitTypographyLayout();
     this.emitCompositionMotion();
