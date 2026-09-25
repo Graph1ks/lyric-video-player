@@ -154,5 +154,7 @@ describe("Operator + presentation state", () => {
 
     const after = useUiStore.getState().performancePresets.find(item => item.id === "calm-slow");
     expect(after?.auto.scenes).toHaveLength(1);
+
+    useUiStore.getState().resetPerformancePreset("calm-slow");
   });
 });
