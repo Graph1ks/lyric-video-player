@@ -163,40 +163,64 @@ async function streamWholeFile(res: ServerResponse, fullPath: string) {
 
 async function streamFile(req: IncomingMessage, res: ServerResponse, fullPath: string, fileName: string) {
   const info = await stat(fullPath);
-  const range = req.headers.range;
+  const range = parseByteRange(req.headers.range, info.size);
   res.setHeader("Accept-Ranges", "bytes");
   res.setHeader("Content-Type", contentType(fileName));
 
-  if (!range) {
-    res.statusCode = 200;
-    res.setHeader("Content-Length", info.size);
-    createReadStream(fullPath).pipe(res);
-    return;
-  }
-
-  const match = range.match(/^bytes=(\d*)-(\d*)$/);
-  if (!match) {
+  if (range === null) {
     res.statusCode = 416;
     res.setHeader("Content-Range", `bytes */${info.size}`);
     res.end();
     return;
   }
 
-  let start: number;
-  let end: number;
-  if (!match[1] && match[2]) {
-    const suffix = Math.max(1, Number(match[2]));
-    start = Math.max(0, info.size - suffix);
-    end = info.size - 1;
-  } else {
-    start = Math.max(0, Math.min(Number(match[1] || 0), info.size - 1));
-    end = Math.max(start, Math.min(Number(match[2] || info.size - 1), info.size - 1));
+  if (range === undefined) {
+    res.statusCode = 200;
+    res.setHeader("Content-Length", info.size);
+    if (req.method === "HEAD") {
+      res.end();
+      return;
+    }
+    createReadStream(fullPath).pipe(res);
+    return;
   }
 
   res.statusCode = 206;
-  res.setHeader("Content-Range", `bytes ${start}-${end}/${info.size}`);
-  res.setHeader("Content-Length", end - start + 1);
-  createReadStream(fullPath, { start, end }).pipe(res);
+  res.setHeader("Content-Range", `bytes ${range.start}-${range.end}/${info.size}`);
+  res.setHeader("Content-Length", range.end - range.start + 1);
+  if (req.method === "HEAD") {
+    res.end();
+    return;
+  }
+  createReadStream(fullPath, { start: range.start, end: range.end }).pipe(res);
+}
+
+function parseByteRange(value: string | undefined, size: number) {
+  if (value === undefined) return undefined;
+  if (!Number.isSafeInteger(size) || size <= 0) return null;
+
+  const match = /^bytes=(\d*)-(\d*)$/.exec(value.trim());
+  if (!match || (!match[1] && !match[2])) return null;
+
+  if (!match[1]) {
+    const suffixLength = Number(match[2]);
+    if (!Number.isSafeInteger(suffixLength) || suffixLength <= 0) return null;
+    return {
+      start: Math.max(0, size - suffixLength),
+      end: size - 1,
+    };
+  }
+
+  const start = Number(match[1]);
+  if (!Number.isSafeInteger(start) || start < 0 || start >= size) return null;
+
+  const requestedEnd = match[2] ? Number(match[2]) : size - 1;
+  if (!Number.isSafeInteger(requestedEnd) || requestedEnd < start) return null;
+
+  return {
+    start,
+    end: Math.min(requestedEnd, size - 1),
+  };
 }
 
 function contentType(fileName: string) {
