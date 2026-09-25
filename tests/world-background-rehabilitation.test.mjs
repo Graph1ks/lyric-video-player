@@ -111,19 +111,16 @@ test("world color context selects stable polarity and requests support for busy 
 });
 
 test("legacy shared geometry consumes smoothed/event audio instead of raw global pump mappings", async () => {
-  const [background, art, liquid] = await Promise.all([
+  const [background, liquid] = await Promise.all([
     source("packages/renderer-pixi/src/effects/backgrounds/CinematicBackground.ts"),
-    source("packages/renderer-pixi/src/effects/backgrounds/ArtDirectionWorlds.ts"),
     source("packages/renderer-pixi/src/effects/backgrounds/ProceduralLiquidFX.ts"),
   ]);
 
   assert.match(background, /legacyReactivity\.update\(time, audio\)/);
-  assert.match(background, /this\.artDirection\.update\(time, legacyAudio\)/);
   assert.match(background, /this\.discoMirrorballRoom\.update\(time, audio\)/);
   assert.doesNotMatch(background, /bass \* \(0\.1 \+ index \* 0\.01\)/);
   assert.doesNotMatch(background, /transient \* \(0\.18 \+ particle\.depth \* 0\.35\)/);
   assert.doesNotMatch(background, /transient \* 1\.6/);
-  assert.doesNotMatch(art, /const breathe = [^\n]*audio\.bass/);
   assert.doesNotMatch(liquid, /float speed = [^;]*uEnergy/);
   assert.doesNotMatch(liquid, /fbm\(warped \* \([^\n]*uBass/);
 });
@@ -347,6 +344,82 @@ test("lyrics and minimal use dedicated identity systems with time-owned motion",
   assert.doesNotMatch(minimalGeometry, /u(?:Energy|Treble)/);
 });
 
+
+test("art direction presets meet the dedicated fidelity floor", async () => {
+  const [background, editorial, printWorld, architecture, aurora] = await Promise.all([
+    source("packages/renderer-pixi/src/effects/backgrounds/CinematicBackground.ts"),
+    source("packages/renderer-pixi/src/effects/backgrounds/LegacyEditorialWorld.ts"),
+    source("packages/renderer-pixi/src/effects/backgrounds/LegacyPrintWorld.ts"),
+    source("packages/renderer-pixi/src/effects/backgrounds/LegacyArchitectureWorld.ts"),
+    source("packages/renderer-pixi/src/effects/backgrounds/LegacyAuroraWorld.ts"),
+  ]);
+
+  assert.doesNotMatch(background, /ArtDirectionWorlds/);
+  assert.doesNotMatch(background, /artDirection/);
+
+  for (const [id, field] of [
+    ["editorial", "legacyEditorial"],
+    ["print", "legacyPrint"],
+    ["architecture", "legacyArchitecture"],
+    ["aurora", "legacyAurora"],
+  ]) {
+    assert.match(background, new RegExp(field + "\\.container\\.visible = this\\.resolvedPreset === \"" + id + "\""));
+    assert.match(background, new RegExp(field + "\\.update\\(time, legacyAudio\\)"));
+    assert.match(background, new RegExp(field + "\\.setPalette\\(palette\\)"));
+    assert.match(background, new RegExp(field + "\\.setDetail\\(this\\.worldDetail\\)"));
+  }
+
+  // Editorial: fullscreen modular layout system with protected lyric center.
+  assert.match(editorial, /GlProgram\.from/);
+  assert.match(editorial, /Editorial identity:/);
+  assert.match(editorial, /protected center/i);
+  assert.match(editorial, /Crop\/registration corners create the paused-frame signature/);
+  assert.match(editorial, /setPalette\(p: VisualPalette\)/);
+  assert.doesNotMatch(editorial, /Math\.random\(/);
+  const editorialGeometry = editorial.slice(
+    editorial.indexOf("// Editorial identity:"),
+    editorial.indexOf("float inkResponse="),
+  );
+  assert.doesNotMatch(editorialGeometry, /u(?:Energy|Mid|Treble)/);
+
+  // Print: layered physical-print material, not Graphics dots.
+  assert.match(printWorld, /GlProgram\.from/);
+  assert.match(printWorld, /float halftone\(/);
+  assert.match(printWorld, /Central lyric-safe window attenuates ink/);
+  assert.match(printWorld, /mechanical[\s\S]*misregistration/i);
+  assert.doesNotMatch(printWorld, /\.circle\(/);
+  assert.doesNotMatch(printWorld, /Math\.random\(/);
+  const printGeometry = printWorld.slice(
+    printWorld.indexOf("// Print identity:"),
+    printWorld.indexOf("float inkResponse="),
+  );
+  assert.doesNotMatch(printGeometry, /u(?:Energy|Mid|Treble)/);
+
+  // Architecture: actual perspective depth and time-owned corridor travel.
+  assert.match(architecture, /GlProgram\.from/);
+  assert.match(architecture, /full perspective nave\/corridor/i);
+  assert.match(architecture, /float worldZ=inv\+travel\*1\.75/);
+  assert.match(architecture, /Repeating projected structural frames/);
+  assert.match(architecture, /Side wall recesses\/windows create parallax and relief/);
+  assert.doesNotMatch(architecture, /smoothstep\(halfH\+\.02,halfH-\.03/);
+  const architectureGeometry = architecture.slice(
+    architecture.indexOf("// Architecture identity:"),
+    architecture.indexOf("float lightResponse="),
+  );
+  assert.doesNotMatch(architectureGeometry, /u(?:Energy|Mid|Treble)/);
+
+  // Aurora: continuous procedural curtains with folded-volume lighting.
+  assert.match(aurora, /GlProgram\.from/);
+  assert.match(aurora, /float curtain\(/);
+  assert.match(aurora, /Folded-volume highlight/);
+  assert.match(aurora, /setPalette\(p:VisualPalette\)/);
+  assert.doesNotMatch(aurora, /\.poly\(/);
+  assert.doesNotMatch(aurora, /Math\.random\(/);
+  const curtainStart = aurora.indexOf("float curtain(");
+  const curtainEnd = aurora.indexOf("void main(void)");
+  assert.ok(curtainStart >= 0 && curtainEnd > curtainStart);
+  assert.doesNotMatch(aurora.slice(curtainStart, curtainEnd), /u(?:Energy|Mid|Treble)/);
+});
 
 test("global spatial post FX no longer turn raw audio into scene-scale motion", async () => {
   const [post, displacement, smear] = await Promise.all([
