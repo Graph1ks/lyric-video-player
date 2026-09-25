@@ -1,13 +1,13 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `89f2ac1680d13f6ec126ab3258ad4659507e2272`  
-**Active candidate:** none  
-**Current phase/milestone:** v0.11.2 long-play + physical-edge visual acceptance
+**Last known good merged baseline:** `947d2c28c46c6898a6ca0e0b87eb154d971d8c7c`  
+**Active candidate:** `feat/director-performance-presets`  
+**Current phase/milestone:** curated AUTO Performance Presets + operator-control cleanup
 
 ## Current objective
 
-Visually verify merged PR #53 on real tracks/displays: renderer memory should plateau after warm-up instead of growing with lyric-line count, and strong warped/glitch/liquid effects must no longer expose black at the physical output edge.
+Reduce uncontrolled AUTO combinatorics by introducing editable emotion/pace Performance Presets, then complete the requested Lower Third scheduler and detached-Director/player-HUD control fixes without removing any existing manual visual axis.
 
 ## Current state
 
@@ -27,7 +27,11 @@ Visually verify merged PR #53 on real tracks/displays: renderer memory should pl
 - Ordinary and persistent typography expose deterministic focus points. Current-line focus begins handing off toward the next word near cue end.
 - CameraRig now treats bass/transient drift as bounded micro-response layered over the directed shot rather than the primary framing source.
 - Shape Fill deliberately stays wider and follows focus less; Manifesto Wall follows active wall focus more strongly while keeping micro-motion bounded.
-- The Visual Director uses preview cards and seven task-oriented sections: Scene, Type, Motion, World, Color, Titles and System.
+- The Visual Director candidate adds a dedicated **Presets** section ahead of the existing Scene, Type, Motion, World, Color, Titles and System sections.
+- Performance Presets constrain AUTO rather than freezing one look: permitted scene/type/sequence/layout/motion/world/mood/canvas/harmony pools remain deterministic and manually overridable.
+- Eight curated emotion/pace profiles are included: Tender/Slow, Heartbreak/Slow, Longing/Midtempo, Dream/Midtempo, Calm/Slow, Euphoria/Fast, Rage/Fast and Tension/Burst.
+- Built-in preset pools are editable/resettable; custom presets can be cloned, renamed and deleted. Preset edits are local browser/Electron preferences for this milestone, not yet part of `emo.project/v1`.
+- The Visual Director uses preview cards and task-oriented sections: Presets, Scene, Type, Motion, World, Color, Titles and System.
 - Effect cards expose a semantic miniature, name, short behavioral explanation, selected state and AUTO-resolved LIVE state.
 - The resolved live stack is continuously visible above the Director controls.
 - Main player and detached Director use the same `VisualDirector` component and shared control state.
@@ -43,7 +47,8 @@ Visually verify merged PR #53 on real tracks/displays: renderer memory should pl
 - Persistent sequences are manually selectable in the Director: Auto, Off/Classic, Spiral Depth, Hero/Echo, Shape Fill, Manifesto Wall and Ribbon Path.
 - When the detached Director is open, the player becomes a clean output monitor; transport/file/fullscreen controls move to the Director topbar and command the main AudioEngine/Clock.
 - Director UI has a DE/EN language switch and a professional readability pass replacing micro-font-heavy controls.
-- Lower Thirds are a separate screen-space layer with ten visual presets, Intro/Rotate scheduling, metadata overrides and optional linked/uploaded artist image.
+- Lower Thirds are a separate screen-space layer with ten visual presets, metadata overrides and optional linked/uploaded artist image.
+- The active candidate replaces Intro/Rotate scheduling with Off / Scheduled / Always. Scheduled defaults to a configurable appearance around 10s into the song, supports configurable visible duration, optional pre-outro replay, and a manual Show Now trigger.
 - Output/operator contract is `docs/OPERATOR_OUTPUT_LOWER_THIRDS.md`.
 - Merged PR #48 adds **Shape Fill**: phrase-stable packed silhouettes using Tree, Star and Human/Figure masks. Words occupy interior slots rather than tracing a border.
 - Shape Fill slots expose explicit text-fit boxes so Pixi can respect actual font metrics while the layout remains pure and deterministic.
@@ -162,6 +167,14 @@ Visually verify merged PR #53 on real tracks/displays: renderer memory should pl
 - Spatial Typography + Progressive Manifesto (PR #51): Windows Node 22/24 launcher smokes + full build/NSIS/portable/artifact upload — passed.
 
 ## Next concrete action
+
+1. Validate/typecheck/build/test the Performance Preset candidate and fix any integration regressions.
+2. Visually exercise each curated preset and edit its allowed pools live; confirm unrestricted AUTO remains the compatibility fallback.
+3. Verify Lower Third Scheduled/Always/Off + manual/outro triggers against real playback duration.
+4. Verify detached Director player controls at common desktop widths and the main HUD button border.
+5. Then return to Shape Fill/Manifesto visual acceptance and the remaining cinematic sequencing work.
+
+### Previous visual-acceptance queue
 
 1. Visually verify Shape Fill collision-free packing with short/long words plus the previously failing Vortex/Spiral overlaps.
 2. Check progressive Manifesto reveal, 12-line manual page chapters, page stability and camera reading flow at 1080p/1440p/4K.
