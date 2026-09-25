@@ -58,15 +58,30 @@ test("Prism Stage Beams uses a GPU volumetric shader instead of cartoon Graphics
   assert.doesNotMatch(prism, /\.circle\(/);
 });
 
-test("Laser Canopy uses analytic shader lines, rig apertures and floor hit lighting", async () => {
-  const laser = await source("packages/renderer-pixi/src/effects/backgrounds/LaserCanopyGridWorld.ts");
+test("Laser Canopy is a projected 3D club lattice with autonomous beam geometry", async () => {
+  const [background, laser] = await Promise.all([
+    source("packages/renderer-pixi/src/effects/backgrounds/CinematicBackground.ts"),
+    source("packages/renderer-pixi/src/effects/backgrounds/LaserCanopyGridWorld.ts"),
+  ]);
 
   assert.match(laser, /Filter, GlProgram/);
-  assert.match(laser, /sdSegment/);
-  assert.match(laser, /coreWidth/);
-  assert.match(laser, /floorHalo/);
-  assert.match(laser, /Fixture apertures/);
-  assert.match(laser, /Perspective floor/);
+  assert.match(laser, /vec2 projectPoint\(vec3 world\)/);
+  assert.match(laser, /Perspective dance floor/);
+  assert.match(laser, /Ceiling truss rails and depth slices/);
+  assert.match(laser, /true projected 3D canopy/i);
+  assert.match(laser, /Deep diagonal/);
+  assert.match(laser, /Longitudinal canopy strand/);
+  assert.match(laser, /Reverse diagonal/);
+  assert.match(laser, /Projected fixture pods/);
+  assert.match(laser, /setPalette\(palette: VisualPalette\)/);
+  assert.match(background, /laserCanopyGrid\.setPalette\(palette\)/);
+
+  const geometryStart = laser.indexOf("// The hero: a true projected 3D canopy");
+  const lightStart = laser.indexOf("float lightResponse =", geometryStart);
+  assert.ok(geometryStart >= 0 && lightStart > geometryStart);
+  const geometrySource = laser.slice(geometryStart, lightStart);
+  assert.doesNotMatch(geometrySource, /u(?:Bass|Mid|Treble|Energy|Transient)/);
+  assert.doesNotMatch(laser, /fan \* \([^\n]*uBass/);
 });
 
 test("Disco Mirrorball Room uses analytic sphere facets and layered projected reflections", async () => {
