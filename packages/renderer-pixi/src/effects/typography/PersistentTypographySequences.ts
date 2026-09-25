@@ -254,6 +254,7 @@ export class PersistentTypographySequences {
     const node = new Text({
       text: text.toUpperCase(),
       style: this.styleFor(treatment),
+      resolution: textTextureResolution(),
     });
     node.anchor.set(0.5);
     this.container.addChild(node);
@@ -299,4 +300,10 @@ export class PersistentTypographySequences {
     this.focusY = 0;
     this.hasFocus = false;
   }
+}
+
+
+function textTextureResolution() {
+  const dpr = typeof devicePixelRatio === "number" ? devicePixelRatio : 1;
+  return Math.max(3, Math.min(4, dpr * 2));
 }

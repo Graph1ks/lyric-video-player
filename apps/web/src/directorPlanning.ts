@@ -8,14 +8,17 @@ import type {
   QualityMode,
   TypographyLayoutPreset,
   TypographyPreset,
+  TypographySequenceMode,
   VisualMode,
 } from "@graph1ks/emo-engine-core";
+import type { LowerThirdMode, LowerThirdPreset } from "./lowerThirds";
 
 export interface DirectorControlSnapshot {
   mode: VisualMode;
   intensity: number;
   quality: QualityMode;
   typographyPreset: TypographyPreset;
+  typographySequence: TypographySequenceMode;
   typographyLayout: TypographyLayoutPreset;
   compositionMotion: CompositionMotionPreset;
   backgroundPreset: BackgroundPreset;
@@ -24,6 +27,11 @@ export interface DirectorControlSnapshot {
   colorCanvas: ColorCanvasMode;
   colorFlow: ColorFlowMode;
   syncMs: number;
+  lowerThirdMode: LowerThirdMode;
+  lowerThirdPreset: LowerThirdPreset;
+  lowerThirdArtistOverride: string;
+  lowerThirdTitleOverride: string;
+  lowerThirdArtistImage: string;
 }
 
 export interface DirectorCueDraft {

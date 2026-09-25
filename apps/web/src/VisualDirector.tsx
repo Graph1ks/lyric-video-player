@@ -12,22 +12,16 @@ import {
   COLOR_MOOD_CATALOG,
   LAYOUT_CATALOG,
   MOTION_CATALOG,
+  SEQUENCE_CATALOG,
   TYPOGRAPHY_CATALOG,
   VISUAL_MODES,
   type DirectorCatalogItem,
 } from "./directorCatalog";
+import { copy, localizeDirectorItem } from "./directorI18n";
+import { LOWER_THIRD_PRESETS, type LowerThirdPresetInfo } from "./lowerThirds";
 import { useUiStore } from "./store";
 
-type DirectorSection = "scene" | "type" | "motion" | "world" | "color" | "system";
-
-const SECTIONS: { id: DirectorSection; label: string; hint: string }[] = [
-  { id: "scene", label: "Scene", hint: "Direction" },
-  { id: "type", label: "Type", hint: "Words" },
-  { id: "motion", label: "Motion", hint: "Movement" },
-  { id: "world", label: "World", hint: "Background" },
-  { id: "color", label: "Color", hint: "Palette" },
-  { id: "system", label: "System", hint: "Output" },
-];
+type DirectorSection = "scene" | "type" | "motion" | "world" | "color" | "titles" | "system";
 
 export function VisualDirector({
   variant = "dock",
@@ -38,13 +32,25 @@ export function VisualDirector({
 }) {
   const [section, setSection] = useState<DirectorSection>("scene");
   const state = useUiStore();
+  const de = state.uiLanguage === "de";
+  const t = (en: string, german: string) => copy(state.uiLanguage, en, german);
+
+  const sections: { id: DirectorSection; label: string; hint: string }[] = [
+    { id: "scene", label: t("Scene", "Szene"), hint: t("Direction", "Regie") },
+    { id: "type", label: t("Type", "Typo"), hint: t("Words", "Wörter") },
+    { id: "motion", label: t("Motion", "Motion"), hint: t("Movement", "Bewegung") },
+    { id: "world", label: t("World", "Welt"), hint: t("Background", "Hintergrund") },
+    { id: "color", label: t("Color", "Farbe"), hint: t("Palette", "Palette") },
+    { id: "titles", label: t("Titles", "Titel"), hint: "Lower Thirds" },
+    { id: "system", label: t("System", "System"), hint: t("Output", "Ausgabe") },
+  ];
 
   const resolvedStack = [
-    { label: "Scene", value: SCENE_LABELS[state.activeScene] },
-    { label: "Type", value: state.activeTypography.replaceAll("-", " ") },
-    { label: "Layout", value: state.activeLayout.replaceAll("-", " ") },
-    { label: "Motion", value: state.activeMotion.replaceAll("-", " ") },
-    { label: "World", value: state.activeBackground.replaceAll("-", " ") },
+    { label: t("Scene", "Szene"), value: SCENE_LABELS[state.activeScene] },
+    { label: t("Type", "Typo"), value: state.activeTypography.replaceAll("-", " ") },
+    { label: t("Sequence", "Sequenz"), value: state.activeSequence.replaceAll("-", " ") },
+    { label: t("Motion", "Motion"), value: state.activeMotion.replaceAll("-", " ") },
+    { label: t("World", "Welt"), value: state.activeBackground.replaceAll("-", " ") },
   ];
 
   return (
@@ -53,22 +59,28 @@ export function VisualDirector({
         <div>
           <span className="director-eyebrow">E-MO / VISUAL DIRECTOR</span>
           <div className="director-title-row">
-            <strong>LIVE LOOK</strong>
-            <span className="director-live"><i /> {state.directorPlaying ? "PLAYING" : "READY"}</span>
+            <strong>{t("LIVE LOOK", "LIVE LOOK")}</strong>
+            <span className="director-live"><i /> {state.directorPlaying ? t("PLAYING", "LÄUFT") : t("READY", "BEREIT")}</span>
           </div>
         </div>
-        {onPopout && (
-          <button
-            className="director-popout"
-            onClick={onPopout}
-            title="Open Visual Director in its own window"
-          >
-            <span>POPOUT</span><b>↗</b>
-          </button>
-        )}
+        <div className="director-header-actions">
+          <div className="director-language" aria-label={t("Interface language", "Sprache der Oberfläche")}>
+            <button className={!de ? "is-active" : ""} onClick={() => state.setUiLanguage("en")}>EN</button>
+            <button className={de ? "is-active" : ""} onClick={() => state.setUiLanguage("de")}>DE</button>
+          </div>
+          {onPopout && (
+            <button
+              className="director-popout"
+              onClick={onPopout}
+              title={t("Open Visual Director in its own window", "Visual Director in eigenem Fenster öffnen")}
+            >
+              <span>{t("POPOUT", "FENSTER")}</span><b>↗</b>
+            </button>
+          )}
+        </div>
       </header>
 
-      <div className="director-stack" aria-label="Resolved visual stack">
+      <div className="director-stack" aria-label={t("Resolved visual stack", "Aktiv aufgelöster visueller Stack")}>
         {resolvedStack.map(item => (
           <span key={item.label}>
             <small>{item.label}</small>
@@ -77,8 +89,8 @@ export function VisualDirector({
         ))}
       </div>
 
-      <nav className="director-nav" aria-label="Director sections">
-        {SECTIONS.map(item => (
+      <nav className="director-nav" aria-label={t("Director sections", "Director-Bereiche")}>
+        {sections.map(item => (
           <button
             key={item.id}
             className={section === item.id ? "is-active" : ""}
@@ -103,9 +115,12 @@ export function VisualDirector({
             {section === "scene" && (
               <>
                 <SectionHeading
-                  eyebrow="DIRECTION"
-                  title="Scene family"
-                  description="Choose the master visual language. AUTO keeps phrase-aware direction."
+                  eyebrow={t("DIRECTION", "REGIE")}
+                  title={t("Scene family", "Szenenfamilie")}
+                  description={t(
+                    "Choose the master visual language. AUTO keeps phrase-aware direction.",
+                    "Wähle die übergeordnete Bildsprache. AUTO hält die Regie phrasenbewusst zusammen.",
+                  )}
                   resolved={SCENE_LABELS[state.activeScene]}
                 />
                 <CardGrid>
@@ -120,7 +135,10 @@ export function VisualDirector({
                   ))}
                 </CardGrid>
                 <DirectorNote>
-                  AUTO is the recommended performance mode: scene, typography, composition and motion stay phrase-coherent instead of rotating independently.
+                  {t(
+                    "AUTO is recommended for performance: scene, typography, composition and motion remain phrase-coherent.",
+                    "AUTO ist für Performance empfohlen: Szene, Typografie, Komposition und Motion bleiben phrasenweise zusammenhängend.",
+                  )}
                 </DirectorNote>
               </>
             )}
@@ -128,9 +146,12 @@ export function VisualDirector({
             {section === "type" && (
               <>
                 <SectionHeading
-                  eyebrow="TYPOGRAPHY"
-                  title="Character"
-                  description="How the letters behave. The preview communicates the motion/type signature before you click."
+                  eyebrow={t("TYPOGRAPHY", "TYPOGRAFIE")}
+                  title={t("Character", "Charakter")}
+                  description={t(
+                    "How the letters behave. Each card previews the motion/type signature before you click.",
+                    "Wie sich die Buchstaben verhalten. Jede Karte zeigt die Signatur des Effekts schon vor dem Klick.",
+                  )}
                   resolved={state.activeTypography.toUpperCase()}
                 />
                 <CardGrid>
@@ -146,9 +167,34 @@ export function VisualDirector({
                 </CardGrid>
 
                 <SectionHeading
-                  eyebrow="COMPOSITION"
-                  title="Word architecture"
-                  description="Where complete words live in frame. Independent from glyph motion."
+                  eyebrow={t("CINEMATIC SEQUENCE", "CINEMATIC SEQUENCE")}
+                  title={t("Multi-cue scenes", "Multi-Cue-Szenen")}
+                  description={t(
+                    "Persistent lyric history across cues: Spiral, Hero/Echo, Shape Build or Ribbon.",
+                    "Persistente Lyric-Historie über mehrere Cues: Spirale, Hero/Echo, Shape Build oder Ribbon.",
+                  )}
+                  resolved={state.activeSequence.replaceAll("-", " ").toUpperCase()}
+                  compact
+                />
+                <CardGrid>
+                  {SEQUENCE_CATALOG.map(item => (
+                    <EffectCard
+                      key={item.value}
+                      item={item}
+                      selected={state.typographySequence === item.value}
+                      resolved={state.typographySequence === "auto" && state.activeSequence === item.value}
+                      onClick={() => state.setTypographySequence(item.value)}
+                    />
+                  ))}
+                </CardGrid>
+
+                <SectionHeading
+                  eyebrow={t("COMPOSITION", "KOMPOSITION")}
+                  title={t("Word architecture", "Wortarchitektur")}
+                  description={t(
+                    "Where complete words live in frame. Independent from glyph motion.",
+                    "Wo ganze Wörter im Frame leben – unabhängig von der Glyphenbewegung.",
+                  )}
                   resolved={state.activeLayout.replaceAll("-", " ").toUpperCase()}
                   compact
                 />
@@ -169,9 +215,12 @@ export function VisualDirector({
             {section === "motion" && (
               <>
                 <SectionHeading
-                  eyebrow="CHOREOGRAPHY"
-                  title="Composition motion"
-                  description="Whole-stage and per-word movement grammar. This is the connective tissue between lyric moments."
+                  eyebrow={t("CHOREOGRAPHY", "CHOREOGRAFIE")}
+                  title={t("Composition motion", "Kompositionsbewegung")}
+                  description={t(
+                    "Whole-stage and per-word movement grammar connecting lyric moments.",
+                    "Bewegungsgrammatik für Bühne und Wörter – das Bindeglied zwischen Lyric-Momenten.",
+                  )}
                   resolved={state.activeMotion.replaceAll("-", " ").toUpperCase()}
                 />
                 <CardGrid>
@@ -191,9 +240,12 @@ export function VisualDirector({
             {section === "world" && (
               <>
                 <SectionHeading
-                  eyebrow="ART DIRECTION"
-                  title="Visual world"
-                  description="The environment behind the lyrics — from quiet fields to architectural and procedural worlds."
+                  eyebrow={t("ART DIRECTION", "ART DIRECTION")}
+                  title={t("Visual world", "Visuelle Welt")}
+                  description={t(
+                    "The environment behind the lyrics — from quiet fields to architectural and procedural worlds.",
+                    "Die Umgebung hinter den Lyrics – von ruhigen Flächen bis zu Architektur und prozeduralen Welten.",
+                  )}
                   resolved={state.activeBackground.replaceAll("-", " ").toUpperCase()}
                 />
                 <CardGrid>
@@ -213,9 +265,12 @@ export function VisualDirector({
             {section === "color" && (
               <>
                 <SectionHeading
-                  eyebrow="COLOR DIRECTION"
-                  title="Mood"
-                  description="Emotional color pressure, independent from harmony and canvas polarity."
+                  eyebrow={t("COLOR DIRECTION", "FARBREGIE")}
+                  title={t("Mood", "Stimmung")}
+                  description={t(
+                    "Emotional color pressure, independent from harmony and canvas polarity.",
+                    "Emotionale Farbspannung – unabhängig von Harmonie und Hell/Dunkel-Canvas.",
+                  )}
                   resolved={state.activeMood.toUpperCase()}
                 />
                 <CompactCardGrid>
@@ -233,8 +288,11 @@ export function VisualDirector({
 
                 <SectionHeading
                   eyebrow="CANVAS"
-                  title="Light / dark field"
-                  description="Controls whether type lives on dark, light or chromatic space."
+                  title={t("Light / dark field", "Hell / Dunkel")}
+                  description={t(
+                    "Controls whether type lives on dark, light or chromatic space.",
+                    "Bestimmt, ob Typografie auf dunklem, hellem oder chromatischem Raum lebt.",
+                  )}
                   resolved={state.activeCanvas.replaceAll("-", " ").toUpperCase()}
                   compact
                 />
@@ -253,8 +311,11 @@ export function VisualDirector({
 
                 <SectionHeading
                   eyebrow="OKLCH"
-                  title="Harmony"
-                  description="Hue relationship. Contrast guarantees are applied after palette generation."
+                  title={t("Harmony", "Harmonie")}
+                  description={t(
+                    "Hue relationship. Contrast guarantees are applied after palette generation.",
+                    "Beziehung der Farbtöne. Kontrastgarantien greifen nach der Palettenerzeugung.",
+                  )}
                   resolved={state.activeHarmony.replaceAll("-", " ").toUpperCase()}
                   compact
                 />
@@ -278,13 +339,13 @@ export function VisualDirector({
                   <span className="director-rainbow__preview" />
                   <span>
                     <b>Rainbow Drift</b>
-                    <small>Slow coherent spectrum travel</small>
+                    <small>{t("Slow coherent spectrum travel", "Langsame zusammenhängende Spektrumfahrt")}</small>
                   </span>
                   <strong>{state.colorFlow === "rainbow" ? "ON" : "OFF"}</strong>
                 </button>
 
                 {state.activePalette && (
-                  <div className="director-palette" aria-label="Active generated palette">
+                  <div className="director-palette" aria-label={t("Active generated palette", "Aktive generierte Palette")}>
                     {([
                       ["BG", state.activePalette.background],
                       ["TEXT", state.activePalette.textPrimary],
@@ -302,12 +363,19 @@ export function VisualDirector({
               </>
             )}
 
+            {section === "titles" && (
+              <LowerThirdDirector />
+            )}
+
             {section === "system" && (
               <>
                 <SectionHeading
-                  eyebrow="PERFORMANCE"
-                  title="Output controls"
-                  description="Global energy, lyric sync and renderer quality. These do not change the authored visual family."
+                  eyebrow={t("PERFORMANCE", "PERFORMANCE")}
+                  title={t("Output controls", "Ausgabesteuerung")}
+                  description={t(
+                    "Global energy, lyric sync and renderer quality. These do not change the authored visual family.",
+                    "Globale Energie, Lyric-Sync und Render-Qualität. Diese ändern nicht die gewählte visuelle Familie.",
+                  )}
                 />
 
                 <div className="director-audio-mini" aria-label="Audio reactive bands">
@@ -324,7 +392,7 @@ export function VisualDirector({
                 </div>
 
                 <ControlSlider
-                  label="Intensity"
+                  label={t("Intensity", "Intensität")}
                   value={Math.round(state.intensity * 100)}
                   suffix="%"
                   min={20}
@@ -335,7 +403,7 @@ export function VisualDirector({
 
                 <div className="director-system-card">
                   <div>
-                    <span className="director-setting-label">LYRIC SYNC</span>
+                    <span className="director-setting-label">{t("LYRIC SYNC", "LYRIC-SYNC")}</span>
                     <b>{state.syncMs >= 0 ? "+" : ""}{state.syncMs} ms</b>
                   </div>
                   <input
@@ -355,7 +423,7 @@ export function VisualDirector({
                 </div>
 
                 <div className="director-system-card">
-                  <span className="director-setting-label">RENDER QUALITY</span>
+                  <span className="director-setting-label">{t("RENDER QUALITY", "RENDER-QUALITÄT")}</span>
                   <div className="director-quality">
                     {(["performance", "cinema"] as QualityMode[]).map(value => (
                       <button
@@ -364,14 +432,19 @@ export function VisualDirector({
                         onClick={() => state.setQuality(value)}
                       >
                         <b>{value === "performance" ? "Performance" : "Cinema"}</b>
-                        <small>{value === "performance" ? "Lower GPU budget" : "Full visual fidelity"}</small>
+                        <small>{value === "performance"
+                          ? t("Lower GPU budget", "Niedrigeres GPU-Budget")
+                          : t("Full visual fidelity", "Volle visuelle Qualität")}</small>
                       </button>
                     ))}
                   </div>
                 </div>
 
                 <DirectorNote>
-                  Keyboard remains available: T typography · L composition · G motion · B world · E mood · V canvas · C harmony · R rainbow.
+                  {t(
+                    "Keyboard: T typography · S sequence · L composition · G motion · B world · E mood · V canvas · C harmony · R rainbow.",
+                    "Tastatur: T Typo · S Sequenz · L Komposition · G Motion · B Welt · E Mood · V Canvas · C Harmonie · R Rainbow.",
+                  )}
                 </DirectorNote>
               </>
             )}
@@ -379,6 +452,118 @@ export function VisualDirector({
         </AnimatePresence>
       </div>
     </section>
+  );
+}
+
+function LowerThirdDirector() {
+  const state = useUiStore();
+  const t = (en: string, german: string) => copy(state.uiLanguage, en, german);
+
+  function loadImage(file?: File) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") state.setLowerThirdArtistImage(reader.result);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  return (
+    <>
+      <SectionHeading
+        eyebrow="LOWER THIRDS"
+        title={t("Artist + track identity", "Künstler + Song-Identität")}
+        description={t(
+          "Screen-space title treatments stay crisp and independent from lyric camera/CRT deformation.",
+          "Screen-Space-Titel bleiben gestochen scharf und unabhängig von Lyric-Kamera oder CRT-Verzerrung.",
+        )}
+      />
+
+      <div className="director-segmented director-segmented--three">
+        {([
+          ["off", t("Off", "Aus")],
+          ["intro", t("Intro only", "Nur Intro")],
+          ["rotate", t("Rotate", "Rotieren")],
+        ] as const).map(([value, label]) => (
+          <button
+            key={value}
+            className={state.lowerThirdMode === value ? "is-active" : ""}
+            onClick={() => state.setLowerThirdMode(value)}
+          >{label}</button>
+        ))}
+      </div>
+
+      <CardGrid>
+        {LOWER_THIRD_PRESETS.map(item => (
+          <EffectCard
+            key={item.value}
+            item={item}
+            selected={state.lowerThirdPreset === item.value}
+            onClick={() => state.setLowerThirdPreset(item.value)}
+          />
+        ))}
+      </CardGrid>
+
+      <SectionHeading
+        eyebrow={t("CONTENT", "INHALT")}
+        title={t("Metadata + optional portrait", "Metadaten + optionales Künstlerbild")}
+        description={t(
+          "Leave overrides empty to use Enhanced LRC / track metadata.",
+          "Overrides leer lassen, um Enhanced-LRC-/Track-Metadaten zu verwenden.",
+        )}
+        compact
+      />
+
+      <div className="director-form-grid">
+        <label>
+          <span>{t("ARTIST OVERRIDE", "KÜNSTLER OVERRIDE")}</span>
+          <input
+            value={state.lowerThirdArtistOverride}
+            onChange={event => state.setLowerThirdArtistOverride(event.target.value)}
+            placeholder={state.directorArtist || t("Artist", "Künstler")}
+          />
+        </label>
+        <label>
+          <span>{t("TITLE OVERRIDE", "TITEL OVERRIDE")}</span>
+          <input
+            value={state.lowerThirdTitleOverride}
+            onChange={event => state.setLowerThirdTitleOverride(event.target.value)}
+            placeholder={state.directorTrackTitle}
+          />
+        </label>
+        <label className="director-form-grid__wide">
+          <span>{t("ARTIST IMAGE URL", "KÜNSTLERBILD URL")}</span>
+          <input
+            value={state.lowerThirdArtistImage.startsWith("data:") ? "" : state.lowerThirdArtistImage}
+            onChange={event => state.setLowerThirdArtistImage(event.target.value)}
+            placeholder="https://…"
+          />
+        </label>
+      </div>
+
+      <div className="lower-third-tools">
+        <label className="director-upload">
+          {t("UPLOAD IMAGE", "BILD HOCHLADEN")}
+          <input type="file" accept="image/png,image/jpeg,image/webp" onChange={event => {
+            loadImage(event.target.files?.[0]);
+            event.currentTarget.value = "";
+          }} />
+        </label>
+        {state.lowerThirdArtistImage && (
+          <button onClick={() => state.setLowerThirdArtistImage("")}>{t("REMOVE IMAGE", "BILD ENTFERNEN")}</button>
+        )}
+        <button className="is-primary" onClick={() => state.previewLowerThird()}>
+          {t("SHOW 7s PREVIEW", "7s VORSCHAU")}
+        </button>
+      </div>
+
+      <DirectorNote>
+        {t(
+          "AUTO rotates the ten designs on recurring appearances. ROTATE shows a lower third for seven seconds every 45 seconds; INTRO shows only the opening eight seconds.",
+          "AUTO rotiert die zehn Designs bei wiederkehrenden Einblendungen. ROTIEREN zeigt sieben Sekunden alle 45 Sekunden; INTRO nur die ersten acht Sekunden.",
+        )}
+      </DirectorNote>
+    </>
   );
 }
 
@@ -422,12 +607,17 @@ function EffectCard<T extends string>({
   onClick,
   compact = false,
 }: {
-  item: DirectorCatalogItem<T>;
+  item: DirectorCatalogItem<T> | LowerThirdPresetInfo;
   selected: boolean;
   resolved?: boolean;
   onClick: () => void;
   compact?: boolean;
 }) {
+  const language = useUiStore(state => state.uiLanguage);
+  const localized = "value" in item
+    ? localizeDirectorItem(item as DirectorCatalogItem<T>, language)
+    : item;
+
   return (
     <button
       className={[
@@ -437,15 +627,15 @@ function EffectCard<T extends string>({
         compact ? "is-compact" : "",
       ].filter(Boolean).join(" ")}
       onClick={onClick}
-      title={`${item.label} — ${item.description}`}
+      title={`${localized.label} — ${localized.description}`}
     >
-      <EffectPreview kind={item.preview} />
+      <EffectPreview kind={localized.preview} />
       <span className="director-effect-copy">
         <span className="director-effect-title">
-          <b>{item.label}</b>
+          <b>{localized.label}</b>
           {resolved && <em>LIVE</em>}
         </span>
-        <small>{item.description}</small>
+        <small>{localized.description}</small>
       </span>
     </button>
   );

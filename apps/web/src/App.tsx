@@ -23,8 +23,12 @@ import {
   COMPOSITION_MOTIONS,
   TYPOGRAPHY_LAYOUTS,
   TYPOGRAPHY_PRESETS,
+  TYPOGRAPHY_SEQUENCES,
 } from "./directorCatalog";
 import { VisualDirector } from "./VisualDirector";
+import { LowerThirdOverlay } from "./LowerThirdOverlay";
+import { copy } from "./directorI18n";
+import { listenDirectorCommands } from "./directorSync";
 import { useUiStore } from "./store";
 
 const EMPTY_LYRICS: ParsedLyrics = { offsetMs: 0, lines: [], meta: {} };
@@ -48,10 +52,13 @@ export function App() {
   const directorTelemetryRef = useRef(-1);
 
   const hudVisible = useUiStore(state => state.hudVisible);
+  const uiLanguage = useUiStore(state => state.uiLanguage);
+  const t = (en: string, de: string) => copy(uiLanguage, en, de);
   const mode = useUiStore(state => state.mode);
   const intensity = useUiStore(state => state.intensity);
   const quality = useUiStore(state => state.quality);
   const typographyPreset = useUiStore(state => state.typographyPreset);
+  const typographySequence = useUiStore(state => state.typographySequence);
   const typographyLayout = useUiStore(state => state.typographyLayout);
   const compositionMotion = useUiStore(state => state.compositionMotion);
   const backgroundPreset = useUiStore(state => state.backgroundPreset);
@@ -61,12 +68,14 @@ export function App() {
   const colorFlow = useUiStore(state => state.colorFlow);
   const syncMs = useUiStore(state => state.syncMs);
   const projectDrawerOpen = useUiStore(state => state.projectDrawerOpen);
+  const directorDetachedOpen = useUiStore(state => state.directorDetachedOpen);
   const activeScene = useUiStore(state => state.activeScene);
   const setHudVisible = useUiStore(state => state.setHudVisible);
   const setMode = useUiStore(state => state.setMode);
   const setIntensity = useUiStore(state => state.setIntensity);
   const setQuality = useUiStore(state => state.setQuality);
   const setTypographyPreset = useUiStore(state => state.setTypographyPreset);
+  const setTypographySequence = useUiStore(state => state.setTypographySequence);
   const setTypographyLayout = useUiStore(state => state.setTypographyLayout);
   const setCompositionMotion = useUiStore(state => state.setCompositionMotion);
   const setBackgroundPreset = useUiStore(state => state.setBackgroundPreset);
@@ -78,6 +87,7 @@ export function App() {
   const setProjectDrawerOpen = useUiStore(state => state.setProjectDrawerOpen);
   const setActiveScene = useUiStore(state => state.setActiveScene);
   const setActiveTypography = useUiStore(state => state.setActiveTypography);
+  const setActiveSequence = useUiStore(state => state.setActiveSequence);
   const setActiveLayout = useUiStore(state => state.setActiveLayout);
   const setActiveMotion = useUiStore(state => state.setActiveMotion);
   const setActiveBackground = useUiStore(state => state.setActiveBackground);
@@ -85,6 +95,9 @@ export function App() {
   const setDirectorTrack = useUiStore(state => state.setDirectorTrack);
   const setDirectorPlayback = useUiStore(state => state.setDirectorPlayback);
   const setDirectorPlaying = useUiStore(state => state.setDirectorPlaying);
+  const setDirectorMuted = useUiStore(state => state.setDirectorMuted);
+  const setDirectorVolume = useUiStore(state => state.setDirectorVolume);
+  const setDirectorDetachedOpen = useUiStore(state => state.setDirectorDetachedOpen);
   const setDirectorAudioBands = useUiStore(state => state.setDirectorAudioBands);
 
   const [engineStatus, setEngineStatus] = useState("ENGINE READY");
@@ -128,6 +141,9 @@ export function App() {
     });
     const offTypography = renderer.onTypographyPresetChange(preset => {
       if (!disposed) setActiveTypography(preset);
+    });
+    const offSequence = renderer.onTypographySequenceChange(sequence => {
+      if (!disposed) setActiveSequence(sequence);
     });
     const offLayout = renderer.onTypographyLayoutChange(layout => {
       if (!disposed) setActiveLayout(layout);
@@ -189,15 +205,23 @@ export function App() {
       setDirectorPlaying(false);
       setEngineStatus("ENDED");
     };
+    const onVolumeChange = () => {
+      setMuted(audio.muted || audio.volume < 0.001);
+      setDirectorMuted(audio.muted || audio.volume < 0.001);
+      setDirectorVolume(audio.volume);
+    };
 
     audio.element.addEventListener("play", onPlay);
     audio.element.addEventListener("pause", onPause);
     audio.element.addEventListener("ended", onEnded);
+    audio.element.addEventListener("volumechange", onVolumeChange);
+    onVolumeChange();
 
     void renderer.init(stage).then(() => {
       if (disposed) return;
       renderer.setVisualMode(useUiStore.getState().mode);
       renderer.setTypographyPreset(useUiStore.getState().typographyPreset);
+      renderer.setTypographySequence(useUiStore.getState().typographySequence);
       renderer.setTypographyLayout(useUiStore.getState().typographyLayout);
       renderer.setCompositionMotion(useUiStore.getState().compositionMotion);
       renderer.setBackgroundPreset(useUiStore.getState().backgroundPreset);
@@ -216,6 +240,7 @@ export function App() {
       offTick();
       offMode();
       offTypography();
+      offSequence();
       offLayout();
       offCompositionMotion();
       offBackground();
@@ -223,6 +248,7 @@ export function App() {
       audio.element.removeEventListener("play", onPlay);
       audio.element.removeEventListener("pause", onPause);
       audio.element.removeEventListener("ended", onEnded);
+      audio.element.removeEventListener("volumechange", onVolumeChange);
       rendererRef.current = null;
       clockRef.current = null;
       stage.replaceChildren();
@@ -240,6 +266,10 @@ export function App() {
   useEffect(() => {
     rendererRef.current?.setTypographyPreset(typographyPreset);
   }, [typographyPreset]);
+
+  useEffect(() => {
+    rendererRef.current?.setTypographySequence(typographySequence);
+  }, [typographySequence]);
 
   useEffect(() => {
     rendererRef.current?.setTypographyLayout(typographyLayout);
@@ -313,6 +343,10 @@ export function App() {
         const current = useUiStore.getState().typographyPreset;
         const index = TYPOGRAPHY_PRESETS.indexOf(current);
         setTypographyPreset(TYPOGRAPHY_PRESETS[(index + 1) % TYPOGRAPHY_PRESETS.length]);
+      } else if (event.code === "KeyS") {
+        const current = useUiStore.getState().typographySequence;
+        const index = TYPOGRAPHY_SEQUENCES.indexOf(current);
+        setTypographySequence(TYPOGRAPHY_SEQUENCES[(index + 1) % TYPOGRAPHY_SEQUENCES.length]);
       } else if (event.code === "KeyL") {
         const current = useUiStore.getState().typographyLayout;
         const index = TYPOGRAPHY_LAYOUTS.indexOf(current);
@@ -346,7 +380,7 @@ export function App() {
 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [setBackgroundPreset, setColorCanvas, setColorFlow, setColorHarmony, setColorMood, setCompositionMotion, setHudVisible, setMode, setSyncMs, setTypographyLayout, setTypographyPreset]);
+  }, [setBackgroundPreset, setColorCanvas, setColorFlow, setColorHarmony, setColorMood, setCompositionMotion, setHudVisible, setMode, setSyncMs, setTypographyLayout, setTypographyPreset, setTypographySequence]);
 
   useEffect(() => {
     const onDragEnter = (event: DragEvent) => {
@@ -380,6 +414,30 @@ export function App() {
     };
   }, []);
 
+  useEffect(() => listenDirectorCommands(command => {
+    if (command.kind === "toggle-play") {
+      void togglePlay();
+    } else if (command.kind === "seek") {
+      clockRef.current?.seek(command.seconds);
+    } else if (command.kind === "seek-relative") {
+      const clock = clockRef.current;
+      if (clock) clock.seek(clock.time + command.seconds);
+    } else if (command.kind === "toggle-mute") {
+      toggleMute();
+    } else if (command.kind === "set-volume") {
+      audioRef.current.setVolume(command.volume);
+    } else if (command.kind === "toggle-fullscreen") {
+      void toggleFullscreen();
+    } else if (command.kind === "load-audio") {
+      void loadAudioFile(command.file);
+    } else if (command.kind === "load-lyrics") {
+      void loadLyricsFile(command.file);
+    } else if (command.kind === "presence") {
+      setDirectorDetachedOpen(command.open);
+      if (command.open) setProjectDrawerOpen(false);
+    }
+  }), [setDirectorDetachedOpen, setProjectDrawerOpen]);
+
   const projectSummary = useMemo(() => {
     if (!runtimeQuery.data) return undefined;
     const label = projectsQuery.data?.rootLabel || runtimeQuery.data.rootLabel;
@@ -392,7 +450,9 @@ export function App() {
 
   function toggleMute() {
     const isMuted = audioRef.current.toggleMute();
-    setMuted(isMuted || audioRef.current.volume < 0.001);
+    const mutedNow = isMuted || audioRef.current.volume < 0.001;
+    setMuted(mutedNow);
+    setDirectorMuted(mutedNow);
   }
 
   async function toggleFullscreen() {
@@ -428,7 +488,7 @@ export function App() {
     const meta = parts.join(" · ") || "Ready";
     setTrackTitle(title);
     setTrackMeta(meta);
-    setDirectorTrack(title, meta);
+    setDirectorTrack(title, meta, lyrics.meta.artist?.trim() || "");
   }
 
   async function loadAudioFile(file: File) {
@@ -529,7 +589,7 @@ export function App() {
   return (
     <main
       ref={shellRef}
-      className={`shell ${hudVisible ? "" : "ui-hidden"}`}
+      className={`shell ${hudVisible ? "" : "ui-hidden"} ${directorDetachedOpen ? "operator-output" : ""}`}
       data-ui-visible={hudVisible}
       data-scene={activeScene}
     >
@@ -540,6 +600,8 @@ export function App() {
         <div className="screen-fx__grain" />
         <div className="screen-fx__vignette" />
       </div>
+
+      <LowerThirdOverlay />
 
       <div className={`drop-overlay ${dropVisible ? "is-visible" : ""}`} aria-hidden={!dropVisible}>
         <div className="drop-card">
@@ -562,20 +624,20 @@ export function App() {
             {projectSummary && <span className="runtime-badge">{projectSummary}</span>}
             {runtimeQuery.isSuccess && (
               <button className="project-button" onClick={() => setProjectDrawerOpen(!projectDrawerOpen)}>
-                PROJECTS
+                {t("PROJECTS", "PROJEKTE")}
               </button>
             )}
             {canChooseDirectory && (
               <button className="project-button" onClick={() => void chooseProjectRoot()}>
-                OPEN FOLDER
+                {t("OPEN FOLDER", "ORDNER ÖFFNEN")}
               </button>
             )}
             <button className="project-button director-launch-button" onClick={() => void openDirectorWorkspace()}>
-              DIRECTOR <span>↗</span>
+              {t("DIRECTOR", "DIRECTOR")} <span>↗</span>
             </button>
             <div className="status-pill"><span className="status-dot" /><span>{engineStatus}</span></div>
-            <button className="icon-button" onClick={() => void toggleFullscreen()} title="Fullscreen · F" aria-label="Toggle fullscreen">⛶</button>
-            <button className="icon-button" onClick={() => setHudVisible(false)} title="Hide UI · Ctrl+Shift+H" aria-label="Hide interface">HUD</button>
+            <button className="icon-button" onClick={() => void toggleFullscreen()} title={t("Fullscreen · F", "Vollbild · F")} aria-label={t("Toggle fullscreen", "Vollbild umschalten")}>⛶</button>
+            <button className="icon-button" onClick={() => setHudVisible(false)} title={t("Hide UI · Ctrl+Shift+H", "UI ausblenden · Ctrl+Shift+H")} aria-label={t("Hide interface", "Oberfläche ausblenden")}>HUD</button>
           </div>
         </header>
 
@@ -590,20 +652,23 @@ export function App() {
             >
               <div className="project-drawer__head">
                 <div>
-                  <strong>PROJECT ROOT</strong>
+                  <strong>{t("PROJECT ROOT", "PROJEKTORDNER")}</strong>
                   <span>{projectsQuery.data?.rootLabel || runtimeQuery.data.rootLabel}</span>
                 </div>
-                <button className="micro-button" onClick={() => setProjectDrawerOpen(false)}>CLOSE</button>
+                <button className="micro-button" onClick={() => setProjectDrawerOpen(false)}>{t("CLOSE", "SCHLIESSEN")}</button>
               </div>
-              {canChooseDirectory && <button className="project-button" onClick={() => void chooseProjectRoot()}>CHOOSE DIRECTORY</button>}
+              {canChooseDirectory && <button className="project-button" onClick={() => void chooseProjectRoot()}>{t("CHOOSE DIRECTORY", "ORDNER WÄHLEN")}</button>}
               <div className="project-drawer__list">
                 {projects.map(project => (
                   <button className="project-row" key={project.id} onClick={() => void loadProject(project)}>
                     <strong>{project.name}</strong>
-                    <span>{project.audio?.fileName || "NO AUDIO"} · {project.lyrics?.fileName || "NO LRC"}</span>
+                    <span>
+                      {project.audio?.fileName || t("NO AUDIO", "KEIN AUDIO")} ·{" "}
+                      {project.lyrics?.fileName || t("NO LRC", "KEIN LRC")}
+                    </span>
                   </button>
                 ))}
-                {!projects.length && <div className="director-footnote">No E-MO projects found in this root.</div>}
+                {!projects.length && <div className="director-footnote">{t("No E-MO projects found in this root.", "Keine E-MO-Projekte in diesem Ordner gefunden.")}</div>}
               </div>
             </motion.aside>
           )}
@@ -614,31 +679,37 @@ export function App() {
         </aside>
 
         <section className={`empty-state ${hasContent ? "is-dismissed" : ""}`}>
-          <div className="eyebrow">REALTIME MOTION GRAPHICS</div>
-          <h1>DROP THE TRACK.<br /><span>LET THE LYRICS MOVE.</span></h1>
-          <p>MP3 / M4A + Enhanced LRC · word-sync · reactive camera · deterministic director</p>
+          <div className="eyebrow">{t("REALTIME MOTION GRAPHICS", "ECHTZEIT MOTION GRAPHICS")}</div>
+          <h1>{t("DROP THE TRACK.", "TRACK REIN.")}<br /><span>{t("LET THE LYRICS MOVE.", "LYRICS IN BEWEGUNG.")}</span></h1>
+          <p>{t(
+            "MP3 / M4A + Enhanced LRC · word-sync · reactive camera · deterministic director",
+            "MP3 / M4A + Enhanced LRC · Wort-Sync · reaktive Kamera · deterministische Regie",
+          )}</p>
           <div className="empty-actions">
-            <label className="primary-file">LOAD AUDIO<input type="file" accept="audio/mpeg,audio/mp4,audio/x-m4a,audio/aac,.mp3,.m4a,.aac" onChange={event => {
+            <label className="primary-file">{t("LOAD AUDIO", "AUDIO LADEN")}<input type="file" accept="audio/mpeg,audio/mp4,audio/x-m4a,audio/aac,.mp3,.m4a,.aac" onChange={event => {
               const file = event.target.files?.[0];
               if (file) void loadAudioFile(file);
             }} /></label>
-            <label className="secondary-file">LOAD LRC<input type="file" accept=".lrc,text/plain" onChange={event => {
+            <label className="secondary-file">{t("LOAD LRC", "LRC LADEN")}<input type="file" accept=".lrc,text/plain" onChange={event => {
               const file = event.target.files?.[0];
               if (file) void loadLyricsFile(file);
             }} /></label>
           </div>
-          <div className="drop-hint">or drop both files anywhere</div>
+          <div className="drop-hint">{t("or drop both files anywhere", "oder beide Dateien irgendwo hineinziehen")}</div>
         </section>
 
         <footer className="transport glass-panel">
           <div className="transport-left">
-            <button className={`play-button ${playing ? "is-playing" : ""}`} onClick={() => void togglePlay()} aria-label="Play or pause">
+            <button className={`play-button ${playing ? "is-playing" : ""}`} onClick={() => void togglePlay()} aria-label={t("Play or pause", "Abspielen oder pausieren")}>
               <span>{playing ? "❚❚" : "▶"}</span>
             </button>
-            <button className={`mini-button ${muted ? "is-muted" : ""}`} onClick={toggleMute} aria-label="Mute or unmute">{muted ? "MUTED" : "VOL"}</button>
-            <input className="volume" type="range" min="0" max="100" defaultValue="90" aria-label="Volume" onChange={event => {
+            <button className={`mini-button ${muted ? "is-muted" : ""}`} onClick={toggleMute} aria-label={t("Mute or unmute", "Stummschalten ein/aus")}>{muted ? t("MUTED", "STUMM") : t("VOL", "LAUT")}</button>
+            <input className="volume" type="range" min="0" max="100" defaultValue="90" aria-label={t("Volume", "Lautstärke")} onChange={event => {
               audioRef.current.setVolume(Number(event.target.value) / 100);
-              setMuted(audioRef.current.muted || audioRef.current.volume < 0.001);
+              setDirectorVolume(audioRef.current.volume);
+              const mutedNow = audioRef.current.muted || audioRef.current.volume < 0.001;
+              setMuted(mutedNow);
+              setDirectorMuted(mutedNow);
             }} />
           </div>
 
@@ -657,7 +728,7 @@ export function App() {
               min="0"
               max="1000"
               defaultValue="0"
-              aria-label="Playback position"
+              aria-label={t("Playback position", "Wiedergabeposition")}
               onPointerDown={() => { seekingRef.current = true; }}
               onPointerUp={event => {
                 seekingRef.current = false;
@@ -681,7 +752,7 @@ export function App() {
         </footer>
       </div>
 
-      <button className="ui-restore" onClick={() => setHudVisible(true)} aria-label="Show interface">SHOW HUD · CTRL+SHIFT+H</button>
+      <button className="ui-restore" onClick={() => setHudVisible(true)} aria-label={t("Show interface", "Oberfläche anzeigen")}>{t("SHOW HUD", "HUD ZEIGEN")} · CTRL+SHIFT+H</button>
     </main>
   );
 }

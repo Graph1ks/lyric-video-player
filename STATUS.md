@@ -2,12 +2,12 @@
 
 **Last updated:** 2026-09-25  
 **Last known good merged baseline:** `da1def09667a4c87a91240bfcf996705e2b424ef`  
-**Active candidate:** none  
+**Active candidate:** `feat/operator-render-lower-thirds-v0.10` / PR #46  
 **Current phase/milestone:** cinematic sequence direction + temporal readability
 
 ## Current objective
 
-Upgrade the control plane into a professional Visual Director workspace with recognizable effect previews and a synchronized detached second-screen window, while establishing a non-persistent cue-planning foundation for future per-song/playlist direction.
+Close the current presentation/operation gaps: edge-safe fullscreen rendering, crisp zoom typography, detached-Director transport ownership, explicit persistent-sequence controls, readable DE/EN Director UI and a ten-style Lower Third system.
 
 ## Current state
 
@@ -36,6 +36,15 @@ Upgrade the control plane into a professional Visual Director workspace with rec
 - Detached Director provides LIVE and PLAN workspaces.
 - PLAN can capture timestamped complete look snapshots, show them on a rail and recall them live; cues are explicitly session-only until project scene serialization lands.
 - Visual Director design/architecture contract is `docs/VISUAL_DIRECTOR_WORKSPACE.md`.
+- Active candidate separates the screen-anchored background/world from the typography camera so lyric/camera travel cannot expose black render-target edges.
+- Active candidate adds ResizeObserver + fullscreenchange + VisualViewport handling and explicitly resizes Pixi/render targets to the final host bounds.
+- DOM screen FX now overscan beyond the output edge and are clipped by the shell.
+- Primary/persistent lyric Text textures use a minimum 3× internal raster resolution (4× cap) to keep large zooms substantially crisper.
+- Persistent sequences are now manually selectable in the Director: Auto, Off/Classic, Spiral Depth, Hero/Echo, Shape Build and Ribbon Path.
+- When the detached Director is open, the player becomes a clean output monitor; transport/file/fullscreen controls move to the Director topbar and command the main AudioEngine/Clock.
+- Director UI has a DE/EN language switch and a professional readability pass replacing micro-font-heavy controls.
+- Lower Thirds are a separate screen-space layer with ten visual presets, Intro/Rotate scheduling, metadata overrides and optional linked/uploaded artist image.
+- Output/operator contract is `docs/OPERATOR_OUTPUT_LOWER_THIRDS.md`.
 - Phrase-level cinematic direction keeps AUTO typography preset, layout and composition motion in coherent phrase-stable bundles instead of independently cycling every line.
 - Phrases expose Establish / Develop / Accent / Release shot roles for the next sequence/camera layer.
 - Kinetic readability pressure uses line duration, words/s, chars/s and shortest word duration.
@@ -130,11 +139,11 @@ Upgrade the control plane into a professional Visual Director workspace with rec
 
 ## Next concrete action
 
-1. Visually accept the new docked and detached Director at 1080p/1440p/4K plus narrow desktop widths.
-2. Run multi-monitor/Desktop acceptance of live synchronization and popout reopen/focus behavior.
-3. Return to real-track cinematic acceptance for tether/camera and the four persistent grammars.
-4. Add section-level tension/release + shot-size sequencing.
-5. Attach Director PLAN persistence/runtime execution to the later serialized scene/project format, then map that contract per song when playlist support lands.
+1. Get PR #46 green on Linux and Windows packaging.
+2. Manually verify fullscreen/edge safety, high-zoom type fidelity and Director operator mode at 1080p/1440p/4K.
+3. Visually accept all ten Lower Third presets and manual Spiral/Hero/Shape/Ribbon controls.
+4. Return to real-track cinematic acceptance and section-level tension/release + shot-size sequencing.
+5. Attach Director PLAN + Lower Third persistence/runtime execution to serialized scene/project directives, then map that contract per song when playlist support lands.
 
 ## Do not redo
 

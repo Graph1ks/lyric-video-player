@@ -27,6 +27,9 @@ import type {
   TypographyLayoutPreset,
   TypographyPreset,
   TypographyPresetId,
+  TypographySequenceGrammarId,
+  TypographySequenceMode,
+  ResolvedTypographySequence,
   VisualMode,
   VisualPalette,
 } from "@graph1ks/emo-engine-core";
@@ -46,6 +49,7 @@ export class EngineRenderer {
   readonly app = new Application();
   readonly root = new Container();
 
+  private scene = new Container();
   private camera = new Container();
   private background = new CinematicBackground();
   private sequenceLyrics = new PersistentTypographySequences();
@@ -68,6 +72,7 @@ export class EngineRenderer {
   private colorMood: ColorMoodMode = "auto";
   private colorCanvas: ColorCanvasMode = "auto";
   private colorFlow: ColorFlowMode = "static";
+  private typographySequence: TypographySequenceMode = "auto";
   private lastLineIndex = -1;
   private currentDirection?: DirectedScene;
   private lines: LineCue[] = [];
@@ -79,7 +84,9 @@ export class EngineRenderer {
   private compositionMotionListeners = new Set<(motion: CompositionMotionId) => void>();
   private backgroundListeners = new Set<(preset: BackgroundPresetId) => void>();
   private paletteListeners = new Set<(palette: VisualPalette) => void>();
+  private sequenceListeners = new Set<(sequence: ResolvedTypographySequence) => void>();
   private lastTypographyPreset?: TypographyPresetId;
+  private lastTypographySequence?: ResolvedTypographySequence;
   private lastTypographyLayout?: TypographyLayoutId;
   private lastCompositionMotion?: CompositionMotionId;
   private lastBackgroundPreset?: BackgroundPresetId;
@@ -89,6 +96,9 @@ export class EngineRenderer {
   private lastLyricTime = 0;
   private lastPaletteFlowTick = -1;
   private resizeListener?: () => void;
+  private fullscreenListener?: () => void;
+  private visualViewportListener?: () => void;
+  private resizeObserver?: ResizeObserver;
 
   constructor() {
     this.lyrics.onWordHit((index, audio) => {
@@ -112,11 +122,14 @@ export class EngineRenderer {
     });
 
     host.appendChild(this.app.canvas);
+    // Background/world stays screen-anchored. Only typography lives inside the
+    // camera rig. This prevents camera/lyric travel from exposing transparent
+    // render-target edges as black bars.
     this.camera.addChild(
-      this.background.container,
       this.sequenceLyrics.container,
       this.lyrics.container,
     );
+    this.scene.addChild(this.background.container, this.camera);
     this.root.addChild(this.renderGraph.output);
     this.app.stage.addChild(this.root);
 
@@ -125,7 +138,20 @@ export class EngineRenderer {
     this.renderGraph.setIntensity(this.intensity);
     this.resize();
     this.resizeListener = () => this.resize();
+    this.fullscreenListener = () => {
+      // Fullscreen layout settles asynchronously in Chromium. Resize once now
+      // and again on the next frame so the render targets match the final box.
+      this.resize();
+      requestAnimationFrame(() => this.resize());
+    };
+    this.visualViewportListener = () => this.resize();
     window.addEventListener("resize", this.resizeListener);
+    document.addEventListener("fullscreenchange", this.fullscreenListener);
+    window.visualViewport?.addEventListener("resize", this.visualViewportListener);
+    if (typeof ResizeObserver !== "undefined") {
+      this.resizeObserver = new ResizeObserver(() => this.resize());
+      this.resizeObserver.observe(host);
+    }
   }
 
   onModeChange(listener: (mode: SceneMode) => void) {
@@ -267,6 +293,26 @@ export class EngineRenderer {
 
   getResolvedBackgroundPreset() {
     return this.background.getResolvedPreset();
+  }
+
+  setTypographySequence(sequence: TypographySequenceMode) {
+    if (this.typographySequence === sequence) return;
+    this.typographySequence = sequence;
+    this.refreshTypographyPresentation();
+    this.renderGraph.resetFeedback();
+  }
+
+  getTypographySequence() {
+    return this.typographySequence;
+  }
+
+  getResolvedTypographySequence(): ResolvedTypographySequence {
+    return this.sequenceLyrics.getGrammar() ?? "off";
+  }
+
+  onTypographySequenceChange(listener: (sequence: ResolvedTypographySequence) => void) {
+    this.sequenceListeners.add(listener);
+    return () => this.sequenceListeners.delete(listener);
   }
 
   setTypographyPreset(preset: TypographyPreset) {
@@ -425,7 +471,7 @@ export class EngineRenderer {
     this.updateCinematicCamera(lyricTime);
     this.cameraRig.update(time, audio);
 
-    this.renderGraph.capture(this.app.renderer, this.camera, time);
+    this.renderGraph.capture(this.app.renderer, this.scene, time);
     this.app.renderer.render({
       container: this.app.stage,
       clear: true,
@@ -438,6 +484,9 @@ export class EngineRenderer {
 
   destroy() {
     if (this.resizeListener) window.removeEventListener("resize", this.resizeListener);
+    if (this.fullscreenListener) document.removeEventListener("fullscreenchange", this.fullscreenListener);
+    if (this.visualViewportListener) window.visualViewport?.removeEventListener("resize", this.visualViewportListener);
+    this.resizeObserver?.disconnect();
     this.renderGraph.destroy();
     this.app.destroy();
   }
@@ -538,17 +587,23 @@ export class EngineRenderer {
     const autoAuthored = this.lyrics.getPreset() === "auto"
       && this.lyrics.getLayoutPreset() === "auto"
       && this.lyrics.getCompositionMotion() === "auto";
-    const grammar = autoAuthored ? direction?.typography.sequenceGrammar : undefined;
+    let grammar: TypographySequenceGrammarId | undefined;
+    if (this.typographySequence === "auto") {
+      grammar = autoAuthored ? direction?.typography.sequenceGrammar : undefined;
+    } else if (this.typographySequence !== "off") {
+      grammar = this.typographySequence;
+    }
 
     this.sequenceLyrics.setSequence(
       grammar,
-      direction?.phraseStartLine ?? 0,
-      direction?.phraseEndLine ?? -1,
+      direction?.phraseStartLine ?? Math.max(0, this.lastLineIndex),
+      direction?.phraseEndLine ?? Math.max(-1, this.lastLineIndex),
     );
     const persistent = Boolean(grammar);
     this.sequenceLyrics.container.visible = persistent;
     this.lyrics.container.visible = !persistent;
     this.host?.setAttribute("data-typography-sequence", grammar ?? "none");
+    this.emitTypographySequence();
   }
 
   private emitBackgroundPreset() {
@@ -556,6 +611,13 @@ export class EngineRenderer {
     if (preset === this.lastBackgroundPreset) return;
     this.lastBackgroundPreset = preset;
     for (const listener of this.backgroundListeners) listener(preset);
+  }
+
+  private emitTypographySequence() {
+    const sequence = this.getResolvedTypographySequence();
+    if (sequence === this.lastTypographySequence) return;
+    this.lastTypographySequence = sequence;
+    for (const listener of this.sequenceListeners) listener(sequence);
   }
 
   private emitTypographyPreset() {
@@ -581,6 +643,14 @@ export class EngineRenderer {
 
   private resize() {
     if (!this.app.renderer) return;
+    const rect = this.host?.getBoundingClientRect();
+    const requestedW = Math.max(1, Math.round(rect?.width ?? window.innerWidth));
+    const requestedH = Math.max(1, Math.round(rect?.height ?? window.innerHeight));
+    const currentW = this.app.renderer.width / this.app.renderer.resolution;
+    const currentH = this.app.renderer.height / this.app.renderer.resolution;
+    if (Math.abs(currentW - requestedW) > 0.5 || Math.abs(currentH - requestedH) > 0.5) {
+      this.app.renderer.resize(requestedW, requestedH);
+    }
     const w = this.app.renderer.width / this.app.renderer.resolution;
     const h = this.app.renderer.height / this.app.renderer.resolution;
     this.background.resize(w, h);

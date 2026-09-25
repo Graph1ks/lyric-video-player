@@ -77,3 +77,35 @@ describe("Director workspace state", () => {
     expect(useUiStore.getState().mode).toBe(mode);
   });
 });
+
+
+describe("Operator + presentation state", () => {
+  it("stores manual cinematic sequence selection inside Director cue snapshots", () => {
+    useUiStore.setState({
+      directorCues: [],
+      typographySequence: "spiral-depth",
+      lowerThirdMode: "rotate",
+      lowerThirdPreset: "poster-stamp",
+    });
+    useUiStore.getState().addDirectorCue(24, "SPIRAL");
+    const cue = useUiStore.getState().directorCues[0];
+    expect(cue.snapshot.typographySequence).toBe("spiral-depth");
+    expect(cue.snapshot.lowerThirdMode).toBe("rotate");
+    expect(cue.snapshot.lowerThirdPreset).toBe("poster-stamp");
+  });
+
+  it("keeps UI language and lower-third controls in shared Director state", () => {
+    useUiStore.getState().setUiLanguage("de");
+    useUiStore.getState().setLowerThirdMode("rotate");
+    useUiStore.getState().setLowerThirdPreset("glass-plate");
+    useUiStore.getState().setLowerThirdArtistOverride("KÜNSTLER");
+    useUiStore.getState().setLowerThirdTitleOverride("SONG");
+
+    const state = useUiStore.getState();
+    expect(state.uiLanguage).toBe("de");
+    expect(state.lowerThirdMode).toBe("rotate");
+    expect(state.lowerThirdPreset).toBe("glass-plate");
+    expect(state.lowerThirdArtistOverride).toBe("KÜNSTLER");
+    expect(state.lowerThirdTitleOverride).toBe("SONG");
+  });
+});

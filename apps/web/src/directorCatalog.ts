@@ -6,6 +6,7 @@ import type {
   CompositionMotionPreset,
   TypographyLayoutPreset,
   TypographyPreset,
+  TypographySequenceMode,
   VisualMode,
 } from "@graph1ks/emo-engine-core";
 
@@ -36,6 +37,17 @@ export const TYPOGRAPHY_CATALOG: DirectorCatalogItem<TypographyPreset>[] = [
 ];
 
 export const TYPOGRAPHY_PRESETS = TYPOGRAPHY_CATALOG.map(item => item.value);
+
+export const SEQUENCE_CATALOG: DirectorCatalogItem<TypographySequenceMode>[] = [
+  { value: "auto", label: "Auto Sequence", description: "Director activates persistent multi-cue scenes when the phrase calls for them", preview: "sequence-auto" },
+  { value: "off", label: "Classic Line", description: "Disable persistent sequence scenes and use the current-line composition", preview: "sequence-off" },
+  { value: "spiral-depth", label: "Spiral Depth", description: "Newest lyric stays large while older words recede through a continuous spiral", preview: "sequence-spiral" },
+  { value: "hero-echo", label: "Hero / Echo", description: "One dominant word leads while lyric history becomes a graphic background structure", preview: "sequence-hero" },
+  { value: "shape-build", label: "Shape Build", description: "Words accumulate into frame and ring calligrams without reflowing old slots", preview: "sequence-shape" },
+  { value: "ribbon-path", label: "Ribbon Path", description: "Active and previous words travel together along one continuous S-curve", preview: "sequence-ribbon" },
+];
+
+export const TYPOGRAPHY_SEQUENCES = SEQUENCE_CATALOG.map(item => item.value);
 
 export const LAYOUT_CATALOG: DirectorCatalogItem<TypographyLayoutPreset>[] = [
   { value: "auto", label: "Auto", description: "Director chooses composition", preview: "layout-auto" },

@@ -17,6 +17,8 @@ import type {
   TypographyLayoutPreset,
   TypographyPreset,
   TypographyPresetId,
+  TypographySequenceMode,
+  ResolvedTypographySequence,
   VisualMode,
   VisualPalette,
 } from "@graph1ks/emo-engine-core";
@@ -25,15 +27,21 @@ import {
   type DirectorControlSnapshot,
   type DirectorCueDraft,
 } from "./directorPlanning";
+import type { LowerThirdMode, LowerThirdPreset } from "./lowerThirds";
 
 let cueCounter = 0;
 
+export type UiLanguage = "en" | "de";
+
 export interface UiState {
   hudVisible: boolean;
+  uiLanguage: UiLanguage;
+  directorDetachedOpen: boolean;
   mode: VisualMode;
   intensity: number;
   quality: QualityMode;
   typographyPreset: TypographyPreset;
+  typographySequence: TypographySequenceMode;
   typographyLayout: TypographyLayoutPreset;
   compositionMotion: CompositionMotionPreset;
   backgroundPreset: BackgroundPreset;
@@ -46,6 +54,7 @@ export interface UiState {
 
   activeScene: SceneMode;
   activeTypography: TypographyPresetId;
+  activeSequence: ResolvedTypographySequence;
   activeLayout: TypographyLayoutId;
   activeMotion: CompositionMotionId;
   activeBackground: BackgroundPresetId;
@@ -56,17 +65,29 @@ export interface UiState {
 
   directorTrackTitle: string;
   directorTrackMeta: string;
+  directorArtist: string;
+  lowerThirdMode: LowerThirdMode;
+  lowerThirdPreset: LowerThirdPreset;
+  lowerThirdArtistOverride: string;
+  lowerThirdTitleOverride: string;
+  lowerThirdArtistImage: string;
+  lowerThirdPreviewUntil: number;
   directorPlaybackSeconds: number;
   directorDurationSeconds: number;
   directorPlaying: boolean;
+  directorMuted: boolean;
+  directorVolume: number;
   directorAudioBands: { bass: number; mid: number; treble: number };
   directorCues: DirectorCueDraft[];
 
   setHudVisible(value: boolean): void;
+  setUiLanguage(value: UiLanguage): void;
+  setDirectorDetachedOpen(value: boolean): void;
   setMode(value: VisualMode): void;
   setIntensity(value: number): void;
   setQuality(value: QualityMode): void;
   setTypographyPreset(value: TypographyPreset): void;
+  setTypographySequence(value: TypographySequenceMode): void;
   setTypographyLayout(value: TypographyLayoutPreset): void;
   setCompositionMotion(value: CompositionMotionPreset): void;
   setBackgroundPreset(value: BackgroundPreset): void;
@@ -79,14 +100,23 @@ export interface UiState {
 
   setActiveScene(value: SceneMode): void;
   setActiveTypography(value: TypographyPresetId): void;
+  setActiveSequence(value: ResolvedTypographySequence): void;
   setActiveLayout(value: TypographyLayoutId): void;
   setActiveMotion(value: CompositionMotionId): void;
   setActiveBackground(value: BackgroundPresetId): void;
   setActivePalette(value: VisualPalette): void;
 
-  setDirectorTrack(title: string, meta?: string): void;
+  setDirectorTrack(title: string, meta?: string, artist?: string): void;
+  setLowerThirdMode(value: LowerThirdMode): void;
+  setLowerThirdPreset(value: LowerThirdPreset): void;
+  setLowerThirdArtistOverride(value: string): void;
+  setLowerThirdTitleOverride(value: string): void;
+  setLowerThirdArtistImage(value: string): void;
+  previewLowerThird(): void;
   setDirectorPlayback(seconds: number, duration: number): void;
   setDirectorPlaying(value: boolean): void;
+  setDirectorMuted(value: boolean): void;
+  setDirectorVolume(value: number): void;
   setDirectorAudioBands(value: { bass: number; mid: number; treble: number }): void;
   addDirectorCue(at: number, label?: string): void;
   removeDirectorCue(id: string): void;
@@ -96,10 +126,13 @@ export interface UiState {
 
 export const useUiStore = create<UiState>((set, get) => ({
   hudVisible: true,
+  uiLanguage: "en",
+  directorDetachedOpen: false,
   mode: "auto",
   intensity: 1,
   quality: "cinema",
   typographyPreset: "auto",
+  typographySequence: "auto",
   typographyLayout: "auto",
   compositionMotion: "auto",
   backgroundPreset: "auto",
@@ -112,6 +145,7 @@ export const useUiStore = create<UiState>((set, get) => ({
 
   activeScene: "neon",
   activeTypography: "elastic",
+  activeSequence: "off",
   activeLayout: "directional-stage",
   activeMotion: "handoff",
   activeBackground: "nebula",
@@ -122,17 +156,29 @@ export const useUiStore = create<UiState>((set, get) => ({
 
   directorTrackTitle: "NO TRACK LOADED",
   directorTrackMeta: "Load an audio file + Enhanced LRC",
+  directorArtist: "",
+  lowerThirdMode: "intro",
+  lowerThirdPreset: "auto",
+  lowerThirdArtistOverride: "",
+  lowerThirdTitleOverride: "",
+  lowerThirdArtistImage: "",
+  lowerThirdPreviewUntil: 0,
   directorPlaybackSeconds: 0,
   directorDurationSeconds: 0,
   directorPlaying: false,
+  directorMuted: false,
+  directorVolume: 0.9,
   directorAudioBands: { bass: 0, mid: 0, treble: 0 },
   directorCues: [],
 
   setHudVisible: hudVisible => set({ hudVisible }),
+  setUiLanguage: uiLanguage => set({ uiLanguage }),
+  setDirectorDetachedOpen: directorDetachedOpen => set({ directorDetachedOpen }),
   setMode: mode => set({ mode }),
   setIntensity: intensity => set({ intensity }),
   setQuality: quality => set({ quality }),
   setTypographyPreset: typographyPreset => set({ typographyPreset }),
+  setTypographySequence: typographySequence => set({ typographySequence }),
   setTypographyLayout: typographyLayout => set({ typographyLayout }),
   setCompositionMotion: compositionMotion => set({ compositionMotion }),
   setBackgroundPreset: backgroundPreset => set({ backgroundPreset }),
@@ -145,6 +191,7 @@ export const useUiStore = create<UiState>((set, get) => ({
 
   setActiveScene: activeScene => set({ activeScene }),
   setActiveTypography: activeTypography => set({ activeTypography }),
+  setActiveSequence: activeSequence => set({ activeSequence }),
   setActiveLayout: activeLayout => set({ activeLayout }),
   setActiveMotion: activeMotion => set({ activeMotion }),
   setActiveBackground: activeBackground => set({ activeBackground }),
@@ -155,15 +202,24 @@ export const useUiStore = create<UiState>((set, get) => ({
     activeCanvas: activePalette.resolvedCanvas,
   }),
 
-  setDirectorTrack: (directorTrackTitle, directorTrackMeta = "") => set({
+  setDirectorTrack: (directorTrackTitle, directorTrackMeta = "", directorArtist = "") => set({
     directorTrackTitle,
     directorTrackMeta,
+    directorArtist,
   }),
+  setLowerThirdMode: lowerThirdMode => set({ lowerThirdMode }),
+  setLowerThirdPreset: lowerThirdPreset => set({ lowerThirdPreset }),
+  setLowerThirdArtistOverride: lowerThirdArtistOverride => set({ lowerThirdArtistOverride }),
+  setLowerThirdTitleOverride: lowerThirdTitleOverride => set({ lowerThirdTitleOverride }),
+  setLowerThirdArtistImage: lowerThirdArtistImage => set({ lowerThirdArtistImage }),
+  previewLowerThird: () => set({ lowerThirdPreviewUntil: Date.now() + 7000 }),
   setDirectorPlayback: (directorPlaybackSeconds, directorDurationSeconds) => set({
     directorPlaybackSeconds,
     directorDurationSeconds,
   }),
   setDirectorPlaying: directorPlaying => set({ directorPlaying }),
+  setDirectorMuted: directorMuted => set({ directorMuted }),
+  setDirectorVolume: directorVolume => set({ directorVolume: Math.max(0, Math.min(1, directorVolume)) }),
   setDirectorAudioBands: directorAudioBands => set({ directorAudioBands }),
 
   addDirectorCue: (at, label) => {
@@ -190,10 +246,12 @@ export const useUiStore = create<UiState>((set, get) => ({
 
 export type DirectorSharedState = Pick<
   UiState,
+  | "uiLanguage"
   | "mode"
   | "intensity"
   | "quality"
   | "typographyPreset"
+  | "typographySequence"
   | "typographyLayout"
   | "compositionMotion"
   | "backgroundPreset"
@@ -204,6 +262,7 @@ export type DirectorSharedState = Pick<
   | "syncMs"
   | "activeScene"
   | "activeTypography"
+  | "activeSequence"
   | "activeLayout"
   | "activeMotion"
   | "activeBackground"
@@ -213,19 +272,30 @@ export type DirectorSharedState = Pick<
   | "activePalette"
   | "directorTrackTitle"
   | "directorTrackMeta"
+  | "directorArtist"
+  | "lowerThirdMode"
+  | "lowerThirdPreset"
+  | "lowerThirdArtistOverride"
+  | "lowerThirdTitleOverride"
+  | "lowerThirdArtistImage"
+  | "lowerThirdPreviewUntil"
   | "directorPlaybackSeconds"
   | "directorDurationSeconds"
   | "directorPlaying"
+  | "directorMuted"
+  | "directorVolume"
   | "directorAudioBands"
   | "directorCues"
 >;
 
 export function directorSharedState(state: UiState): DirectorSharedState {
   return {
+    uiLanguage: state.uiLanguage,
     mode: state.mode,
     intensity: state.intensity,
     quality: state.quality,
     typographyPreset: state.typographyPreset,
+    typographySequence: state.typographySequence,
     typographyLayout: state.typographyLayout,
     compositionMotion: state.compositionMotion,
     backgroundPreset: state.backgroundPreset,
@@ -236,6 +306,7 @@ export function directorSharedState(state: UiState): DirectorSharedState {
     syncMs: state.syncMs,
     activeScene: state.activeScene,
     activeTypography: state.activeTypography,
+    activeSequence: state.activeSequence,
     activeLayout: state.activeLayout,
     activeMotion: state.activeMotion,
     activeBackground: state.activeBackground,
@@ -245,9 +316,18 @@ export function directorSharedState(state: UiState): DirectorSharedState {
     activePalette: state.activePalette,
     directorTrackTitle: state.directorTrackTitle,
     directorTrackMeta: state.directorTrackMeta,
+    directorArtist: state.directorArtist,
+    lowerThirdMode: state.lowerThirdMode,
+    lowerThirdPreset: state.lowerThirdPreset,
+    lowerThirdArtistOverride: state.lowerThirdArtistOverride,
+    lowerThirdTitleOverride: state.lowerThirdTitleOverride,
+    lowerThirdArtistImage: state.lowerThirdArtistImage,
+    lowerThirdPreviewUntil: state.lowerThirdPreviewUntil,
     directorPlaybackSeconds: state.directorPlaybackSeconds,
     directorDurationSeconds: state.directorDurationSeconds,
     directorPlaying: state.directorPlaying,
+    directorMuted: state.directorMuted,
+    directorVolume: state.directorVolume,
     directorAudioBands: state.directorAudioBands,
     directorCues: state.directorCues,
   };
@@ -259,6 +339,7 @@ function controlSnapshot(state: UiState): DirectorControlSnapshot {
     intensity: state.intensity,
     quality: state.quality,
     typographyPreset: state.typographyPreset,
+    typographySequence: state.typographySequence,
     typographyLayout: state.typographyLayout,
     compositionMotion: state.compositionMotion,
     backgroundPreset: state.backgroundPreset,
@@ -267,6 +348,11 @@ function controlSnapshot(state: UiState): DirectorControlSnapshot {
     colorCanvas: state.colorCanvas,
     colorFlow: state.colorFlow,
     syncMs: state.syncMs,
+    lowerThirdMode: state.lowerThirdMode,
+    lowerThirdPreset: state.lowerThirdPreset,
+    lowerThirdArtistOverride: state.lowerThirdArtistOverride,
+    lowerThirdTitleOverride: state.lowerThirdTitleOverride,
+    lowerThirdArtistImage: state.lowerThirdArtistImage,
   };
 }
 

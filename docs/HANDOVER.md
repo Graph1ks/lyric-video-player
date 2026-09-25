@@ -2,12 +2,12 @@
 
 **Last updated:** 2026-09-25  
 **Merged baseline:** `da1def09667a4c87a91240bfcf996705e2b424ef`  
-**Active candidate:** none  
+**Active candidate:** `feat/operator-render-lower-thirds-v0.10` / PR #46  
 **Current phase/milestone:** cinematic sequence direction + temporal readability
 
 ## Current objective
 
-Land the Visual Director UX redesign and synchronized second-screen workspace without splitting control ownership or prematurely inventing a second persistence format for planned effects.
+Land output-safety fixes and make the detached Visual Director the actual operator console, with explicit persistent-sequence controls, bilingual readable UI and Lower Third presentation.
 
 ## Current implementation state
 
@@ -306,6 +306,45 @@ PR #44 changes the control plane, not the renderer contract.
 
 See `docs/VISUAL_DIRECTOR_WORKSPACE.md`.
 
+## Active candidate — Operator output + Lower Thirds
+
+**Output safety**
+
+- `EngineRenderer` now keeps `CinematicBackground` outside `CameraRig`; only lyric layers move with the camera.
+- RenderGraph captures the combined screen-anchored world + moving typography scene.
+- Resize handling covers host ResizeObserver, window resize, fullscreenchange and VisualViewport.
+- fullscreenchange gets a second next-frame resize to catch Chromium's settled fullscreen dimensions.
+- screen FX overscan outside the shell so filter/overlay edges are not visible.
+- current/persistent lyric text textures render at higher internal resolution for large-scale zoom fidelity.
+
+**Operator mode**
+
+- detached Director presence switches the main player to clean output mode.
+- Director topbar sends transport commands to the main player through a dedicated BroadcastChannel.
+- main player remains sole owner of audio, clock, fullscreen target and file loading.
+- closing the Director returns player controls.
+- operator language supports English and German.
+- the Director readability scale no longer relies on 5–7px micro-labels.
+
+**Persistent sequence control**
+
+- new requested axis: `TypographySequenceMode = auto | off | spiral-depth | hero-echo | shape-build | ribbon-path`.
+- Renderer exposes requested/resolved sequence state.
+- Director Type workspace exposes all four persistent cinematic grammars.
+- `S` cycles sequence mode.
+
+**Lower Thirds**
+
+- screen-space React layer above rendered lyric/post-FX output.
+- modes: Off / Intro / Rotate.
+- ten presets plus Auto Rotation.
+- artist/title default from track/LRC metadata with manual overrides.
+- optional artist image URL or local upload.
+- manual seven-second preview.
+- current upload is session data; project persistence should move the image into project assets later.
+
+See `docs/OPERATOR_OUTPUT_LOWER_THIRDS.md`.
+
 ## Important files / entry points
 
 | Path | Why it matters |
@@ -353,11 +392,11 @@ Windows packaging remains a separate required gate.
 
 ## Next concrete work
 
-1. Visually review docked + detached Director at common desktop sizes and multi-monitor use.
-2. Verify live sync, popout reopen/focus and browser fallback behavior manually.
-3. Resume cinematic real-track acceptance.
-4. Add section-level tension/release sequencing.
-5. Integrate PLAN persistence/execution with serialized sequence directives; playlist support should reference the same per-song plan contract.
+1. Verify PR #46 Linux/Windows CI + packaging.
+2. Manually acceptance-test fullscreen, edge safety, large type zooms, Director transport and DE/EN.
+3. Review all Lower Third looks and persistent sequence controls at real output sizes.
+4. Resume cinematic real-track acceptance and section-level tension/release sequencing.
+5. Integrate PLAN/Lower Third persistence with serialized sequence directives; playlist support should reference the same per-song plan contract.
 
 ## Resume instruction
 

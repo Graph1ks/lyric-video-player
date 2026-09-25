@@ -455,7 +455,11 @@ export class KineticLyrics {
       let cursor = 0;
       const chars = [...cue.text];
       chars.forEach((char, glyphIndex) => {
-        const node = new Text({ text: char, style: this.mainStyle });
+        const node = new Text({
+          text: char,
+          style: this.mainStyle,
+          resolution: textTextureResolution(),
+        });
         node.anchor.set(0.5);
         const half = node.width * 0.5;
         const baseX = cursor + half;
@@ -835,7 +839,7 @@ export class KineticLyrics {
               : 3;
 
     for (let i = 0; i < count; i++) {
-      const echo = new Text({ text: lineText, style: this.echoStyle(i) });
+      const echo = new Text({ text: lineText, style: this.echoStyle(i), resolution: textTextureResolution() });
       echo.anchor.set(0.5);
       this.echoLayer.addChild(echo);
       this.echoes.push(echo);
@@ -852,7 +856,7 @@ export class KineticLyrics {
             : (this.palette?.accentB ?? 0xff387f),
           letterSpacing: -2,
         });
-        const echo = new Text({ text: lineText, style });
+        const echo = new Text({ text: lineText, style, resolution: textTextureResolution() });
         echo.anchor.set(0.5);
         echo.alpha = 0.15;
         echo.blendMode = "add";
@@ -1102,4 +1106,10 @@ export class KineticLyrics {
     }
     return -1;
   }
+}
+
+
+function textTextureResolution() {
+  const dpr = typeof devicePixelRatio === "number" ? devicePixelRatio : 1;
+  return Math.max(3, Math.min(4, dpr * 2));
 }
