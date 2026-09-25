@@ -1,13 +1,13 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `8c907a70b79721fe28c77eadd8b16a205754501e`  
-**Active candidate:** `feat/elastic-tether-camera-continuity-v0.9`  
+**Merged baseline:** `0370659e5807c290414959cd32a44f15068054a8`  
+**Active candidate:** none  
 **Current phase/milestone:** cinematic sequence direction + temporal readability
 
 ## Current objective
 
-Land Elastic Tether and a sequence-owned camera base plan while keeping audio/transient motion bounded as micro-response.
+Visually accept the merged Elastic Tether and sequence-owned camera baseline, then continue with section-level tension/release and shot-size sequencing.
 
 ## Current implementation state
 
@@ -254,7 +254,7 @@ Directly spawning `npm.cmd` with `shell: false` is not a valid portable Windows 
 - adds an executable npm-child smoke test;
 - runs that smoke on Windows Node 22 and Node 24.
 
-## Active candidate — Elastic Tether + Camera Continuity
+## Merged baseline — Elastic Tether + Camera Continuity
 
 **Elastic Tether**
 
@@ -322,10 +322,10 @@ Windows packaging remains a separate required gate.
 
 ## Next concrete work
 
-1. Verify Elastic Tether + camera plan in Linux/Windows CI.
-2. Run real-track acceptance across dense lyrics, mobile and the four persistent grammars.
-3. Extend visual acceptance around gaze continuity, tether readability and shot-size rhythm.
-4. Add section-level tension/release sequencing after camera acceptance.
+1. Run real-track acceptance across dense lyrics, mobile and the four persistent grammars.
+2. Extend visual acceptance around gaze continuity, tether readability and shot-size rhythm.
+3. Add section-level tension/release sequencing.
+4. Decide whether mesh/RenderTexture tether deformation is necessary after visual review.
 5. Stabilize serialized sequence directives after visual acceptance.
 
 ## Resume instruction

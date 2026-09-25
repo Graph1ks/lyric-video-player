@@ -84,8 +84,8 @@
 - phrase-scoped sequence history + manual AUTO fallback contract — complete baseline
 - Shape Build / frame + ring calligrams — complete baseline
 - Ribbon / Path S-curve composition — complete baseline
-- Elastic Tether / directional stretch-squeeze + overshoot/settle — active candidate
-- continuity-aware camera trajectory / eye-trace handoff — active candidate
+- Elastic Tether / directional stretch-squeeze + overshoot/settle — complete baseline
+- continuity-aware camera trajectory / eye-trace handoff — complete baseline
 - section-level tension/release and shot-scale rhythm — planned
 - serializable sequence directives — planned
 
