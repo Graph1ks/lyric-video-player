@@ -189,7 +189,7 @@ void main(void) {
   vec2 dustGrid = floor((p + vec2(2.0)) * mix(54.0, 92.0, detail));
   float dustSeed = hash21(dustGrid);
   vec2 dustLocal = fract((p + vec2(2.0)) * mix(54.0, 92.0, detail)) - 0.5;
-  float mote = step(0.986, dustSeed) * smoothstep(0.075, 0.0, length(dustLocal));
+  float mote = step(0.986, dustSeed) * (1.0 - smoothstep(0.0, 0.075, length(dustLocal)));
   mote *= 0.18 + min(1.0, totalShaft) * 0.82;
   color += glow * mote * (0.12 + uTreble * 0.18);
 
