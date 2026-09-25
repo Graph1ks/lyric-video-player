@@ -10,7 +10,6 @@ import type {
 } from "@graph1ks/emo-engine-core";
 import { hash01, seeded } from "@graph1ks/emo-engine-core";
 import { WorldAudioReactivity } from "./WorldAudioReactivity.js";
-import { ArtDirectionWorlds } from "./ArtDirectionWorlds.js";
 import { ProceduralLiquidFX } from "./ProceduralLiquidFX.js";
 import { PrismStageBeamsWorld } from "./PrismStageBeamsWorld.js";
 import { LaserCanopyGridWorld } from "./LaserCanopyGridWorld.js";
@@ -30,6 +29,10 @@ import { LegacySpectrumWorld } from "./LegacySpectrumWorld.js";
 import { LegacySparksWorld } from "./LegacySparksWorld.js";
 import { LegacyLyricsWorld } from "./LegacyLyricsWorld.js";
 import { LegacyMinimalWorld } from "./LegacyMinimalWorld.js";
+import { LegacyEditorialWorld } from "./LegacyEditorialWorld.js";
+import { LegacyPrintWorld } from "./LegacyPrintWorld.js";
+import { LegacyArchitectureWorld } from "./LegacyArchitectureWorld.js";
+import { LegacyAuroraWorld } from "./LegacyAuroraWorld.js";
 
 const EMPTY_SPECTRUM = new Float32Array(0);
 
@@ -58,14 +61,11 @@ const AUTO_BACKGROUND_PRESETS: Record<SceneMode, BackgroundPresetId[]> = {
   vortex: ["particle-spiral-vortex", "fractal-hex-spiral-mosaic", "neon-energy-burst-tunnel", "laser-canopy-grid", "architecture", "print", "vortex", "aurora", "starfield", "lyrics", "liquid", "sparks"],
 };
 
-const ART_DIRECTION_PRESETS = new Set<BackgroundPresetId>([
+const SPECIALIZED_WORLD_PRESETS = new Set<BackgroundPresetId>([
   "editorial",
   "print",
   "architecture",
   "aurora",
-]);
-
-const SPECIALIZED_WORLD_PRESETS = new Set<BackgroundPresetId>([
   "cinematic",
   "liquid",
   "spectrum",
@@ -91,7 +91,6 @@ export class CinematicBackground {
   readonly container = new Container();
 
   private base = new Graphics();
-  private artDirection = new ArtDirectionWorlds();
   private prismStageBeams = new PrismStageBeamsWorld();
   private laserCanopyGrid = new LaserCanopyGridWorld();
   private discoMirrorballRoom = new DiscoMirrorballRoomWorld();
@@ -110,6 +109,10 @@ export class CinematicBackground {
   private legacySparks = new LegacySparksWorld();
   private legacyLyrics = new LegacyLyricsWorld();
   private legacyMinimal = new LegacyMinimalWorld();
+  private legacyEditorial = new LegacyEditorialWorld();
+  private legacyPrint = new LegacyPrintWorld();
+  private legacyArchitecture = new LegacyArchitectureWorld();
+  private legacyAurora = new LegacyAuroraWorld();
   private liquidSurface = new Graphics();
   private liquidFX = new ProceduralLiquidFX();
   private geometry = new Graphics();
@@ -147,7 +150,6 @@ export class CinematicBackground {
   constructor() {
     this.container.addChild(
       this.base,
-      this.artDirection.container,
       this.prismStageBeams.container,
       this.laserCanopyGrid.container,
       this.discoMirrorballRoom.container,
@@ -166,6 +168,10 @@ export class CinematicBackground {
       this.legacySparks.container,
       this.legacyLyrics.container,
       this.legacyMinimal.container,
+      this.legacyEditorial.container,
+      this.legacyPrint.container,
+      this.legacyArchitecture.container,
+      this.legacyAurora.container,
       this.liquidSurface,
       this.lyricBackdropLayer,
       this.blobLayer,
@@ -244,7 +250,8 @@ export class CinematicBackground {
     this.legacyLyrics.setLine(this.currentLine, index);
     if (index === this.lineIndex) return;
     this.lineIndex = index;
-    this.artDirection.setLineIndex(index);
+    this.legacyEditorial.setLineIndex(index);
+    this.legacyPrint.setLineIndex(index);
     if (this.preset !== "auto") return;
     const previous = this.resolvedPreset;
     this.resolvePreset();
@@ -257,7 +264,6 @@ export class CinematicBackground {
 
   setPalette(palette: VisualPalette, refreshStatic = true) {
     this.palette = palette;
-    this.artDirection.setPalette(palette);
     this.legacyVortex.setPalette(palette);
     this.legacyRays.setPalette(palette);
     this.legacyStarfield.setPalette(palette);
@@ -268,6 +274,10 @@ export class CinematicBackground {
     this.legacySparks.setPalette(palette);
     this.legacyLyrics.setPalette(palette);
     this.legacyMinimal.setPalette(palette);
+    this.legacyEditorial.setPalette(palette);
+    this.legacyPrint.setPalette(palette);
+    this.legacyArchitecture.setPalette(palette);
+    this.legacyAurora.setPalette(palette);
     this.liquidFX.setPalette(palette);
     this.applyModePalette();
     if (refreshStatic) this.rebuildLyricBackdrop();
@@ -290,7 +300,6 @@ export class CinematicBackground {
 
   setWorldDetail(value: number) {
     this.worldDetail = Math.max(0, Math.min(3, value));
-    this.artDirection.setDetail(this.worldDetail);
     this.prismStageBeams.setDetail(this.worldDetail);
     this.laserCanopyGrid.setDetail(this.worldDetail);
     this.discoMirrorballRoom.setDetail(this.worldDetail);
@@ -309,6 +318,10 @@ export class CinematicBackground {
     this.legacySparks.setDetail(this.worldDetail);
     this.legacyLyrics.setDetail(this.worldDetail);
     this.legacyMinimal.setDetail(this.worldDetail);
+    this.legacyEditorial.setDetail(this.worldDetail);
+    this.legacyPrint.setDetail(this.worldDetail);
+    this.legacyArchitecture.setDetail(this.worldDetail);
+    this.legacyAurora.setDetail(this.worldDetail);
     this.liquidFX.setDetail(this.worldDetail);
     this.applyPresetVisibility();
     this.rebuildLyricBackdrop();
@@ -316,8 +329,6 @@ export class CinematicBackground {
 
   private syncWorldPower() {
     const power = this.intensity * this.worldIntensity;
-    this.artDirection.setIntensity(power);
-    this.artDirection.setDetail(this.worldDetail);
     this.prismStageBeams.setIntensity(power);
     this.prismStageBeams.setDetail(this.worldDetail);
     this.laserCanopyGrid.setIntensity(power);
@@ -354,13 +365,20 @@ export class CinematicBackground {
     this.legacyLyrics.setDetail(this.worldDetail);
     this.legacyMinimal.setIntensity(power);
     this.legacyMinimal.setDetail(this.worldDetail);
+    this.legacyEditorial.setIntensity(power);
+    this.legacyEditorial.setDetail(this.worldDetail);
+    this.legacyPrint.setIntensity(power);
+    this.legacyPrint.setDetail(this.worldDetail);
+    this.legacyArchitecture.setIntensity(power);
+    this.legacyArchitecture.setDetail(this.worldDetail);
+    this.legacyAurora.setIntensity(power);
+    this.legacyAurora.setDetail(this.worldDetail);
     this.liquidFX.setIntensity(power);
     this.liquidFX.setDetail(this.worldDetail);
   }
 
   setQuality(value: QualityMode) {
     this.quality = value;
-    this.artDirection.setQuality(value);
     this.prismStageBeams.setQuality(value);
     this.laserCanopyGrid.setQuality(value);
     this.discoMirrorballRoom.setQuality(value);
@@ -379,6 +397,10 @@ export class CinematicBackground {
     this.legacySparks.setQuality(value);
     this.legacyLyrics.setQuality(value);
     this.legacyMinimal.setQuality(value);
+    this.legacyEditorial.setQuality(value);
+    this.legacyPrint.setQuality(value);
+    this.legacyArchitecture.setQuality(value);
+    this.legacyAurora.setQuality(value);
     this.liquidFX.setQuality(value);
     this.applyPresetVisibility();
   }
@@ -386,7 +408,6 @@ export class CinematicBackground {
   resize(w: number, h: number) {
     this.w = w;
     this.h = h;
-    this.artDirection.resize(w, h);
     this.prismStageBeams.resize(w, h);
     this.laserCanopyGrid.resize(w, h);
     this.discoMirrorballRoom.resize(w, h);
@@ -405,6 +426,10 @@ export class CinematicBackground {
     this.legacySparks.resize(w, h);
     this.legacyLyrics.resize(w, h);
     this.legacyMinimal.resize(w, h);
+    this.legacyEditorial.resize(w, h);
+    this.legacyPrint.resize(w, h);
+    this.legacyArchitecture.resize(w, h);
+    this.legacyAurora.resize(w, h);
     this.redrawBase();
     this.redrawLiquidSurface();
     this.liquidFX.resize(w, h);
@@ -431,7 +456,6 @@ export class CinematicBackground {
 
     // Dedicated WORLD_01–08 renderers keep their own audio semantics. Only the
     // legacy shared stack is routed through the stable world-audio primitives.
-    this.artDirection.update(time, legacyAudio);
     this.prismStageBeams.update(time, audio);
     this.laserCanopyGrid.update(time, audio);
     this.discoMirrorballRoom.update(time, audio);
@@ -450,6 +474,10 @@ export class CinematicBackground {
     this.legacySparks.update(time, legacyAudio, legacyFrame.transientEnvelope);
     this.legacyLyrics.update(time, legacyAudio);
     this.legacyMinimal.update(time, legacyAudio);
+    this.legacyEditorial.update(time, legacyAudio);
+    this.legacyPrint.update(time, legacyAudio);
+    this.legacyArchitecture.update(time, legacyAudio);
+    this.legacyAurora.update(time, legacyAudio);
     if (this.liquidSurface.visible) this.liquidFX.update(time, legacyAudio);
     this.updateGeometry(time, legacyAudio);
     this.updateLyricBackdrop(time, legacyAudio);
@@ -489,9 +517,7 @@ export class CinematicBackground {
 
   private applyPresetVisibility() {
     const cinema = this.quality === "cinema";
-    const artWorld = ART_DIRECTION_PRESETS.has(this.resolvedPreset);
     const specializedWorld = SPECIALIZED_WORLD_PRESETS.has(this.resolvedPreset);
-    this.artDirection.setPreset(this.resolvedPreset);
     this.prismStageBeams.container.visible = this.resolvedPreset === "prism-stage-beams";
     this.laserCanopyGrid.container.visible = this.resolvedPreset === "laser-canopy-grid";
     this.discoMirrorballRoom.container.visible = this.resolvedPreset === "disco-mirrorball-room";
@@ -510,7 +536,12 @@ export class CinematicBackground {
     this.legacySparks.container.visible = this.resolvedPreset === "sparks";
     this.legacyLyrics.container.visible = this.resolvedPreset === "lyrics";
     this.legacyMinimal.container.visible = this.resolvedPreset === "minimal";
-    this.artDirection.setLineIndex(this.lineIndex);
+    this.legacyEditorial.container.visible = this.resolvedPreset === "editorial";
+    this.legacyPrint.container.visible = this.resolvedPreset === "print";
+    this.legacyArchitecture.container.visible = this.resolvedPreset === "architecture";
+    this.legacyAurora.container.visible = this.resolvedPreset === "aurora";
+    this.legacyEditorial.setLineIndex(this.lineIndex);
+    this.legacyPrint.setLineIndex(this.lineIndex);
     this.liquidSurface.visible = this.resolvedPreset === "liquid";
     this.lyricBackdropLayer.visible = false;
     this.sparkLayer.visible = false;
@@ -533,10 +564,10 @@ export class CinematicBackground {
 
     const detailStride = Math.max(1, Math.round(particleStride / Math.max(0.35, this.worldDetail)));
     this.particles.forEach((particle, index) => {
-      particle.g.visible = !artWorld && !specializedWorld && index % detailStride === 0;
+      particle.g.visible = !specializedWorld && index % detailStride === 0;
     });
 
-    const blobLimit = artWorld || specializedWorld
+    const blobLimit = specializedWorld
       ? 0
       : this.resolvedPreset === "nebula"
       ? cinema ? 6 : 4
@@ -552,7 +583,7 @@ export class CinematicBackground {
       blob.g.visible = index < detailedBlobLimit;
     });
 
-    const ringsVisible = !artWorld && !specializedWorld && (
+    const ringsVisible = !specializedWorld && (
       this.resolvedPreset === "vortex"
       || this.resolvedPreset === "rays"
       || this.resolvedPreset === "cinematic"
@@ -561,7 +592,7 @@ export class CinematicBackground {
       ring.visible = ringsVisible && (cinema || index % 2 === 0);
     });
 
-    const beamsVisible = !artWorld && !specializedWorld && (
+    const beamsVisible = !specializedWorld && (
       this.resolvedPreset === "rays"
       || this.resolvedPreset === "cinematic"
       || this.resolvedPreset === "nebula"
@@ -1121,8 +1152,7 @@ export class CinematicBackground {
     const cy = h * 0.5;
 
     if (
-      ART_DIRECTION_PRESETS.has(this.resolvedPreset)
-      || SPECIALIZED_WORLD_PRESETS.has(this.resolvedPreset)
+      SPECIALIZED_WORLD_PRESETS.has(this.resolvedPreset)
       || this.resolvedPreset === "liquid"
       || this.resolvedPreset === "spectrum"
       || this.resolvedPreset === "sparks"
