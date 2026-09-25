@@ -214,6 +214,28 @@ The internal `Graph1ks/website` background stack is a quality benchmark here: it
 
 Paused-frame acceptance is a hard gate. If the preset name is not obvious with playback paused, the renderer has not reached the fidelity floor.
 
+### Non-negotiable minimum fidelity floor
+
+The rebuilt Nebula / Rays / Starfield / Grid generation is the **minimum quality baseline** for every remaining legacy-world upgrade. A future implementation is not acceptable merely because it is smoother, cleaner or more complex than the old code.
+
+A legacy-world upgrade fails the fidelity gate if any of the following is true:
+
+- the identity layer is still a generic combination of shared blobs / rings / beams / particles;
+- a continuous medium or spatial environment is approximated by a few `Graphics` primitives when a fullscreen procedural field, projected 3D geometry, Mesh or raymarched surface is the correct primitive;
+- the preset cannot be identified from a paused frame without knowing its name;
+- raw or smoothed audio owns coordinates, SDF topology, camera travel, continuous phase, perspective depth, direction or whole-scene scale;
+- semantic `VisualPalette` roles are bypassed by a new hard-coded color language;
+- World Detail changes only opacity instead of structure / density / material resolution;
+- Performance mode becomes a visually different cheap fallback instead of a lower-cost version of the same authored identity;
+- a dedicated world remains visually diluted by unrelated generic fallback layers;
+- source-contract tests do not lock the architectural identity and motion ownership of the rebuild.
+
+For continuous fields, the expected baseline is shader-first. For spatial depth, the expected baseline is explicit projection / world-space geometry. For implicit materials, the expected baseline is an actual field / SDF plus lighting, not a 2D noise texture presented as equivalent.
+
+The internal `Graph1ks/website` shader stack remains the implementation-quality benchmark for procedural material sophistication. The goal is not to copy those effects literally; it is to meet the same class of rendering discipline: authored field construction, coherent material lighting, semantic color, stable time ownership and deliberate detail scaling.
+
+This gate is additive to real-display acceptance. Automated source tests can prevent architectural backsliding, but they cannot certify visual quality.
+
 ### Target direction per legacy preset
 
 These are art-direction targets, not frozen implementation mandates.
