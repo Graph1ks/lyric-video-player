@@ -90,6 +90,8 @@ export const BACKGROUND_CATALOG: DirectorCatalogItem<BackgroundPreset>[] = [
   { value: "neon-energy-burst-tunnel", label: "Neon Energy Burst Tunnel", description: "High-velocity neon warp tunnel with electric filaments and radial light trails", preview: "world-neon-energy-burst-tunnel" },
   { value: "fractal-hex-spiral-mosaic", label: "Fractal Hex Spiral Mosaic", description: "Recursive rainbow hex cells winding into multiple graphic spiral sinks", preview: "world-fractal-hex-spiral-mosaic" },
   { value: "soft-hex-cell-field", label: "Soft Hex Cell Field", description: "Layered pastel hex cells with black gaps, bevel depth and soft highlights", preview: "world-soft-hex-cell-field" },
+  { value: "particle-spiral-vortex", label: "Particle Spiral Vortex", description: "Projected 3D particle arms collapsing into a bright chromatic vortex core", preview: "world-particle-spiral-vortex" },
+  { value: "minimal-rainbow-waveform", label: "Minimal Rainbow Waveform", description: "Real spectrum-driven mirrored rainbow signal with sharp peaks and negative space", preview: "world-minimal-rainbow-waveform" },
   { value: "vortex", label: "Vortex", description: "Rotational depth and pull", preview: "world-vortex" },
   { value: "liquid", label: "Liquid", description: "Procedural fluid movement", preview: "world-liquid" },
   { value: "spectrum", label: "Spectrum", description: "Audio-shaped bands and ribbons", preview: "world-spectrum" },
