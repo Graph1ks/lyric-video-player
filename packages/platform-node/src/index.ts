@@ -39,6 +39,8 @@ const BACKGROUND_PRESETS = new Set<ProjectBackgroundPreset>([
   "vortex",
   "liquid",
   "spectrum",
+  "sparks",
+  "lyrics",
   "minimal",
 ]);
 

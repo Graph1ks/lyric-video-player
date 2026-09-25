@@ -46,6 +46,8 @@ export type BackgroundPresetId =
   | "vortex"
   | "liquid"
   | "spectrum"
+  | "sparks"
+  | "lyrics"
   | "minimal";
 export type BackgroundPreset = "auto" | BackgroundPresetId;
 

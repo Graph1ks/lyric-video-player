@@ -184,7 +184,7 @@ export class EngineRenderer {
       this.renderGraph.resetFeedback();
     }
 
-    this.background.setLineIndex(index);
+    this.background.setLine(line, index);
 
     if (index >= 0) {
       const directed = this.director.sceneFor(index);

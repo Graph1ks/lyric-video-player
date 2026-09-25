@@ -49,6 +49,8 @@ const BACKGROUND_PRESETS: BackgroundPreset[] = [
   "vortex",
   "liquid",
   "spectrum",
+  "sparks",
+  "lyrics",
   "minimal",
 ];
 

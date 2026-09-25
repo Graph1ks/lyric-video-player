@@ -57,10 +57,10 @@
 - deterministic particles / dust depth field — complete baseline
 - grids and geometric repeaters — complete baseline
 - starfield / hyperspace scenes — complete baseline
-- procedural noise / liquid flow — active candidate
-- waveform and spectrum ribbons — active candidate
-- sparks / trails — next
-- recursive typography backgrounds — next
+- procedural noise / liquid flow — complete baseline
+- waveform and spectrum ribbons — complete baseline
+- sparks / trails — active candidate
+- recursive typography backgrounds — active candidate
 
 ## Milestone 0.7 — Scene project format
 - scene JSON
