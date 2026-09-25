@@ -136,7 +136,7 @@ void main(void) {
   // becoming a grid or a ray preset.
   float horizonY = 0.16 - q.x * 0.055 + sin(t * 0.37) * 0.012;
   float horizon = exp(-abs(q.y - horizonY) * mix(7.0, 11.0, detail));
-  float floorMist = smoothstep(0.55, -0.42, q.y) * smoothstep(-0.72, 0.08, q.y);
+  float floorMist = (1.0 - smoothstep(-0.42, 0.55, q.y)) * smoothstep(-0.72, 0.08, q.y);
 
   // Anamorphic lens-light structure is the paused-frame identity layer.
   vec2 flareCenter = vec2(0.24 + sin(t * 0.29) * 0.055, -0.08 + cos(t * 0.21) * 0.018);
@@ -155,7 +155,7 @@ void main(void) {
   float foregroundNoise = fbm(q * vec2(0.72, 1.45) + vec2(t * 0.035, -4.7));
   float leftMask = smoothstep(-0.78, -0.18, -q.x + (foregroundNoise - 0.5) * 0.18);
   float rightMask = smoothstep(-0.78, -0.20, q.x + (foregroundNoise - 0.5) * 0.14);
-  float foreground = clamp((leftMask + rightMask) * smoothstep(0.48, -0.62, q.y), 0.0, 1.0);
+  float foreground = clamp((leftMask + rightMask) * (1.0 - smoothstep(-0.62, 0.48, q.y)), 0.0, 1.0);
 
   float lightResponse = 0.82 + uEnergy * 0.16 + uMid * 0.08 + uTreble * 0.06;
 
