@@ -2,12 +2,12 @@
 
 **Last updated:** 2026-09-25  
 **Last known good merged baseline:** `b17be7bbee7839fd842cf8a29b07fc4dd77c1b69`  
-**Active candidate:** none  
+**Active candidate:** `fix/windows-node24-dev-spawn`  
 **Current phase/milestone:** v0.8 lyric-scene composition + color direction
 
 ## Current objective
 
-Visually accept the merged Color Canvas variety and Step 4 worlds on real Enhanced LRC tracks, then continue the remaining typography primitives.
+Fix the Windows Node 24 npm child-process launch regression in the dev orchestrator, then return to real-track Color Canvas / Step 4 acceptance.
 
 ## Current state
 
@@ -57,7 +57,8 @@ Visually accept the merged Color Canvas variety and Step 4 worlds on real Enhanc
 - Color Canvas AUTO changes only in stable three-line chapters, giving obvious dark/light/chromatic variation without flickering every cue.
 - Paper/Poster use dark colored typography on light/chromatic fields; Night/Color Field use light tinted typography with the same contrast contract.
 - Rainbow Drift becomes canvas-aware: Night stays restrained while Paper/Color Field/Poster can shift the coherent background field itself.
-- Root `npm run dev` now owns runtime startup, waits for `/api/runtime`, then starts Vite; this removes the normal `ECONNREFUSED 127.0.0.1:3040` startup race.
+- Root `npm run dev` owns runtime startup, waits for `/api/runtime`, then starts Vite; this removes the normal `ECONNREFUSED 127.0.0.1:3040` startup race.
+- Active candidate fixes Windows/Node 24 Vite child startup by avoiding direct `npm.cmd` spawning and adds real Windows launcher smoke coverage on Node 22 + 24.
 - Default server mode creates the repository `projects/` root when no explicit project root is configured.
 - Step 4 now includes four merged large-scale **Art Direction Worlds**:
   - Editorial — asymmetric plates, bars and framing marks;
@@ -87,9 +88,9 @@ Visually accept the merged Color Canvas variety and Step 4 worlds on real Enhanc
 
 ## Next concrete action
 
-1. Visually verify AUTO moves through Color Field / Night / Paper / Poster without rapid flicker and keeps lyric contrast on real tracks.
-2. Continue real-track acceptance of Editorial / Print / Architecture / Aurora.
-3. Tune narrow/mobile composition combinations.
+1. Get the Windows Node 22 + 24 dev-launcher smoke and normal validation green.
+2. Visually verify AUTO moves through Color Field / Night / Paper / Poster without rapid flicker and keeps lyric contrast on real tracks.
+3. Continue real-track acceptance of Editorial / Print / Architecture / Aurora and narrow/mobile tuning.
 4. Finish soft-3D/inflate, brush/stroke reveal and dissolve/smear exits, then stabilize scene-stack serialization.
 
 ## Do not redo

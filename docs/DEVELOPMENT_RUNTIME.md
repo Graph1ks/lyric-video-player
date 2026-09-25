@@ -34,6 +34,14 @@ The root command now:
 
 This prevents the normal startup race that caused transient `ECONNREFUSED` proxy errors.
 
+### Windows / Node 24 child-process behavior
+
+The launcher does **not** spawn `npm.cmd` directly. Node's Windows child-process contract requires `.cmd` files to run through a command interpreter; direct `spawn("npm.cmd", ..., { shell: false })` can fail with `spawn EINVAL`.
+
+When launched through `npm run dev`, E-MO instead uses npm's own `npm_execpath` and executes that JavaScript CLI through the current Node binary. A `cmd.exe` fallback exists for direct `node scripts/dev.mjs` use when `npm_execpath` is unavailable.
+
+Windows CI smoke-tests this launcher path on Node 22 and Node 24.
+
 The default runtime address is:
 
 ```text

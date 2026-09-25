@@ -8,6 +8,8 @@ on:
       - "apps/web/**"
       - "packages/**"
       - "package.json"
+      - "scripts/**"
+      - "tests/dev-script.test.mjs"
       - ".github/workflows/desktop-windows.yml"
   workflow_dispatch:
 
@@ -15,6 +17,27 @@ permissions:
   contents: read
 
 jobs:
+  dev-orchestrator-smoke:
+    name: dev-orchestrator-node-${{ matrix.node-version }}
+    runs-on: windows-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ["22", "24"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Node ${{ matrix.node-version }}
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Dev launcher process smoke
+        run: node --test tests/dev-script.test.mjs
+
   package-windows:
     name: package-windows
     runs-on: windows-latest
