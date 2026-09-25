@@ -242,14 +242,14 @@ function stabilizeComposition(
 
   // Deterministic collision relaxation. The later cue yields more than the
   // earlier cue so reading order remains visually recoverable.
-  for (let pass = 0; pass < 8; pass++) {
+  for (let pass = 0; pass < 12; pass++) {
     let changed = false;
     for (let i = 0; i < words.length; i++) {
       for (let j = i + 1; j < words.length; j++) {
         const a = boundsFor(words[i], wordWidths[i], wordHeights[i] ?? averageHeight);
         const b = boundsFor(words[j], wordWidths[j], wordHeights[j] ?? averageHeight);
         const overlap = overlapAmount(a, b);
-        if (overlap.x <= gap || overlap.y <= gap) continue;
+        if (overlap.x <= 0 || overlap.y <= 0) continue;
 
         changed = true;
         const jIsAnchor = j === anchorIndex;
@@ -284,7 +284,7 @@ function stabilizeComposition(
 
   // Last resort: scale down only the words that still collide. This is safer
   // than allowing unreadable overlaps or sending text outside the focal field.
-  for (let pass = 0; pass < 5; pass++) {
+  for (let pass = 0; pass < 8; pass++) {
     let collision = false;
     for (let i = 0; i < words.length; i++) {
       for (let j = i + 1; j < words.length; j++) {
@@ -292,7 +292,7 @@ function stabilizeComposition(
           boundsFor(words[i], wordWidths[i], wordHeights[i] ?? averageHeight),
           boundsFor(words[j], wordWidths[j], wordHeights[j] ?? averageHeight),
         );
-        if (overlap.x <= gap * 0.7 || overlap.y <= gap * 0.7) continue;
+        if (overlap.x <= 0 || overlap.y <= 0) continue;
         collision = true;
         const target = words[j].emphasis <= words[i].emphasis ? j : i;
         words[target].scale = Math.max(0.34, words[target].scale * 0.9);

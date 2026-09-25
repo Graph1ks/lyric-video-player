@@ -116,7 +116,7 @@ function planSpiralDepth(input: TypographySequencePlanInput): TypographySequence
     let chosen: TypographySequencePlacement | undefined;
     let chosenBox: TypographySpatialBox | undefined;
 
-    for (let attempt = 0; attempt < 24; attempt++) {
+    for (let attempt = 0; attempt < 48; attempt++) {
       const depth = clamp(depthUnits / maxDepthUnits);
       const tail = Math.pow(0.88, Math.max(0, depthUnits - maxDepthUnits));
       const angle = -Math.PI * 0.16 - depthUnits * 0.64;
@@ -158,25 +158,43 @@ function planSpiralDepth(input: TypographySequencePlanInput): TypographySequence
     }
 
     if (!chosen) {
-      const depth = Math.max(maxDepthUnits, depthUnits);
-      const angle = -Math.PI * 0.16 - depth * 0.64;
-      const radius = minDimension * 0.026;
-      const tail = Math.pow(0.84, Math.max(0, depth - maxDepthUnits));
-      chosen = {
-        id: word.id,
-        role: word.role,
-        x: Math.cos(angle) * radius,
-        y: Math.sin(angle) * radius * 0.78,
-        scale: Math.max(0.045, 0.15 * tail),
-        rotation: normalizeAngle(angle + Math.PI * 0.5) * 0.72,
-        alpha: Math.max(0.035, 0.12 * tail),
-        zIndex: 1,
-        treatment: "outline",
-      };
-      chosenBox = spatialBoxFor(metrics, chosen, 1);
+      // Spiral history is explicitly allowed to retire toward the center. If a
+      // deep historical word cannot find a collision-free screen position after
+      // exhaustive depth search, omit that history copy rather than stacking it
+      // on top of another readable word. Active/recent content keeps searching.
+      if (word.role === "history") {
+        cumulativeDepth = depthUnits;
+        continue;
+      }
+
+      for (let emergency = 0; emergency < 48 && !chosen; emergency++) {
+        depthUnits += 0.34;
+        const depth = Math.max(maxDepthUnits, depthUnits);
+        const angle = -Math.PI * 0.16 - depth * 0.64;
+        const radius = minDimension * clamp(0.032 + emergency * 0.0018, 0.032, 0.11);
+        const scale = Math.max(0.035, 0.12 * Math.pow(0.9, emergency));
+        const rotation = normalizeAngle(angle + Math.PI * 0.5) * 0.72;
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(angle) * radius * 0.78;
+        const box = spatialBoxFor(metrics, { x, y, scale, rotation }, 1);
+        if (occupied.some(other => spatialBoxesOverlap(box, other))) continue;
+        chosen = {
+          id: word.id,
+          role: word.role,
+          x,
+          y,
+          scale,
+          rotation,
+          alpha: word.role === "active" ? 1 : 0.34,
+          zIndex: 2,
+          treatment: word.role === "active" ? "solid" : "outline",
+        };
+        chosenBox = box;
+      }
     }
 
     cumulativeDepth = depthUnits;
+    if (!chosen) continue;
     if (chosenBox) occupied.push(chosenBox);
     placements.push(chosen);
   }
@@ -392,6 +410,38 @@ function planRibbonPath(input: TypographySequencePlanInput): TypographySequenceP
   const placements: TypographySequencePlacement[] = [];
   const occupied: TypographySpatialBox[] = [];
 
+  // Give the imminent next word collision priority during the lead window.
+  // This makes the outgoing active word yield *before* the handoff, so the same
+  // spacing solution continues after the incoming word becomes rank 0.
+  const incoming = input.window.words
+    .filter(word => word.role === "incoming")
+    .sort(compareChronological)[0];
+
+  if (incoming) {
+    const metrics = normalizeSpatialMetrics(input.metricsById?.[incoming.id], incoming.text);
+    const arrival = 1 - clamp(incoming.age / 0.12);
+    const u = lerp(0.86, 0.74, arrival);
+    const point = pointOnRibbon(u, width, height);
+    const scale = lerp(0.52, 0.82, arrival);
+    const placement: TypographySequencePlacement = {
+      id: incoming.id,
+      role: incoming.role,
+      x: point.x,
+      y: point.y,
+      scale,
+      rotation: point.rotation,
+      alpha: 0.04 + arrival * 0.2,
+      zIndex: 104,
+      treatment: "outline",
+    };
+    placements.push(placement);
+    occupied.push(spatialBoxFor(
+      metrics,
+      placement,
+      Math.max(2, minDimension * 0.0035),
+    ));
+  }
+
   for (let rank = 0; rank < started.length; rank++) {
     const word = started[rank];
     const metrics = normalizeSpatialMetrics(input.metricsById?.[word.id], word.text);
@@ -400,8 +450,8 @@ function planRibbonPath(input: TypographySequencePlanInput): TypographySequenceP
     let chosen: TypographySequencePlacement | undefined;
     let chosenBox: TypographySpatialBox | undefined;
 
-    for (let attempt = 0; attempt < 20; attempt++) {
-      const extraDepth = attempt * 0.16;
+    for (let attempt = 0; attempt < 28; attempt++) {
+      const extraDepth = attempt * 0.11;
       const units = baseUnits + extraDepth;
       const depth = clamp(units / 10);
       const point = pointOnRibbon(u, width, height);
@@ -437,63 +487,43 @@ function planRibbonPath(input: TypographySequencePlanInput): TypographySequenceP
         break;
       }
 
-      // Older words slide farther down the same continuous S-curve until their
-      // measured screen box clears the already seated newer words.
-      u -= 0.018 + attempt * 0.0015;
+      u -= 0.014 + attempt * 0.0011;
     }
+
+    if (!chosen && word.role === "history") continue;
 
     if (!chosen) {
-      const point = pointOnRibbon(u, width, height);
-      chosen = {
-        id: word.id,
-        role: word.role,
-        x: point.x,
-        y: point.y,
-        scale: 0.24,
-        rotation: point.rotation,
-        alpha: 0.08,
-        zIndex: 1,
-        treatment: "outline",
-      };
-      chosenBox = spatialBoxFor(metrics, chosen, 1);
+      // Active/recent words must remain present. Keep walking down the ribbon at
+      // reduced scale until a measured free footprint exists.
+      for (let emergency = 0; emergency < 40 && !chosen; emergency++) {
+        u -= 0.018;
+        const point = pointOnRibbon(u, width, height);
+        const scale = Math.max(0.16, 0.42 * Math.pow(0.94, emergency));
+        const box = spatialBoxFor(metrics, {
+          x: point.x,
+          y: point.y,
+          scale,
+          rotation: point.rotation,
+        }, 2);
+        if (occupied.some(other => spatialBoxesOverlap(box, other))) continue;
+        chosen = {
+          id: word.id,
+          role: word.role,
+          x: point.x,
+          y: point.y,
+          scale,
+          rotation: point.rotation,
+          alpha: word.role === "active" ? 0.9 : 0.58,
+          zIndex: 80 - emergency,
+          treatment: "solid",
+        };
+        chosenBox = box;
+      }
     }
 
+    if (!chosen) continue;
     placements.push(chosen);
     if (chosenBox) occupied.push(chosenBox);
-  }
-
-  const incoming = input.window.words
-    .filter(word => word.role === "incoming")
-    .sort(compareChronological)[0];
-  if (incoming) {
-    const metrics = normalizeSpatialMetrics(input.metricsById?.[incoming.id], incoming.text);
-    const arrival = 1 - clamp(incoming.age / 0.12);
-    let u = lerp(0.86, 0.74, arrival);
-    let placement: TypographySequencePlacement | undefined;
-
-    for (let attempt = 0; attempt < 12; attempt++) {
-      const point = pointOnRibbon(u, width, height);
-      const scale = lerp(0.52, 0.82, arrival);
-      const candidate: TypographySequencePlacement = {
-        id: incoming.id,
-        role: incoming.role,
-        x: point.x,
-        y: point.y,
-        scale,
-        rotation: point.rotation,
-        alpha: 0.06 + arrival * 0.18,
-        zIndex: 104,
-        treatment: "outline",
-      };
-      const box = spatialBoxFor(metrics, candidate, Math.max(2, minDimension * 0.0035));
-      if (!occupied.some(other => spatialBoxesOverlap(box, other))) {
-        placement = candidate;
-        break;
-      }
-      u += 0.016;
-    }
-
-    if (placement) placements.push(placement);
   }
 
   return {
