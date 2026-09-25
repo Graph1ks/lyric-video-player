@@ -9,6 +9,7 @@ import { CinematicPostFX } from "./CinematicPostFX";
 import { SceneRenderGraph } from "./SceneRenderGraph";
 import { ReactiveDisplacementFX } from "./ReactiveDisplacementFX";
 import { ReactiveVelocitySmearFX } from "./ReactiveVelocitySmearFX";
+import { ReactiveBloomThresholdFX } from "./ReactiveBloomThresholdFX";
 
 export class EngineRenderer {
   readonly app = new Application();
@@ -21,8 +22,14 @@ export class EngineRenderer {
   private cameraRig = new CameraRig(this.camera);
   private displacementFX = new ReactiveDisplacementFX();
   private velocitySmearFX = new ReactiveVelocitySmearFX();
+  private bloomThresholdFX = new ReactiveBloomThresholdFX();
   private postFX = new CinematicPostFX();
-  private renderGraph = new SceneRenderGraph(this.displacementFX, this.velocitySmearFX, this.postFX);
+  private renderGraph = new SceneRenderGraph(
+    this.displacementFX,
+    this.velocitySmearFX,
+    this.bloomThresholdFX,
+    this.postFX,
+  );
   private activeMode: SceneMode = "neon";
   private quality: QualityMode = "cinema";
   private lastLineIndex = -1;
@@ -93,6 +100,7 @@ export class EngineRenderer {
     this.cameraRig.setIntensity(this.intensity);
     this.displacementFX.setIntensity(this.intensity);
     this.velocitySmearFX.setIntensity(this.intensity);
+    this.bloomThresholdFX.setIntensity(this.intensity);
     this.postFX.setIntensity(this.intensity);
     this.renderGraph.setIntensity(this.intensity);
   }
@@ -102,6 +110,7 @@ export class EngineRenderer {
     this.background.setQuality(quality);
     this.displacementFX.setQuality(quality);
     this.velocitySmearFX.setQuality(quality);
+    this.bloomThresholdFX.setQuality(quality);
     this.postFX.setQuality(quality);
     this.renderGraph.setQuality(quality);
 
@@ -147,6 +156,7 @@ export class EngineRenderer {
 
     this.displacementFX.update(time, audio);
     this.velocitySmearFX.update(time, audio);
+    this.bloomThresholdFX.update(time, audio);
     this.postFX.update(time, audio);
     this.background.update(time, audio);
     this.lyrics.update(lyricTime, audio);
@@ -177,6 +187,7 @@ export class EngineRenderer {
     this.cameraRig.setMode(mode);
     this.displacementFX.setMode(mode);
     this.velocitySmearFX.setMode(mode);
+    this.bloomThresholdFX.setMode(mode);
     this.postFX.setMode(mode);
     this.renderGraph.setMode(mode);
     this.host?.setAttribute("data-scene", mode);
