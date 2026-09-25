@@ -33,8 +33,8 @@ Interpretation of controls:
 | 02 | Laser Canopy Grid | `02_laser_canopy_grid.png` | Thin crisp red/cyan/green lasers from overhead rig to floor hit-points; geometric canopy, black room, minimal haze. | analytic ray count, emitter count, floor/detail density | bass→canopy spread/floor glow; treble→shimmer; transient→burst brightness | **Implemented — GPU shader v2** |
 | 03 | Disco Mirrorball Room | `03_disco_mirrorball_room.png` | Central mirrored disco ball inside an enclosed dark room with hundreds of colored square reflections on walls/floor/ceiling. | spherical facet density, reflection-grid density, room depth layers | music→lighting/specular only; rotation/geometry remain mechanical | **Implemented — GPU shader, motion-corrected** |
 | 04 | Neon Energy Burst Tunnel | `04_neon_energy_burst_tunnel.png` | Explosive central neon warp tunnel with outward speed streaks and electric scribble lines in magenta/blue/gold. | radial streak density, tunnel ribs, electric filaments, ejecta | transient edge→one-way outward burst; audio never reverses flow | **Implemented — GPU shader, motion-corrected** |
-| 05 | Fractal Hex Spiral Mosaic | `05_fractal_hex_spiral_mosaic.png` | Graphic cellular/hex tessellation recursively spiraling into multiple sinks; thick dark outlines and rainbow cells. | cell density, sink compression, inset-cell detail | mids/highs→color/light accent; geometry stays continuous | **Implemented — GPU shader** |
-| 06 | Soft Hex Cell Field | `06_soft_hex_cell_field.png` | Large pastel hex cells over black gaps, soft bevel/shading, foreground/background depth. | cell density, near/far layers, variable cell size, facet highlights | music→light/glint only; geometry never pulses | **Implemented — GPU shader** |
+| 05 | Fractal Hex Spiral Mosaic | `05_fractal_hex_spiral_mosaic.png` | Graphic cellular/hex tessellation recursively spiraling into multiple sinks; thick dark outlines and rainbow cells. | prism population, arm count, z-depth, sink compression | autonomous 3D travel; audio→light/color only | **Rebuilt — projected 3D prism vortex candidate** |
+| 06 | Soft Hex Cell Field | `06_soft_hex_cell_field.png` | Large pastel hex cells over black gaps, soft bevel/shading, foreground/background depth. | packed prism density, relief, camera depth, facet highlights | autonomous field/camera motion; audio→light only | **Rebuilt — projected 3D hex-prism candidate** |
 | 07 | Particle Spiral Vortex | `07_particle_spiral_vortex.png` | Glowing circular particles forming several spiral arms and a clear inward vortex center on black. | particle count, arm count, depth layers | bass→particle size/pull; highs→sparkle; transient→burst density | Planned |
 | 08 | Minimal Rainbow Waveform | `08_minimal_rainbow_waveform.png` | Clean horizontal center waveform with mirrored vertical spikes, rainbow gradient and large negative space. | spectral columns, fine spike density | bass→core glow/amplitude; highs→detail; transient→needle peaks | Spec/starter |
 | 09 | Neon Equalizer Grid City | `09_neon_equalizer_grid_city.png` | 3D neon equalizer skyline rising from reflective grid floor with bokeh/light-rain depth. | bars, floor cells, bokeh/background columns | bass→bar height/floor glow; highs→secondary detail; transient→peak jumps | Planned |
@@ -190,7 +190,9 @@ Required:
 
 `packages/renderer-pixi/src/effects/backgrounds/FractalHexSpiralMosaicWorld.ts`
 
-The candidate is a custom GPU shader with reusable analytic hex-grid coordinates, three recursive vortex warps, sink-dependent local density, thick graphic outlines, inset center hexes, bevel/highlight bands and rainbow screen-print color logic.
+The rejected v1 shader was a flat screen-space hex texture passed through domain warps. It produced no real depth, no independent cell travel and read like a distorted screenshot.
+
+The current candidate is rebuilt as explicit **3D hex prisms** with world-space x/y/z coordinates, perspective projection, back-to-front occlusion, visible prism side faces and continuous autonomous travel along three logarithmic spiral sinks. Cells physically move away from the camera while collapsing into the sinks, so perspective creates real scale/parallax/depth. A slow camera orbit adds additional z-separation.
 
 ## WORLD_06 — Soft Hex Cell Field
 
@@ -218,7 +220,21 @@ Required:
 
 `packages/renderer-pixi/src/effects/backgrounds/SoftHexCellFieldWorld.ts`
 
-The candidate layers two analytic variable-size hex fields at different scales/depths, adds per-cell pastel variation, dark/muted cells, beveled edge shading, selective facet glints, slow parallax and true black gaps.
+The rejected v1 shader used two screen-space hex masks and allowed footprint variation large enough to create ugly accidental voids.
+
+The current candidate uses a **true packed axial hex grid** with pointy-top spacing, explicit 3D prism heights, a perspective look-at camera, depth sorting, six side faces per prism, top caps, bevel rings and selective highlights. Footprint variance is deliberately narrow so black channels remain controlled rather than becoming giant holes.
+
+### Website rendering benchmark used for the rebuild
+
+The user's `Graph1ks/website` repository was inspected before rebuilding WORLD_05/06. Its strongest lesson is architectural rather than stylistic: the website's Circuit Grid does not fake 3D with a screen-space warp. It owns world coordinates, camera projection, relief, depth ordering and independent motion, while the fullscreen shader backgrounds use volumetric/raymarched or layered structural techniques.
+
+WORLD_05/06 now follow that same standard inside E-MO:
+
+- explicit world-space geometry;
+- explicit camera/perspective projection;
+- depth sorting/occlusion;
+- autonomous geometry motion independent from raw audio;
+- audio reserved primarily for light/material response.
 
 ## Research notes
 
