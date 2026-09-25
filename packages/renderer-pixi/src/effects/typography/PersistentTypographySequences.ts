@@ -171,15 +171,36 @@ export class PersistentTypographySequences {
       lineEndIndex: this.phraseEndLine,
     });
     const metricsById: Record<string, TypographySpatialMetrics> = {};
-    const metricStyle = this.styleFor("solid");
+    const solidMetricStyle = this.styleFor("solid");
+    const outlineMetricStyle = persistentStructure
+      ? undefined
+      : this.styleFor("outline");
     for (const scopeWord of window.scopeWords) {
       let metrics = this.scopeMetrics.get(scopeWord.id);
       if (!metrics) {
-        metrics = measureTypographyText(
+        const solid = measureTypographyText(
           scopeWord.text.toUpperCase(),
-          metricStyle,
+          solidMetricStyle,
           Math.max(2, this.baseFontSize * 0.035),
         );
+        if (outlineMetricStyle) {
+          const outline = measureTypographyText(
+            scopeWord.text.toUpperCase(),
+            outlineMetricStyle,
+            Math.max(2, this.baseFontSize * 0.035),
+          );
+          metrics = {
+            width: Math.max(solid.width, outline.width),
+            height: Math.max(solid.height, outline.height),
+            advanceWidth: Math.max(solid.advanceWidth, outline.advanceWidth),
+            lineHeight: Math.max(solid.lineHeight, outline.lineHeight),
+            ascent: Math.max(solid.ascent, outline.ascent),
+            descent: Math.max(solid.descent, outline.descent),
+            padding: Math.max(solid.padding, outline.padding),
+          };
+        } else {
+          metrics = solid;
+        }
         this.scopeMetrics.set(scopeWord.id, metrics);
       }
       metricsById[scopeWord.id] = metrics;
