@@ -1,8 +1,8 @@
 # Handover
 
-**Last updated:** 2026-09-25  
-**Merged baseline:** `1ba05e51ce0424077326ad9d0f61fd072ff0a4df`  
-**Active candidate:** `feat/legacy-world-rehab-art-direction` — draft PR #78  
+**Last updated:** 2026-09-26  
+**Merged baseline:** `7611eb4d57bb03559b5d8866c961ced7f9d895e0`  
+**Active candidate:** `feat/rebuild-laser-canopy-sparks` — draft PR #79  
 **Current phase/milestone:** legacy world/background rehabilitation
 
 ## Current objective
@@ -64,7 +64,7 @@ The Color Director remains the art-direction source of truth:
 6. full palette/readability acceptance across 0–300% World Power;
 7. only then resume WORLD_09/10.
 
-### Legacy rehabilitation implementation state — PR #74–#77 merged; Art Direction active
+### Legacy rehabilitation implementation state — PR #74–#78 merged; Laser/Sparks rejection rebuild active
 
 - Phase A audit is durable in `docs/LEGACY_WORLD_MOTION_AUDIT.md` and classifies all 15 legacy presets before further rebuilds.
 - `WorldAudioReactivity` is now the allocation-light legacy adapter: attack/release-smoothed bands, rising-edge transient event, positive decay envelope, long-energy envelope and seek/discontinuity reset.
@@ -82,8 +82,10 @@ The Color Director remains the art-direction source of truth:
 - All five consume semantic `VisualPalette` roles. Geometry/phase/direction are timestamp-owned; smoothed legacy audio only affects light/material response, and Rays uses the positive transient envelope for light only. Full-frame post-FX barrel/displacement/smear sampling distance is also time-owned so global FX cannot reintroduce bass-driven scene breathing.
 - All five remain **visual-acceptance pending**; do not describe them as fidelity-accepted until real browser/Desktop review passes.
 - Fidelity escalation is now explicit in `docs/WORLD_BACKGROUND_REHABILITATION_PLAN.md`: continuous media/spatial worlds must use shader/projected-3D/Mesh primitives appropriate to their identity instead of primitive `Graphics` stand-ins; `Graph1ks/website` remains the internal quality benchmark.\n- PR #76 continues that floor: `spectrum` is now a projected real-FFT frequency topography rather than another minimal waveform, and `sparks` is a deterministic ballistic/trail system whose transient envelope gates fresh emission rather than whole-scene motion. The old generic spark/spectrum layers are disabled for those preset IDs.\n- PR #77 continued the same gate: `lyrics` uses real Text objects in a perspective corridor with analytic one-way z travel, semantic palette treatment and explicit resource destruction; `minimal` is a fullscreen procedural precision composition with deliberate negative space, an asymmetric material plane, optical slit/horizon structure and detail-scaled micro-registration. Both preset IDs are isolated from the generic legacy stack.
-- Draft PR #78 completes the remaining four legacy visual identities as dedicated specialized worlds: `editorial` uses a fullscreen modular layout/material shader with registration/crop structure; `print` uses layered rotated halftone screens and mechanical misregistration; `architecture` uses time-owned perspective corridor depth with repeated frames/pillars/arches/recesses; `aurora` uses procedural multi-layer curtain density and folded-volume lighting. The old `ArtDirectionWorlds` Graphics collection is no longer active runtime ownership for those IDs.
-- Once PR #78 is merged, the remaining implementation milestone is the two-way readability path: per-world `WorldColorContext` must feed contrast-safe typography treatment with smoothing and polarity hysteresis before WORLD_09/10 resumes.
+- PR #78 completed the remaining four legacy visual identities as dedicated specialized worlds: `editorial`, `print`, `architecture` and `aurora`; the old `ArtDirectionWorlds` Graphics collection is no longer active runtime ownership for those IDs.
+- Real-display review then rejected two other world identities: WORLD_02 `laser-canopy-grid` was still a flat 2D beam fan rather than a spatial disco canopy, and legacy `sparks` still read as four repeating fountain/firework sources.
+- Draft PR #79 rebuilds both from first principles: Laser Canopy uses explicit projected 3D room coordinates, perspective floor/truss depth and woven transverse/longitudinal/diagonal beams; Sparks uses a fullscreen procedural multi-direction flow field with no fixed emitters, no ballistic fountain grammar and transient response restricted to hot emission.
+- After PR #79 and visual acceptance, the remaining pre-WORLD_09/10 architecture milestone is the two-way readability path: per-world `WorldColorContext` must feed contrast-safe typography treatment with smoothing and polarity hysteresis.
 
 ## Merged baseline — Resource lifetime + physical-edge safety v0.11.2
 
