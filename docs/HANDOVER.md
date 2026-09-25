@@ -2,12 +2,12 @@
 
 **Last updated:** 2026-09-25  
 **Merged baseline:** `9b9cbedf33193bf156ae2dc33d0dff0a4383144a`  
-**Active candidate:** none  
+**Active candidate:** `fix/dev-runtime-color-variety-v0.8`  
 **Current phase/milestone:** v0.8 lyric-scene composition + color direction
 
 ## Current objective
 
-Use the merged composition/readability QA gate alongside real-track acceptance for the first Step 4 worlds.
+Land the dev-runtime startup fix and Color Canvas polarity layer, then resume real-track acceptance of the Step 4 worlds.
 
 ## Current implementation state
 
@@ -104,10 +104,15 @@ The candidate changes two foundational contracts before adding more visual world
 **Color direction**
 
 - emotion-named creative presets: Tender, Heartbreak, Longing, Euphoria, Rage, Dream, Tension, Calm;
-- darkest background colors use very low chroma so warm palettes no longer become persistent brown;
 - harmony remains independent from mood;
-- Rainbow Drift rotates hue at 2.4°/s from lyric time, preserves harmony, and keeps readable text/background restrained;
-- UI exposes mood and Rainbow Drift; project defaults persist both.
+- active candidate adds a third independent axis: **Color Canvas**;
+- `night`: near-neutral dark field + light tinted type;
+- `paper`: light softly tinted field + dark colored type;
+- `color-field`: deep chromatic field + light tinted type;
+- `poster`: brighter chromatic field + dark colored type;
+- AUTO holds a canvas choice for three lyric lines before deterministic transition;
+- Rainbow Drift rotates hue at 2.4°/s and now respects the chosen canvas polarity;
+- UI/project defaults persist mood, harmony, canvas and flow independently.
 
 Research and exact product rules are in `docs/VISUAL_READABILITY_COLOR_RULES.md`.
 
@@ -136,6 +141,29 @@ This does **not** replace real visual acceptance. It catches geometric regressio
 
 Manual acceptance is documented in `docs/VISUAL_ACCEPTANCE_MATRIX.md`.
 
+### Active local-development fix
+
+The React app always probes `/api/runtime`. Vite proxies that to `127.0.0.1:3040`.
+
+Previously root `npm run dev` only launched Vite, so a missing runtime caused:
+
+```text
+[vite] http proxy error: /api/runtime
+Error: connect ECONNREFUSED 127.0.0.1:3040
+```
+
+The candidate changes root development orchestration:
+
+1. build shared packages/server;
+2. reuse an already-valid E-MO runtime if one exists;
+3. otherwise start the Node runtime;
+4. wait until `/api/runtime` is healthy;
+5. then start Vite.
+
+`npm run dev:web` remains intentionally web-only for split-process debugging. The default `projects/` root is created automatically when no explicit root is configured.
+
+See `docs/DEVELOPMENT_RUNTIME.md`.
+
 ## Important files / entry points
 
 | Path | Why it matters |
@@ -144,7 +172,7 @@ Manual acceptance is documented in `docs/VISUAL_ACCEPTANCE_MATRIX.md`.
 | `packages/engine-core/src/typographyComposition.ts` | pure word composition planner |
 | `packages/engine-core/src/typographyMotionGrammar.ts` | pure timestamp-driven composition-motion evaluator |
 | `docs/COMPOSITION_MOTION_GRAMMAR.md` | motion grammar contract, transform ownership and tuning notes |
-| `packages/engine-core/src/colorHarmony.ts` | OKLCH conversion + harmony + lyric mood palette director |
+| `packages/engine-core/src/colorHarmony.ts` | OKLCH conversion + harmony + mood + Color Canvas palette director |
 | `docs/VISUAL_READABILITY_COLOR_RULES.md` | source-backed readability/color rules and non-goals |
 | `packages/renderer-pixi/src/effects/typography/KineticLyrics.ts` | composition + glyph-motion consumer |
 | `packages/renderer-pixi/src/effects/backgrounds/CinematicBackground.ts` | background routing / legacy layer coordination |
@@ -153,7 +181,9 @@ Manual acceptance is documented in `docs/VISUAL_ACCEPTANCE_MATRIX.md`.
 | `docs/VISUAL_ACCEPTANCE_MATRIX.md` | automated viewport matrix + real-track visual acceptance checklist |
 | `packages/renderer-pixi/src/render/EngineRenderer.ts` | composition/palette orchestration |
 | `apps/web/src/App.tsx` | Visual Director controls |
-| `docs/PROJECT_FORMAT.md` | persisted layout/harmony defaults |
+| `docs/PROJECT_FORMAT.md` | persisted layout/harmony/canvas defaults |
+| `scripts/dev.mjs` | waits for runtime health before starting Vite |
+| `docs/DEVELOPMENT_RUNTIME.md` | local runtime/Vite orchestration contract |
 
 ## Known risks / pending acceptance
 
@@ -178,10 +208,11 @@ Windows packaging remains a separate required gate.
 
 ## Next concrete work
 
-1. Visually accept Editorial / Print / Architecture / Aurora on real Enhanced LRC tracks.
-2. Test dense lyrics at desktop + narrow/mobile sizes.
-3. Add the next distinct world only after identifying a missing visual grammar.
-4. Complete remaining typography primitives and then stabilize scene-stack serialization.
+1. Get the active dev-runtime + Color Canvas candidate through Linux + Windows CI.
+2. Test AUTO canvas changes across real songs; confirm Paper/Poster genuinely use dark typography and light/chromatic fields.
+3. Resume Editorial / Print / Architecture / Aurora acceptance and dense mobile lyric testing.
+4. Add the next distinct world only after identifying a missing visual grammar.
+5. Complete remaining typography primitives and then stabilize scene-stack serialization.
 
 ## Resume instruction
 

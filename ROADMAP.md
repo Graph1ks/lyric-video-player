@@ -85,7 +85,10 @@
 - lyric mood color presets — complete baseline
 - low-chroma dark background roles / brown-background fix — complete baseline
 - deterministic Rainbow Drift — complete baseline
-- next after merge: distinct art-direction worlds
+- Color Canvas Night / Paper / Color Field / Poster — active candidate
+- chapter-stable Color Canvas AUTO routing — active candidate
+- local runtime-before-Vite dev orchestration — active candidate
+- next: real-track color/world acceptance
 
 ## Milestone 0.7 — Scene project format
 - scene JSON

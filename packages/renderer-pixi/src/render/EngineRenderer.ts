@@ -4,6 +4,8 @@ import { createVisualPalette, SceneDirector } from "@graph1ks/emo-engine-core";
 import type {
   BackgroundPreset,
   BackgroundPresetId,
+  ColorCanvasId,
+  ColorCanvasMode,
   ColorFlowMode,
   ColorHarmonyId,
   ColorMoodId,
@@ -55,6 +57,7 @@ export class EngineRenderer {
   private quality: QualityMode = "cinema";
   private colorHarmony: ColorHarmonyMode = "auto";
   private colorMood: ColorMoodMode = "auto";
+  private colorCanvas: ColorCanvasMode = "auto";
   private colorFlow: ColorFlowMode = "static";
   private lastLineIndex = -1;
   private intensity = 1;
@@ -149,6 +152,7 @@ export class EngineRenderer {
     return createVisualPalette({
       harmony: this.colorHarmony,
       mood: this.colorMood,
+      canvas: this.colorCanvas,
       scene: this.activeMode,
       lineIndex: this.lastLineIndex,
       hueShift: this.colorFlow === "rainbow" ? this.lastLyricTime * 2.4 : 0,
@@ -170,10 +174,33 @@ export class EngineRenderer {
     return createVisualPalette({
       harmony: this.colorHarmony,
       mood: this.colorMood,
+      canvas: this.colorCanvas,
       scene: this.activeMode,
       lineIndex: this.lastLineIndex,
       hueShift: this.colorFlow === "rainbow" ? this.lastLyricTime * 2.4 : 0,
     }).resolvedMood;
+  }
+
+  setColorCanvas(canvas: ColorCanvasMode) {
+    if (this.colorCanvas === canvas) return;
+    this.colorCanvas = canvas;
+    this.renderGraph.resetFeedback();
+    this.refreshPalette(this.lastLyricTime);
+  }
+
+  getColorCanvas() {
+    return this.colorCanvas;
+  }
+
+  getResolvedColorCanvas(): ColorCanvasId {
+    return createVisualPalette({
+      harmony: this.colorHarmony,
+      mood: this.colorMood,
+      canvas: this.colorCanvas,
+      scene: this.activeMode,
+      lineIndex: this.lastLineIndex,
+      hueShift: this.colorFlow === "rainbow" ? this.lastLyricTime * 2.4 : 0,
+    }).resolvedCanvas;
   }
 
   setColorFlow(flow: ColorFlowMode) {
@@ -398,6 +425,7 @@ export class EngineRenderer {
     const palette = createVisualPalette({
       harmony: this.colorHarmony,
       mood: this.colorMood,
+      canvas: this.colorCanvas,
       scene: this.activeMode,
       lineIndex: this.lastLineIndex,
       hueShift: this.colorFlow === "rainbow" ? time * 2.4 : 0,
@@ -406,11 +434,13 @@ export class EngineRenderer {
     this.lyrics.setPalette(palette, !dynamic);
     this.host?.setAttribute("data-harmony", palette.resolvedHarmony);
     this.host?.setAttribute("data-mood", palette.resolvedMood);
+    this.host?.setAttribute("data-color-canvas", palette.resolvedCanvas);
     this.host?.setAttribute("data-color-flow", this.colorFlow);
 
     const key = [
       palette.resolvedHarmony,
       palette.resolvedMood,
+      palette.resolvedCanvas,
       Math.round(palette.baseHue * 10),
       palette.background,
       palette.textPrimary,

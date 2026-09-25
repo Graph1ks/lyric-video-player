@@ -113,13 +113,21 @@ The Color Director exposes lyric-oriented creative presets:
 
 These presets select a base OKLCH region and tonal/chroma profile. Harmony remains a separate control, so "Heartbreak + Analogous" and "Heartbreak + Complement" are distinct valid palettes.
 
-### 5. No muddy dark backgrounds
+### 5. Canvas style controls scene polarity
 
-Hue should live primarily in accents, glow and surfaces.
+Mood and harmony alone are not enough: they can still produce the same dark-canvas/light-type look repeatedly.
 
-The darkest background role is intentionally near-neutral and very low chroma. This prevents dark orange/red palettes from collapsing into persistent muddy brown.
+E-MO therefore exposes an independent Color Canvas layer:
 
-Primary lyric text must retain the existing contrast floor.
+- **Night** — near-neutral dark field, light/tinted text;
+- **Paper** — light softly tinted field, dark colored type;
+- **Color Field** — deep chromatic field, light tinted type;
+- **Poster** — brighter chromatic field, dark colored type;
+- **Auto** — holds one canvas style for a small multi-line chapter, then changes deterministically.
+
+Night keeps very low chroma in the darkest field, which prevents warm palettes from collapsing into persistent muddy brown. The other canvas styles deliberately allow the background itself to carry color.
+
+All canvas styles keep the primary lyric contrast floor.
 
 ### 6. Rainbow means slow spectrum drift, not rainbow soup
 
@@ -127,13 +135,14 @@ Rainbow Drift:
 
 - rotates the palette hue slowly over time;
 - preserves the selected harmony relationship;
-- keeps the dark background low-chroma;
-- leaves primary readable text near-neutral;
-- makes accents/glow carry most visible hue movement;
+- preserves the selected Color Canvas polarity;
+- keeps Night backgrounds restrained;
+- lets Paper / Color Field / Poster move as one coherent color field;
+- keeps readable text contrast-safe and avoids simultaneous multi-hue "rainbow soup";
 - is timestamp-derived, so seeking remains deterministic.
 
 Current baseline rate: **2.4 degrees/second** (about 150 seconds for a full hue rotation).
 
 ### 7. AUTO remains deterministic
 
-Mood, harmony, composition and motion AUTO routing must be reproducible from scene/cue/time state. No history-dependent random layout or color decisions are permitted.
+Mood, harmony, Color Canvas, composition and motion AUTO routing must be reproducible from scene/cue/time state. No history-dependent random layout or color decisions are permitted.

@@ -88,6 +88,7 @@ test("emo.project/v1 selects nested media and carries visual defaults", async ()
         backgroundPreset: "editorial",
         colorHarmony: "split-complement",
         colorMood: "heartbreak",
+        colorCanvas: "paper",
         colorFlow: "rainbow",
         intensity: 1.25,
         quality: "cinema",
@@ -107,6 +108,7 @@ test("emo.project/v1 selects nested media and carries visual defaults", async ()
     assert.equal(found.manifest?.defaults?.backgroundPreset, "editorial");
     assert.equal(found.manifest?.defaults?.colorHarmony, "split-complement");
     assert.equal(found.manifest?.defaults?.colorMood, "heartbreak");
+    assert.equal(found.manifest?.defaults?.colorCanvas, "paper");
     assert.equal(found.manifest?.defaults?.colorFlow, "rainbow");
     assert.equal(found.manifest?.defaults?.syncMs, 80);
     assert.ok(found.assets.some(asset => asset.relativePath.endsWith("assets/cover.webp")));
@@ -170,6 +172,13 @@ test("emo.project/v1 rejects traversal and invalid visual defaults", () => {
     lyrics: "lyrics.lrc",
     defaults: { colorMood: "unknown" },
   })), /colorMood is invalid/);
+
+  assert.throws(() => parseProjectManifest(JSON.stringify({
+    schema: "emo.project/v1",
+    audio: "track.mp3",
+    lyrics: "lyrics.lrc",
+    defaults: { colorCanvas: "mud" },
+  })), /colorCanvas is invalid/);
 
   assert.throws(() => parseProjectManifest(JSON.stringify({
     schema: "emo.project/v1",

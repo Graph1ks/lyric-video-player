@@ -5,6 +5,8 @@ import {
   contrastRatio,
   createVisualPalette,
   oklchToHex,
+  relativeLuminance,
+  resolveColorCanvas,
   resolveColorHarmony,
 } from "../packages/engine-core/dist/index.js";
 
@@ -50,12 +52,14 @@ test("lyric mood palettes keep dark fields near-neutral instead of muddy brown",
   const rage = createVisualPalette({
     harmony: "split-complement",
     mood: "rage",
+    canvas: "night",
     scene: "poster",
     lineIndex: 0,
   });
   const tension = createVisualPalette({
     harmony: "complement",
     mood: "tension",
+    canvas: "night",
     scene: "poster",
     lineIndex: 1,
   });
@@ -93,4 +97,53 @@ test("rainbow hue drift moves accents gradually while preserving contrast", () =
   assert.ok(Math.abs(a.baseHue - b.baseHue) <= 3);
   assert.ok(b.primaryContrast >= 7);
   assert.ok(b.secondaryContrast >= 4.5);
+});
+
+
+test("canvas styles provide real light/dark/color-field variation with readable text", () => {
+  const night = createVisualPalette({
+    harmony: "split-complement",
+    mood: "dream",
+    canvas: "night",
+    scene: "neon",
+    lineIndex: 2,
+  });
+  const paper = createVisualPalette({
+    harmony: "split-complement",
+    mood: "dream",
+    canvas: "paper",
+    scene: "neon",
+    lineIndex: 2,
+  });
+  const field = createVisualPalette({
+    harmony: "split-complement",
+    mood: "dream",
+    canvas: "color-field",
+    scene: "neon",
+    lineIndex: 2,
+  });
+  const poster = createVisualPalette({
+    harmony: "split-complement",
+    mood: "dream",
+    canvas: "poster",
+    scene: "neon",
+    lineIndex: 2,
+  });
+
+  assert.ok(relativeLuminance(paper.background) > relativeLuminance(night.background) + 0.5);
+  assert.ok(relativeLuminance(poster.background) > relativeLuminance(field.background));
+  assert.ok(relativeLuminance(paper.textPrimary) < relativeLuminance(paper.background));
+  assert.ok(relativeLuminance(poster.textPrimary) < relativeLuminance(poster.background));
+  assert.ok(relativeLuminance(night.textPrimary) > relativeLuminance(night.background));
+  assert.ok(relativeLuminance(field.textPrimary) > relativeLuminance(field.background));
+
+  for (const palette of [night, paper, field, poster]) {
+    assert.ok(palette.primaryContrast >= 7);
+    assert.ok(palette.secondaryContrast >= 4.5);
+  }
+});
+
+test("AUTO canvas changes in stable multi-line chapters instead of every cue", () => {
+  assert.equal(resolveColorCanvas("auto", "poster", 0), resolveColorCanvas("auto", "poster", 2));
+  assert.notEqual(resolveColorCanvas("auto", "poster", 2), resolveColorCanvas("auto", "poster", 3));
 });

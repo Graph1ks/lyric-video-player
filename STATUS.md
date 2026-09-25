@@ -2,12 +2,12 @@
 
 **Last updated:** 2026-09-25  
 **Last known good merged baseline:** `9b9cbedf33193bf156ae2dc33d0dff0a4383144a`  
-**Active candidate:** none  
+**Active candidate:** `fix/dev-runtime-color-variety-v0.8`  
 **Current phase/milestone:** v0.8 lyric-scene composition + color direction
 
 ## Current objective
 
-Use the merged visual-readability matrix for real-track acceptance and narrow/mobile tuning of the Step 4 art-direction worlds.
+Remove the remaining local-dev startup race and broaden color polarity so AUTO no longer collapses into white type on near-black backgrounds.
 
 ## Current state
 
@@ -52,7 +52,13 @@ Use the merged visual-readability matrix for real-track acceptance and narrow/mo
 - Split Stage no longer alternates consecutive cues left/right across the frame.
 - Color Director adds lyric-oriented mood presets: Tender, Heartbreak, Longing, Euphoria, Rage, Dream, Tension and Calm.
 - Dark background roles are now deliberately near-neutral/low-chroma to prevent persistent muddy brown fields.
-- Optional Rainbow Drift rotates hue slowly from explicit lyric time while primary text/background remain restrained.
+- Optional Rainbow Drift rotates hue slowly from explicit lyric time.
+- Active candidate adds independent **Color Canvas** styles: Night, Paper, Color Field and Poster.
+- Color Canvas AUTO changes only in stable three-line chapters, giving obvious dark/light/chromatic variation without flickering every cue.
+- Paper/Poster use dark colored typography on light/chromatic fields; Night/Color Field use light tinted typography with the same contrast contract.
+- Rainbow Drift becomes canvas-aware: Night stays restrained while Paper/Color Field/Poster can shift the coherent background field itself.
+- Root `npm run dev` now owns runtime startup, waits for `/api/runtime`, then starts Vite; this removes the normal `ECONNREFUSED 127.0.0.1:3040` startup race.
+- Default server mode creates the repository `projects/` root when no explicit project root is configured.
 - Step 4 now includes four merged large-scale **Art Direction Worlds**:
   - Editorial — asymmetric plates, bars and framing marks;
   - Print — halftone field, print bands and registration-like texture;
@@ -61,7 +67,7 @@ Use the merged visual-readability matrix for real-track acceptance and narrow/mo
 - Art worlds consume semantic OKLCH palette roles and preserve a quiet central lyric region.
 - Selecting an art world suppresses generic blob/particle/ring/beam layers so the new worlds do not collapse back into the same ambient-particle look.
 - AUTO background routing now gives the new worlds first-class exposure in Poster/Neon/Vortex families.
-- Active QA candidate adds reusable composition assessment (bounds, overflow, collision pairs, overlap ratio) and a viewport stress matrix covering desktop, laptop, portrait and mobile classes.
+- Reusable composition assessment (bounds, overflow, collision pairs, overlap ratio) and a viewport stress matrix cover desktop, laptop, portrait and mobile classes.
 
 ## Last verified checks
 
@@ -79,10 +85,10 @@ Use the merged visual-readability matrix for real-track acceptance and narrow/mo
 
 ## Next concrete action
 
-1. Visually accept Editorial / Print / Architecture / Aurora on real Enhanced LRC tracks using `docs/VISUAL_ACCEPTANCE_MATRIX.md`.
-2. Tune composition/layout/grammar combinations on narrow/mobile viewports.
-3. Add only genuinely distinct next worlds after the first four pass visual acceptance.
-4. Finish remaining typography primitives and scene-stack serialization.
+1. Get the dev-runtime + Color Canvas candidate green on Linux and Windows.
+2. Visually verify AUTO moves through Color Field / Night / Paper / Poster without rapid flicker and keeps lyric contrast.
+3. Continue real-track acceptance of Editorial / Print / Architecture / Aurora.
+4. Tune narrow/mobile composition combinations, then finish remaining typography primitives and scene-stack serialization.
 
 ## Do not redo
 
@@ -102,5 +108,6 @@ Use the merged visual-readability matrix for real-track acceptance and narrow/mo
 - There is no claimed scientific "golden center"; E-MO uses a deliberate central attention field informed by title-safe practice and documented center-bias research.
 - Current layout baseline is Latin/LTR. Full bidi/RTL typography remains future work.
 - See `docs/VISUAL_READABILITY_COLOR_RULES.md` for source-backed rules and product decisions.
+- See `docs/DEVELOPMENT_RUNTIME.md` for the runtime/Vite startup contract and the meaning of proxy `ECONNREFUSED`.
 
 For implementation order, read `docs/LYRIC_VISUALIZATION_ENGINE_PLAN.md`.

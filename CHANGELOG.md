@@ -38,6 +38,8 @@ Git history remains the complete technical history. This file records meaningful
 - Slow timestamp-derived Rainbow Drift for restrained spectrum movement.
 - Central lyric attention field and collision-aware composition stabilization.
 - Dedicated Step 4 art-direction worlds: Editorial, Print, Architecture and Aurora.
+- Color Canvas polarity modes: Night, Paper, Color Field and Poster, plus deterministic AUTO chapters.
+- Root development orchestrator that starts/health-checks the Node runtime before Vite.
 
 ### Changed
 
@@ -50,9 +52,10 @@ Git history remains the complete technical history. This file records meaningful
 - Typography composition is now independent from glyph animation, allowing fixed 90°/editorial stage layouts while glyph effects continue inside each word.
 - Primary lyric and background layers now share one generated OKLCH palette contract.
 - Whole-layout motion is separated from fixed composition targets and glyph animation; all three layers remain independently selectable and timestamp-driven.
-- Dark palette backgrounds now use near-neutral low chroma; saturation is concentrated in accents/surfaces to avoid persistent muddy brown fields.
+- Night palette backgrounds use near-neutral low chroma to avoid muddy brown fields; Paper, Color Field and Poster deliberately introduce light and chromatic canvases instead of forcing every scene into dark mode.
 - AUTO word layouts preserve LTR row progression and limit vertical words to logical edge accents instead of arbitrary zig-zag cue paths.
 - Dedicated art-direction worlds suppress generic ambient particle/blob/ring/beam layers so their large-scale composition remains visually distinct.
+- Root `npm run dev` no longer starts Vite before its `/api` runtime dependency is available; `npm run dev:web` preserves the explicit web-only workflow.
 - GSAP remains excluded because the planned visual-editor direction could intersect its visual-animation-builder restriction.
 
 ### Security / Privacy
