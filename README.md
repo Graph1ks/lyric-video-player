@@ -16,7 +16,7 @@ Frame-critical motion remains outside React. PixiJS, Web Audio and the E-MO cloc
 
 - MP3 / M4A / AAC playback
 - local drag-and-drop audio + Enhanced LRC
-- server/Desktop project loading from a configured directory
+- server/Desktop project loading from a configured directory\n- optional `emo.project/v1` manifest with nested media/assets and reproducible visual defaults
 - Enhanced LRC line timestamps, word timestamps, offsets and line-only fallback timing
 - manual live lyric-sync trim
 - bass / mid / treble / energy / transient analysis
@@ -108,7 +108,7 @@ After building:
 node apps/server/dist/index.js --root /path/to/projects
 ```
 
-A project root can either itself contain a project or contain project directories. Current automatic discovery recognizes audio + Enhanced LRC, or an explicit `emo.project.json` manifest.
+A project root can either itself contain a project or contain project directories. Automatic discovery recognizes audio + Enhanced LRC. For explicit/nested projects, `emo.project.json` now supports the versioned `emo.project/v1` schema.
 
 Example:
 
@@ -120,7 +120,7 @@ projects/
     assets/
 ```
 
-The server confines reads to the configured root and serves media with byte-range support for seeking.
+The server confines reads to the configured root and serves media with byte-range support for seeking. See `docs/PROJECT_FORMAT.md` for the manifest schema and path-security rules.
 
 ## Desktop
 
@@ -147,7 +147,7 @@ The desktop renderer has no Node integration. Native directory selection is expo
 4. multi-pass RenderTexture compositor and ping-pong feedback
 5. displacement, velocity smear and stronger bloom/glow
 6. selector-driven typography system
-7. scene/project JSON and timeline/editor surfaces
+7. timeline/editor surfaces on top of the new `emo.project/v1` project schema
 8. offline fixed-frame rendering/export architecture
 
 ## Licensing

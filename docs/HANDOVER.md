@@ -1,81 +1,65 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `ae49c1cd761266d48f2cd296bd28e0f86b8d39dc`  
-**Active candidate:** PR #4 — `architecture/react-electron-v0.5`  
-**Current phase/milestone:** v0.5 cross-platform application cutover
+**Merged baseline:** `000b6ddd04a0e08b1724ab98e900796056ed52a3`  
+**Active candidate:** `feature/project-manifest-v1`  
+**Current phase/milestone:** v0.5 project model stabilization
 
 ## Current objective
 
-Finish and accept the React/server/Electron platform cutover without changing frame-critical motion semantics. After visual/Desktop acceptance, remove the temporary legacy root application and return to RenderTexture/post-FX/editor work.
+Finish the first stable E-MO project schema so browser/server/Desktop loading can address explicit nested assets and reproduce player defaults without weakening filesystem confinement.
 
 ## Current implementation state
 
-### Shared packages
+### Merged platform
 
-- `packages/engine-core`: Enhanced LRC, cue/visual types, deterministic Scene Director, math/easing primitives, generic Clock and FixedFrameClock.
-- `packages/audio-web`: local/URL audio loading, Web Audio analysis and HtmlAudioClock.
-- `packages/renderer-pixi`: Pixi renderer, camera, typography, backgrounds and cinematic post-FX.
-- `packages/app-contracts`: shared project/runtime/Desktop bridge contracts.
-- `packages/platform-node`: root-confined project discovery.
-- `packages/platform-web`: hosted project client, media URLs, lyric fetch and dropped-file classification.
+- React 19 / Vite 8 application shell is merged.
+- PixiJS remains outside React's frame-critical state path.
+- Node `EmoServer` serves the React build, project metadata and byte-range media.
+- Electron starts the same server on loopback with a sandboxed renderer and typed preload folder picker.
+- Windows packaging CI successfully produced NSIS and portable x64 artifacts.
 
-### Hosted runtime
+### Project manifest candidate
 
-`apps/server` now exports reusable `EmoServer` plus a CLI entry point. It serves the built app, runtime/project metadata and range-capable media from a configured project root.
+`feature/project-manifest-v1` adds:
 
-### React application
+- `emo.project/v1` typed contracts;
+- explicit audio and lyrics paths;
+- optional nested assets and preset files;
+- optional project display name;
+- optional visual mode, intensity, quality and sync defaults;
+- manifest path validation against absolute paths and traversal;
+- manifest-aware project discovery;
+- React application of manifest defaults during project load;
+- Node tests covering nested assets, defaults and traversal rejection.
 
-`apps/web` is the new application shell using the same dependency family already proven in RhymeLab:
-
-- React 19.3.0;
-- Vite 8.3.0;
-- Zustand 5.0.15;
-- TanStack Query 5.103.1;
-- Motion 13.4.0;
-- Base UI 1.8.0 available for accessible primitives;
-- TanStack Virtual available for future measured large-list needs;
-- Vitest 5.0.1.
-
-The existing player/HUD has been ported. Per-frame audio/renderer work remains imperative and bypasses React state.
-
-### Electron desktop
-
-`apps/desktop` starts the same E-MO server on an ephemeral loopback port and loads the same built React app. Security configuration:
-
-- `contextIsolation: true`;
-- `nodeIntegration: false`;
-- renderer sandbox enabled;
-- native directory selection only through preload IPC.
-
-The directory picker updates the server's project root and returns the new discovered project list. Packaging config defines Windows NSIS and portable x64 targets.
+Convention-mode folders remain supported and require no manifest.
 
 ## Important files / entry points
 
 | Path | Why it matters |
 |---|---|
-| `apps/web/src/App.tsx` | React player/app orchestration |
-| `apps/web/src/store.ts` | low-frequency UI/session state only |
-| `apps/server/src/server.ts` | shared hosted/Desktop loopback server |
-| `apps/desktop/src/main.ts` | Electron privileged process |
-| `apps/desktop/src/preload.ts` | narrow typed Desktop bridge |
-| `packages/engine-core/src/clock.ts` | live/export timing abstraction |
-| `packages/platform-node/src/index.ts` | root confinement/project discovery |
-| `packages/renderer-pixi/src/render/EngineRenderer.ts` | frame-critical rendering |
-| `docs/PLATFORM_ARCHITECTURE.md` | authoritative architecture |
+| `docs/PROJECT_FORMAT.md` | authoritative `emo.project/v1` schema |
+| `packages/app-contracts/src/index.ts` | shared manifest/project DTOs |
+| `packages/platform-node/src/index.ts` | validation, discovery and root confinement |
+| `apps/web/src/App.tsx` | applies project defaults on load |
+| `apps/server/src/server.ts` | serves discovered project/asset IDs |
+| `tests/workspace-boundaries.test.mjs` | manifest/security regression tests |
+| `apps/desktop/src/main.ts` | Electron project-root selection |
+| `packages/renderer-pixi/src/render/EngineRenderer.ts` | frame-critical renderer |
 
 ## Known risks / pending acceptance
 
-- Electron packaging configuration compiles but a real Windows NSIS/portable artifact still requires a packaging smoke test.
-- The React HUD needs owner visual acceptance; automated type/build tests do not prove presentation quality.
-- Safari and codec-specific M4A behavior remain real-device work.
-- The legacy root Vite app remains intentionally until the React cutover is accepted.
-- No lockfile is committed yet.
-- Current post-FX remains single-pass; ping-pong feedback/RenderTexture composition is postponed until platform cutover acceptance.
+- Manifest schema is intentionally small; scene timelines/effect graphs are not yet represented.
+- A malformed manifest currently makes discovery fail loudly rather than silently falling back to convention mode.
+- Electron artifacts are mechanically packaged but still need human runtime/visual smoke testing on Windows.
+- React HUD still needs owner visual acceptance.
+- Safari/M4A behavior remains real-device work.
+- The root legacy Vite app is still present as a temporary compatibility surface.
 
 ## Verification
 
-Automated repository gate:
+Repository gate:
 
 ```text
 npm install --ignore-scripts --no-audit --no-fund
@@ -85,37 +69,25 @@ npm test
 python scripts/repo_audit.py
 ```
 
-Hosted smoke flow:
+Windows packaging gate:
 
 ```text
+npm install
 npm run build
-node apps/server/dist/index.js --root /path/to/projects
+npm --workspace @graph1ks/emo-desktop run dist
 ```
 
-Then open the printed loopback URL and verify project discovery/media seeking.
-
-Desktop development flow after a normal install that permits Electron's install script:
-
-```text
-npm run build
-npm --workspace @graph1ks/emo-desktop start -- --root /path/to/projects
-```
-
-Windows packaging target:
-
-```text
-npm run desktop:dist
-```
+Manifest regression coverage must include valid nested files/defaults plus traversal rejection.
 
 ## Next concrete work
 
-1. Merge PR #4 after final green CI.
-2. Visual/browser acceptance of React player.
-3. Windows Electron packaging smoke test.
-4. Make React/server surfaces canonical and delete old root UI only in a dedicated cleanup.
-5. Resume multi-pass RenderTexture/post-FX architecture.
-6. Begin editor/timeline work only on top of the accepted app/platform boundaries.
+1. Merge the manifest candidate only after green Linux validation.
+2. Load a real manifest project in hosted mode and Electron.
+3. Complete owner visual/interaction acceptance of the React cutover.
+4. Retire the root legacy UI in its own cleanup PR.
+5. Add project-owned scene/effect data only when the editor/render-graph model is ready.
+6. Resume RenderTexture composition and selector-driven typography.
 
 ## Resume instruction
 
-Read `AGENTS.md`, `PROJECT.md`, `STATUS.md`, this file, `docs/PLATFORM_ARCHITECTURE.md`, and `docs/DECISIONS.md`. Then inspect PR #4/current main CI before changing code.
+Read `AGENTS.md`, `PROJECT.md`, `STATUS.md`, this file, `docs/PROJECT_FORMAT.md`, `docs/PLATFORM_ARCHITECTURE.md`, and `docs/DECISIONS.md`. Then inspect current main/PR CI before changing project or renderer contracts.

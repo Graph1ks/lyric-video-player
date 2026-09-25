@@ -5,7 +5,7 @@ import { join } from "node:path";
 import test from "node:test";
 
 import { ELRCParser, FixedFrameClock, SceneDirector } from "../packages/engine-core/dist/index.js";
-import { discoverProjects, resolveInsideRoot } from "../packages/platform-node/dist/index.js";
+import { discoverProjects, parseProjectManifest, resolveInsideRoot } from "../packages/platform-node/dist/index.js";
 
 test("Enhanced LRC parser preserves word timing and metadata", () => {
   const parsed = new ELRCParser().parse([
@@ -43,7 +43,7 @@ test("director maps repeated hooks deterministically", () => {
   assert.equal(director.sceneFor(2).reason, "hook");
 });
 
-test("node project adapter discovers projects and rejects root escape", async () => {
+test("node project adapter discovers convention-based projects and rejects root escape", async () => {
   const root = await mkdtemp(join(tmpdir(), "emo-platform-"));
   try {
     const project = join(root, "song-a");
@@ -61,4 +61,57 @@ test("node project adapter discovers projects and rejects root escape", async ()
   } finally {
     await rm(root, { recursive: true, force: true });
   }
+});
+
+test("emo.project/v1 selects nested media and carries visual defaults", async () => {
+  const root = await mkdtemp(join(tmpdir(), "emo-manifest-"));
+  try {
+    const project = join(root, "manifest-song");
+    await mkdir(join(project, "media"), { recursive: true });
+    await mkdir(join(project, "lyrics"), { recursive: true });
+    await mkdir(join(project, "assets"), { recursive: true });
+    await writeFile(join(project, "media", "mix.m4a"), "audio");
+    await writeFile(join(project, "lyrics", "enhanced.lrc"), "[00:00.00]manifest");
+    await writeFile(join(project, "assets", "cover.webp"), "image");
+
+    await writeFile(join(project, "emo.project.json"), JSON.stringify({
+      schema: "emo.project/v1",
+      name: "Manifest Song",
+      audio: "media/mix.m4a",
+      lyrics: "lyrics/enhanced.lrc",
+      assets: ["assets/cover.webp"],
+      defaults: {
+        visualMode: "vortex",
+        intensity: 1.25,
+        quality: "cinema",
+        syncMs: 80,
+      },
+    }, null, 2));
+
+    const [found] = await discoverProjects(root);
+    assert.equal(found.name, "Manifest Song");
+    assert.equal(found.manifest?.schema, "emo.project/v1");
+    assert.equal(found.audio?.relativePath, "manifest-song/media/mix.m4a");
+    assert.equal(found.lyrics?.relativePath, "manifest-song/lyrics/enhanced.lrc");
+    assert.equal(found.manifest?.defaults?.visualMode, "vortex");
+    assert.equal(found.manifest?.defaults?.syncMs, 80);
+    assert.ok(found.assets.some(asset => asset.relativePath.endsWith("assets/cover.webp")));
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("emo.project/v1 rejects traversal and invalid visual defaults", () => {
+  assert.throws(() => parseProjectManifest(JSON.stringify({
+    schema: "emo.project/v1",
+    audio: "../outside.mp3",
+    lyrics: "lyrics.lrc",
+  })), /must stay inside the project directory/);
+
+  assert.throws(() => parseProjectManifest(JSON.stringify({
+    schema: "emo.project/v1",
+    audio: "track.mp3",
+    lyrics: "lyrics.lrc",
+    defaults: { visualMode: "unknown" },
+  })), /visualMode is invalid/);
 });
