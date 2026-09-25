@@ -35,6 +35,7 @@ import {
   type VisualPalette,
   type WordCue,
 } from "@graph1ks/emo-engine-core";
+import { measureTypographyText } from "./TypographyMetrics.js";
 
 interface GlyphVisual {
   node: Text;
@@ -51,6 +52,7 @@ interface WordVisual {
   motion: Container;
   glyphs: GlyphVisual[];
   width: number;
+  height: number;
   baseX: number;
   baseY: number;
   layoutScale: number;
@@ -477,7 +479,13 @@ export class KineticLyrics {
         globalIndex += 1;
       });
 
-      const width = Math.max(1, cursor);
+      const measured = measureTypographyText(
+        cue.text.toUpperCase(),
+        this.mainStyle,
+        Math.max(2, this.fontSize * 0.028),
+      );
+      const width = Math.max(1, cursor, measured.width);
+      const height = Math.max(1, measured.height);
       glyphs.forEach(glyph => {
         glyph.baseX -= width * 0.5;
         glyph.node.x = glyph.baseX;
@@ -492,6 +500,7 @@ export class KineticLyrics {
         motion,
         glyphs,
         width,
+        height,
         baseX: 0,
         baseY: 0,
         layoutScale: 1,
@@ -1046,12 +1055,40 @@ export class KineticLyrics {
         glyph.baseX = cursor + half;
         cursor += glyph.node.width + Math.max(-1, this.fontSize * -0.018);
       }
-      word.width = Math.max(1, cursor);
+      const measured = measureTypographyText(
+        word.cue.text.toUpperCase(),
+        this.mainStyle,
+        Math.max(2, this.fontSize * 0.028),
+      );
+      const previousCenteringWidth = Math.max(1, cursor);
+      word.width = Math.max(previousCenteringWidth, measured.width);
+      word.height = Math.max(1, measured.height);
       word.glyphs.forEach(glyph => {
-        glyph.baseX -= word.width * 0.5;
+        glyph.baseX -= previousCenteringWidth * 0.5;
         glyph.node.x = glyph.baseX;
       });
     }
+  }
+
+  private spatialMotionEnvelope() {
+    const preset = this.resolvedPreset;
+    const base = preset === "tunnel"
+      ? { x: 1.18, y: 1.18 }
+      : preset === "elastic"
+        ? { x: 1.14, y: 1.12 }
+        : preset === "wave"
+          ? { x: 1.08, y: 1.16 }
+          : preset === "glitch"
+            ? { x: 1.12, y: 1.08 }
+            : preset === "scatter"
+              ? { x: 1.1, y: 1.1 }
+              : { x: 1.055, y: 1.055 };
+
+    const sceneBoost = this.mode === "vortex" ? 1.045 : 1;
+    return {
+      x: base.x * sceneBoost,
+      y: base.y * sceneBoost,
+    };
   }
 
   private layout() {
@@ -1063,8 +1100,9 @@ export class KineticLyrics {
       width: this.w,
       height: this.h,
       lineIndex: this.lineIndex,
-      wordWidths: this.words.map(word => word.width),
-      wordHeight: this.fontSize,
+      wordWidths: this.words.map(word => word.width * this.spatialMotionEnvelope().x),
+      wordHeights: this.words.map(word => word.height * this.spatialMotionEnvelope().y),
+      wordHeight: this.fontSize * this.spatialMotionEnvelope().y,
       wordTexts: this.words.map(word => word.cue.text),
     });
     this.resolvedLayout = plan.layout;

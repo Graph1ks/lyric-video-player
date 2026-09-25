@@ -2,7 +2,7 @@
 
 **Status:** merged baseline — PR #48 / `40a5f29a078f1983285dea984ef468f98efa23ec`  
 **Started:** 2026-09-25  
-**Scope:** correct calligram semantics, architectural kinetic typography, and final output-edge safety.
+**Scope:** correct calligram semantics, progressive page typography, shared spatial metrics, and final output-edge safety.
 
 ## Terminology correction
 
@@ -37,25 +37,29 @@ The silhouette rotates deterministically from phrase scope.
 
 ### Packing contract
 
-The pure engine generates a fixed phrase-wide slot field from:
+v0.11.1 replaces anonymous phrase slots with a measured spatial solver.
 
-- silhouette family;
-- phrase-scope word count;
-- viewport dimensions.
+For every phrase word, the renderer measures the exact active font/style and passes a renderer-independent metric record into engine-core:
 
-The phrase's `scopeOrdinal` maps each lyric word to one stable slot.
+- measured width and height;
+- advance width;
+- line height;
+- font ascent/descent;
+- stroke/readability padding.
 
-This matters because slots must **not** move when later words become visible.
+The engine converts those metrics into rotated spatial boxes before placement.
 
-Each slot provides:
+Shape Fill then follows the same broad placement principles used by established JavaScript word-cloud engines:
 
-- center position;
-- maximum width;
-- maximum height;
-- optional 90° orientation;
-- deterministic priority.
+- evaluate real word extents;
+- maintain occupied space;
+- search candidate locations inside the mask;
+- reject collisions;
+- reduce scale and retry when a word cannot fit.
 
-Pixi measures the actual text texture and scales it to fit its allotted slot. Placement geometry therefore remains pure/deterministic while real font metrics are respected at render time.
+Unlike a generic word cloud, lyric tokens are **never intentionally dropped**. The entire directed phrase is reserved up front, so already-visible words do not move merely because later lyrics reveal.
+
+Tree / Star / Figure remain deterministic phrase-scope masks.
 
 ### Readability
 
@@ -68,53 +72,52 @@ Shape Fill is structural:
 
 ## Manifesto Wall
 
-New sequence grammar:
+Sequence grammar:
 
 ```text
 manifesto-wall
 ```
 
-This is inspired by architectural kinetic typography such as the linked *V for Vendetta* kinetic-type treatment: words become physical compositional blocks rather than ordinary lines.
+The corrected target is **not a pre-existing masonry poster**.
 
-### Masonry model
+Think of an initially blank book/editorial page. As the vocal progresses, the page writes itself one word at a time:
 
-The phrase owns one large rectangular wall region.
+- most words are horizontal;
+- a minority become ±90° editorial brackets/marginal columns;
+- size varies moderately, with occasional anchor words;
+- landed words remain in their reserved position;
+- unrevealed future words already own invisible space, so the page does not reflow under the viewer.
 
-A deterministic recursive subdivision splits that wall into exactly the phrase's word count.
+### Progressive page composer
 
-The resulting slots vary in size and aspect ratio:
+The complete directed phrase is measured and reserved before reveal.
 
-- wide slots become headline / anchor blocks;
-- small slots become connective words;
-- tall narrow slots become ±90° bracket / column words.
+The composer lays chronological words into an editorial shelf/page model. It scales the whole page down only as much as required to fit the full phrase, then keeps those positions immutable.
 
-Because subdivision uses full phrase scope, already-landed words never reflow merely because new words arrive.
+At runtime, the visible plan contains only words whose LRC time has arrived. The visual result therefore starts empty and progressively becomes a written page.
+
+Manual Director selection extends Manifesto across deterministic 12-line page chapters so the writing can continue substantially longer than the ordinary four-line Director phrase. At the chapter boundary the engine turns to a fresh empty page. AUTO Manifesto remains phrase-scoped so automatic art direction can still transition into other grammars.
 
 ### Arrival grammar
 
-The active word uses a short rigid arrival:
+The active word receives a short rigid snap/slotted entry:
 
-- slide/drop from one of four deterministic directions;
-- slight initial rotation;
-- direct ease into final slot during roughly the first 18% of the cue;
-- no elastic bounce;
-- no continuous float after landing.
-
-Once landed, the word becomes part of the wall.
-
-This produces the desired typesetting / composing-tray / masonry feeling rather than a stream of individually animated floating words.
+- small deterministic x/y offset;
+- very slight rotation offset;
+- fast ease into its pre-reserved page position;
+- no elastic bounce after landing.
 
 ### Camera behavior
 
-Manifesto Wall allows stronger focus following than Shape Fill because the camera should read across the constructed wall.
+The camera reads across the growing page rather than dragging the page around arbitrarily.
 
-However:
+It combines:
 
-- audio impulses remain heavily bounded;
-- micro-motion is deliberately low;
-- the block architecture remains primary.
+- the active word focus;
+- the spatial envelope of all currently revealed words;
+- a fit-scale limit derived from that envelope.
 
-Shape Fill stays wider and follows active slots only weakly so the silhouette is not destroyed by camera reframing.
+Manifesto can use subtle perspective-like skew and rotation for an angled/3D page feeling, but micro-motion remains low and the revealed page remains recoverable in frame.
 
 ## Edge safety
 
@@ -150,14 +153,27 @@ Vignette remains a deliberate image treatment and sits over an opaque world.
 
 ## Research framing
 
-Useful terminology found during the design pass:
+The spatial implementation intentionally learns from established browser word-cloud techniques without taking on a new runtime dependency.
 
-- **packed word art / packed word cloud** — large words claim space and smaller words fill remaining interior gaps;
-- **calligram / typographic silhouette** — text is used as material to create a recognizable image;
-- **kinetic typography** — moving type synchronized to speech/music and meaning;
-- the linked YouTube ID `Otv5ywOa-8U` is indexed as *V (V for Vendetta Kinetic Typography)* and is widely referenced as a kinetic-typography example.
+**d3-cloud** measures/rasterizes words, represents their occupied pixels as sprite/bit masks, and searches candidate positions along a spiral until a collision-free placement is found.
 
-The runtime implementation does not reproduce another artist's exact layout. It implements the general compositional grammar: rigid word-by-word arrival, scale hierarchy, rotated structural words, dense negative-space packing and camera-guided reading.
+**wordcloud2.js** similarly measures each word on its own canvas, records occupied grid cells, and searches nearest candidate points; it also implements shrink-to-fit behavior.
+
+E-MO adapts the useful principles:
+
+- measured word geometry;
+- occupied-space collision checks;
+- nearest-free candidate search;
+- deterministic shrink/retry.
+
+It changes the generic word-cloud contract in two important ways:
+
+1. placement must be deterministic from lyric/project data;
+2. a lyric word must never be silently discarded because packing failed.
+
+Pixi's `CanvasTextMetrics` is used to match renderer font/style geometry. Native Canvas `TextMetrics.actualBoundingBox*` is also sampled where available so glyph ink that extends beyond nominal advance width is included in the collision envelope.
+
+The current engine uses conservative rotated AABBs for fast runtime collision. It does not yet perform full per-glyph pixel-mask collision; that remains an optional future density optimization if visual acceptance shows it is necessary.
 
 ## Compatibility
 
@@ -173,9 +189,9 @@ The implementation baseline is merged and CI-verified. Verify on real tracks/dis
 - no visible rectangular scanline/grain/bloom boundary;
 - Tree / Star / Figure read as filled silhouettes, not perimeter paths;
 - existing words stay spatially stable while Shape Fill grows;
-- Manifesto Wall feels rigid and architectural rather than bouncy;
-- at least some Manifesto slots resolve as obvious 90° bracket words;
-- large wall slots create visibly dominant anchor words;
-- camera follows Manifesto reading focus without destroying the wall;
+- Manifesto Wall starts empty and progressively writes a stable editorial page rather than appearing as a pre-built block;
+- Manifesto stays mostly horizontal while occasional short words resolve as 90° editorial brackets;
+- moderate size variation and occasional anchor words create hierarchy without destroying page flow;
+- camera follows Manifesto reading focus while keeping the growing page envelope recoverable;
 - Rapid/Burst lyrics remain readable while still snapping into place;
 - manual Director selection and AUTO selection both expose the new grammars.

@@ -4,8 +4,65 @@ import test from "node:test";
 import {
   deriveTypographySequenceWindow,
   planTypographySequence,
+  resolveManifestoPageScope,
+  spatialBoxFor,
+  spatialBoxesOverlap,
   typographyWordId,
 } from "../packages/engine-core/dist/index.js";
+
+function spatialMetricsFor(window) {
+  return Object.fromEntries(window.scopeWords.map((word, index) => {
+    const width = Math.max(72, word.text.length * (48 + (index % 3) * 7));
+    const height = 82 + (index % 4) * 11;
+    return [word.id, {
+      width,
+      height,
+      advanceWidth: width,
+      lineHeight: height,
+      ascent: height * 0.78,
+      descent: height * 0.22,
+      padding: 5,
+    }];
+  }));
+}
+
+function assertNoSpatialOverlap(plan, metricsById, message) {
+  const boxes = plan.words
+    .filter(word => word.role !== "incoming")
+    .map(word => ({
+      id: word.id,
+      box: spatialBoxFor(metricsById[word.id], word, 1),
+    }));
+  for (let a = 0; a < boxes.length; a++) {
+    for (let b = a + 1; b < boxes.length; b++) {
+      assert.equal(
+        spatialBoxesOverlap(boxes[a].box, boxes[b].box),
+        false,
+        `${message}: ${boxes[a].id} overlapped ${boxes[b].id}`,
+      );
+    }
+  }
+}
+
+function manifestoLines(wordCount = 24) {
+  const words = Array.from({ length: wordCount }, (_, index) => ({
+    start: index * 0.45,
+    end: index * 0.45 + 0.42,
+    text: index % 6 === 0
+      ? "REVOLUTION"
+      : index % 5 === 0
+        ? "VIGILANT"
+        : index % 3 === 0
+          ? "VOICE"
+          : `WORD${index}`,
+  }));
+  return [{
+    start: 0,
+    end: wordCount * 0.45 + 0.1,
+    text: words.map(word => word.text).join(" "),
+    words,
+  }];
+}
 
 function lines() {
   return [
@@ -157,7 +214,7 @@ test("spiral depth travels continuously across a word handoff", () => {
 });
 
 
-test("Shape Fill packs stable words inside a silhouette instead of tracing a border", () => {
+test("Shape Fill packs measured words into stable non-overlapping silhouette space", () => {
   const source = lines();
   const earlyWindow = deriveTypographySequenceWindow(source, 1.1, {
     historySeconds: 10,
@@ -169,30 +226,34 @@ test("Shape Fill packs stable words inside a silhouette instead of tracing a bor
     lineStartIndex: 0,
     lineEndIndex: 1,
   });
+  const metrics = spatialMetricsFor(earlyWindow);
   const early = planTypographySequence({
     grammar: "shape-fill",
     window: earlyWindow,
     width: 1280,
     height: 720,
+    metricsById: metrics,
   });
   const later = planTypographySequence({
     grammar: "shape-fill",
     window: laterWindow,
     width: 1280,
     height: 720,
+    metricsById: metrics,
   });
 
   assert.equal(early.variant, "shape-tree");
   assert.equal(earlyWindow.scopeWordCount, 6);
+  assert.equal(earlyWindow.scopeWords.length, 6);
   const stableId = typographyWordId(0, 0);
   const a = early.words.find(word => word.id === stableId);
   const b = later.words.find(word => word.id === stableId);
   assert.ok(a && b);
   assert.ok(Math.abs(a.x - b.x) < 0.001);
   assert.ok(Math.abs(a.y - b.y) < 0.001);
-  assert.ok(a.maxWidth > 0 && a.maxHeight > 0);
+  assert.ok(a.scale > 0);
   assert.equal(a.treatment, "solid");
-  assert.ok(early.words.some(word => Math.abs(word.x) < 1280 * 0.2));
+  assertNoSpatialOverlap(later, metrics, "Shape Fill");
 });
 
 test("Shape Fill rotates through star/figure silhouette families by phrase scope", () => {
@@ -201,16 +262,19 @@ test("Shape Fill rotates through star/figure silhouette families by phrase scope
     lineStartIndex: 1,
     lineEndIndex: 1,
   });
+  const metrics = spatialMetricsFor(starWindow);
   const star = planTypographySequence({
     grammar: "shape-fill",
     window: starWindow,
     width: 1280,
     height: 720,
+    metricsById: metrics,
   });
 
   assert.equal(star.variant, "shape-star");
   assert.ok(star.words.length >= 2);
-  assert.ok(star.words.every(word => word.maxWidth > 0 && word.maxHeight > 0));
+  assert.ok(star.words.every(word => word.scale > 0));
+  assertNoSpatialOverlap(star, metrics, "Shape Fill star");
 });
 
 test("legacy Shape Build id resolves through the new filled-silhouette planner", () => {
@@ -224,63 +288,132 @@ test("legacy Shape Build id resolves through the new filled-silhouette planner",
     window,
     width: 1280,
     height: 720,
+    metricsById: spatialMetricsFor(window),
   });
 
   assert.equal(plan.variant, "shape-tree");
   assert.ok(plan.words.every(word => word.treatment === "solid"));
 });
 
-test("Manifesto Wall creates stable masonry boxes with vertical bracket slots", () => {
-  const window = deriveTypographySequenceWindow(lines(), 2.3, {
-    historySeconds: 10,
+test("Manifesto Wall reserves a progressive editorial page before words reveal", () => {
+  const source = manifestoLines();
+  const earlyWindow = deriveTypographySequenceWindow(source, 1.2, {
+    historySeconds: 100,
+    leadSeconds: 0.08,
     lineStartIndex: 0,
-    lineEndIndex: 1,
+    lineEndIndex: 0,
+    maxWords: 64,
   });
-  const plan = planTypographySequence({
+  const lateWindow = deriveTypographySequenceWindow(source, 8.4, {
+    historySeconds: 100,
+    leadSeconds: 0.08,
+    lineStartIndex: 0,
+    lineEndIndex: 0,
+    maxWords: 64,
+  });
+  const metrics = spatialMetricsFor(earlyWindow);
+  const early = planTypographySequence({
     grammar: "manifesto-wall",
-    window,
-    width: 1280,
-    height: 720,
+    window: earlyWindow,
+    width: 1600,
+    height: 900,
+    metricsById: metrics,
+  });
+  const late = planTypographySequence({
+    grammar: "manifesto-wall",
+    window: lateWindow,
+    width: 1600,
+    height: 900,
+    metricsById: metrics,
   });
 
-  assert.equal(plan.variant, "masonry");
-  assert.ok(plan.words.length >= 4);
-  assert.ok(plan.words.every(word => word.maxWidth > 0 && word.maxHeight > 0));
-  assert.ok(plan.words.some(word => Math.abs(word.rotation) > 1));
+  assert.equal(early.variant, "editorial-page");
+  assert.equal(earlyWindow.scopeWords.length, 24);
+  assert.ok(early.words.length < late.words.length, "page should reveal progressively");
+
+  const firstId = typographyWordId(0, 0);
+  const firstEarly = early.words.find(word => word.id === firstId);
+  const firstLate = late.words.find(word => word.id === firstId);
+  assert.ok(firstEarly && firstLate);
+  assert.ok(Math.abs(firstEarly.x - firstLate.x) < 0.001);
+  assert.ok(Math.abs(firstEarly.y - firstLate.y) < 0.001);
+
+  const horizontal = late.words.filter(word => Math.abs(word.rotation) < 0.2).length;
+  const vertical = late.words.filter(word => Math.abs(word.rotation) > 1.2).length;
+  assert.ok(horizontal > vertical, "Manifesto should remain mostly horizontal");
+  assert.ok(vertical >= 1, "Manifesto should reserve occasional 90-degree bracket words");
 });
 
-test("Manifesto Wall stamps the active word into its slot without bounce", () => {
-  const source = lines();
-  const earlyWindow = deriveTypographySequenceWindow(source, 2.01, {
-    historySeconds: 10,
+test("Manifesto Wall active word snaps into its reserved page slot without bounce", () => {
+  const source = manifestoLines(12);
+  const earlyWindow = deriveTypographySequenceWindow(source, 1.81, {
+    historySeconds: 100,
     lineStartIndex: 0,
-    lineEndIndex: 1,
+    lineEndIndex: 0,
+    maxWords: 32,
   });
-  const settledWindow = deriveTypographySequenceWindow(source, 2.2, {
-    historySeconds: 10,
+  const settledWindow = deriveTypographySequenceWindow(source, 2.05, {
+    historySeconds: 100,
     lineStartIndex: 0,
-    lineEndIndex: 1,
+    lineEndIndex: 0,
+    maxWords: 32,
   });
+  const metrics = spatialMetricsFor(earlyWindow);
   const early = planTypographySequence({
     grammar: "manifesto-wall",
     window: earlyWindow,
     width: 1920,
     height: 1080,
+    metricsById: metrics,
   });
   const settled = planTypographySequence({
     grammar: "manifesto-wall",
     window: settledWindow,
     width: 1920,
     height: 1080,
+    metricsById: metrics,
   });
 
-  const id = typographyWordId(1, 0);
+  const id = typographyWordId(0, 4);
   const a = early.words.find(word => word.id === id);
   const b = settled.words.find(word => word.id === id);
   assert.ok(a && b);
-  assert.ok(Math.hypot(a.x - b.x, a.y - b.y) > 5);
-  assert.ok(Math.abs(b.scale - 1) < 0.001);
-  assert.equal(b.alpha, 1);
+  assert.ok(Math.hypot(a.x - b.x, a.y - b.y) > 1);
+  assert.ok(b.alpha >= a.alpha);
+});
+
+test("Spiral Depth uses measured extents to prevent long-word overlap", () => {
+  const source = manifestoLines(14);
+  const window = deriveTypographySequenceWindow(source, 5.8, {
+    historySeconds: 100,
+    maxWords: 24,
+  });
+  const metrics = spatialMetricsFor(window);
+  const plan = planTypographySequence({
+    grammar: "spiral-depth",
+    window,
+    width: 1920,
+    height: 1080,
+    metricsById: metrics,
+  });
+  assertNoSpatialOverlap(plan, metrics, "Spiral Depth");
+});
+
+test("Ribbon Path uses measured extents to keep words separated on the curve", () => {
+  const source = manifestoLines(14);
+  const window = deriveTypographySequenceWindow(source, 5.8, {
+    historySeconds: 100,
+    maxWords: 24,
+  });
+  const metrics = spatialMetricsFor(window);
+  const plan = planTypographySequence({
+    grammar: "ribbon-path",
+    window,
+    width: 1920,
+    height: 1080,
+    metricsById: metrics,
+  });
+  assertNoSpatialOverlap(plan, metrics, "Ribbon Path");
 });
 
 test("Ribbon Path preserves motion continuity across active-word handoff", () => {
@@ -297,17 +430,20 @@ test("Ribbon Path preserves motion continuity across active-word handoff", () =>
     lineStartIndex: 0,
     lineEndIndex: 1,
   });
+  const metrics = spatialMetricsFor(beforeWindow);
   const before = planTypographySequence({
     grammar: "ribbon-path",
     window: beforeWindow,
     width: 1920,
     height: 1080,
+    metricsById: metrics,
   });
   const after = planTypographySequence({
     grammar: "ribbon-path",
     window: afterWindow,
     width: 1920,
     height: 1080,
+    metricsById: metrics,
   });
 
   assert.equal(before.variant, "s-curve");
@@ -318,4 +454,12 @@ test("Ribbon Path preserves motion continuity across active-word handoff", () =>
   const travel = Math.hypot(a.x - b.x, a.y - b.y);
   assert.ok(travel < 100, `ribbon handoff travel was ${travel}px`);
   assert.ok(Math.abs(a.scale - b.scale) < 0.2);
+});
+
+
+test("manual Manifesto page scope continues across ordinary four-line Director phrases", () => {
+  assert.deepEqual(resolveManifestoPageScope(0, 28), { startLine: 0, endLine: 11 });
+  assert.deepEqual(resolveManifestoPageScope(7, 28), { startLine: 0, endLine: 11 });
+  assert.deepEqual(resolveManifestoPageScope(12, 28), { startLine: 12, endLine: 23 });
+  assert.deepEqual(resolveManifestoPageScope(27, 28), { startLine: 24, endLine: 27 });
 });

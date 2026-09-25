@@ -31,7 +31,7 @@ export interface DirectedScene {
 const TYPOGRAPHY_BUNDLES: Record<SceneMode, CinematicTypographyDirection[]> = {
   poster: [
     { family: "impact-editorial", typographyPreset: "impact", layout: "editorial", motion: "takeover", sequenceGrammar: "hero-echo" },
-    { family: "manifesto-masonry", typographyPreset: "impact", layout: "editorial", motion: "panel", sequenceGrammar: "manifesto-wall" },
+    { family: "manifesto-page", typographyPreset: "impact", layout: "editorial", motion: "panel", sequenceGrammar: "manifesto-wall" },
     { family: "calligram-fill", typographyPreset: "cascade", layout: "split-stage", motion: "anchor-build", sequenceGrammar: "shape-fill" },
     { family: "outline-panel", typographyPreset: "outline", layout: "center-stack", motion: "panel" },
   ],

@@ -1,9 +1,18 @@
 import { clamp, lerp } from "./math.js";
 import {
-  buildManifestoSlots,
-  buildShapeFillSlots,
+  buildManifestoPageLayout,
+  buildShapeFillLayout,
   shapeFillVariantForScope,
+  type TypographyMetricsById,
+  type TypographyPackingSlot,
 } from "./typographyShapePacking.js";
+import {
+  fitSpatialScale,
+  normalizeSpatialMetrics,
+  spatialBoxFor,
+  spatialBoxesOverlap,
+  type TypographySpatialBox,
+} from "./typographySpatial.js";
 import type {
   SequenceWordRef,
   TypographySequenceWindow,
@@ -25,7 +34,7 @@ export type TypographySequenceVariant =
   | "shape-tree"
   | "shape-star"
   | "shape-figure"
-  | "masonry"
+  | "editorial-page"
   | "s-curve"
   | "frame"
   | "ring";
@@ -56,6 +65,8 @@ export interface TypographySequencePlanInput {
   window: TypographySequenceWindow;
   width: number;
   height: number;
+  metricsById?: TypographyMetricsById;
+  staticLayout?: ReadonlyMap<string, TypographyPackingSlot>;
 }
 
 export function planTypographySequence(
@@ -83,31 +94,110 @@ function planSpiralDepth(input: TypographySequencePlanInput): TypographySequence
     ? clamp((input.window.time - active.start) / Math.max(0.04, active.end - active.start))
     : 0;
   const maxDepthUnits = 13;
+  const occupied: TypographySpatialBox[] = [];
+  const placements: TypographySequencePlacement[] = [];
+  let cumulativeDepth = activeProgress;
 
-  const placements = visible.map((word, rank) => {
-    const depthUnits = rank + activeProgress;
-    const depth = clamp(depthUnits / maxDepthUnits);
-    const angle = -Math.PI * 0.16 - depthUnits * 0.64;
-    const radius = minDimension * lerp(0.255, 0.028, Math.pow(depth, 0.8));
-    const isActive = word.role === "active";
-    const recent = word.role === "recent";
-    const scale = lerp(1.42, 0.17, Math.pow(depth, 0.7));
-    const alpha = isActive
-      ? 1
-      : clamp(lerp(recent ? 0.84 : 0.64, 0.07, Math.pow(depth, 0.9)), 0.06, 0.9);
+  for (let rank = 0; rank < visible.length; rank++) {
+    const word = visible[rank];
+    const metrics = normalizeSpatialMetrics(input.metricsById?.[word.id], word.text);
 
-    return {
-      id: word.id,
-      role: word.role,
-      x: Math.cos(angle) * radius * Math.min(1.55, width / minDimension),
-      y: Math.sin(angle) * radius * 0.78,
-      scale,
-      rotation: isActive ? 0 : normalizeAngle(angle + Math.PI * 0.5) * 0.72,
-      alpha,
-      zIndex: Math.max(1, maxDepthUnits * 10 - Math.round(depthUnits * 10)),
-      treatment: isActive || recent ? "solid" : "outline",
-    } satisfies TypographySequencePlacement;
-  });
+    if (rank > 0) {
+      const previous = visible[rank - 1];
+      const previousMetrics = normalizeSpatialMetrics(input.metricsById?.[previous.id], previous.text);
+      const projectedExtent = (
+        Math.max(previousMetrics.width, previousMetrics.height)
+        + Math.max(metrics.width, metrics.height)
+      ) * 0.5;
+      cumulativeDepth += clamp(projectedExtent / Math.max(1, minDimension) * 4.4, 0.72, 1.85);
+    }
+
+    let depthUnits = cumulativeDepth;
+    let chosen: TypographySequencePlacement | undefined;
+    let chosenBox: TypographySpatialBox | undefined;
+
+    for (let attempt = 0; attempt < 48; attempt++) {
+      const depth = clamp(depthUnits / maxDepthUnits);
+      const tail = Math.pow(0.88, Math.max(0, depthUnits - maxDepthUnits));
+      const angle = -Math.PI * 0.16 - depthUnits * 0.64;
+      const radius = minDimension * lerp(0.255, 0.028, Math.pow(depth, 0.8));
+      const isActive = word.role === "active";
+      const recent = word.role === "recent";
+      const scale = lerp(1.42, 0.17, Math.pow(depth, 0.7)) * tail;
+      const alpha = isActive
+        ? 1
+        : clamp(
+            lerp(recent ? 0.84 : 0.64, 0.07, Math.pow(depth, 0.9)) * Math.max(0.25, tail),
+            0.045,
+            0.9,
+          );
+      const rotation = isActive ? 0 : normalizeAngle(angle + Math.PI * 0.5) * 0.72;
+      const x = Math.cos(angle) * radius * Math.min(1.55, width / minDimension);
+      const y = Math.sin(angle) * radius * 0.78;
+      const box = spatialBoxFor(metrics, { x, y, scale, rotation }, Math.max(3, minDimension * 0.004));
+
+      if (!occupied.some(other => spatialBoxesOverlap(box, other))) {
+        chosen = {
+          id: word.id,
+          role: word.role,
+          x,
+          y,
+          scale,
+          rotation,
+          alpha,
+          zIndex: Math.max(1, maxDepthUnits * 10 - Math.round(depthUnits * 10)),
+          treatment: isActive || recent ? "solid" : "outline",
+        };
+        chosenBox = box;
+        break;
+      }
+
+      // Push older content deeper around the spiral rather than allowing screen-
+      // space overlap. The tail scale contracts if the phrase becomes dense.
+      depthUnits += 0.28 + attempt * 0.018;
+    }
+
+    if (!chosen) {
+      // Spiral history is explicitly allowed to retire toward the center. If a
+      // deep historical word cannot find a collision-free screen position after
+      // exhaustive depth search, omit that history copy rather than stacking it
+      // on top of another readable word. Active/recent content keeps searching.
+      if (word.role === "history") {
+        cumulativeDepth = depthUnits;
+        continue;
+      }
+
+      for (let emergency = 0; emergency < 48 && !chosen; emergency++) {
+        depthUnits += 0.34;
+        const depth = Math.max(maxDepthUnits, depthUnits);
+        const angle = -Math.PI * 0.16 - depth * 0.64;
+        const radius = minDimension * clamp(0.032 + emergency * 0.0018, 0.032, 0.11);
+        const scale = Math.max(0.035, 0.12 * Math.pow(0.9, emergency));
+        const rotation = normalizeAngle(angle + Math.PI * 0.5) * 0.72;
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(angle) * radius * 0.78;
+        const box = spatialBoxFor(metrics, { x, y, scale, rotation }, 1);
+        if (occupied.some(other => spatialBoxesOverlap(box, other))) continue;
+        chosen = {
+          id: word.id,
+          role: word.role,
+          x,
+          y,
+          scale,
+          rotation,
+          alpha: word.role === "active" ? 1 : 0.34,
+          zIndex: 2,
+          treatment: word.role === "active" ? "solid" : "outline",
+        };
+        chosenBox = box;
+      }
+    }
+
+    cumulativeDepth = depthUnits;
+    if (!chosen) continue;
+    if (chosenBox) occupied.push(chosenBox);
+    placements.push(chosen);
+  }
 
   return {
     grammar: "spiral-depth",
@@ -128,30 +218,54 @@ function planHeroEcho(input: TypographySequencePlanInput): TypographySequencePla
 
   const echoes = started.filter(word => word.id !== hero.id);
   const echoCount = Math.max(1, echoes.length);
-  const spacing = Math.min(height * 0.105, height * 0.66 / echoCount);
-  const startY = -spacing * (echoes.length - 1) * 0.5;
+  const heroMetrics = normalizeSpatialMetrics(input.metricsById?.[hero.id], hero.text);
+  const heroScale = fitSpatialScale(
+    heroMetrics,
+    width * 0.52,
+    height * 0.62,
+    0,
+    1.52,
+    0.42,
+    1.52,
+  );
 
   const placements: TypographySequencePlacement[] = [{
     id: hero.id,
     role: hero.role,
-    x: width * 0.15,
+    x: width * 0.16,
     y: 0,
-    scale: 1.52,
+    scale: heroScale,
     rotation: 0,
     alpha: 1,
     zIndex: echoCount + 2,
     treatment: "solid",
   }];
 
+  const echoAreaHeight = height * 0.72;
+  const rowHeight = echoAreaHeight / echoCount;
+  const startY = -echoAreaHeight * 0.5 + rowHeight * 0.5;
+
   echoes.forEach((word, index) => {
     const recency = 1 - index / Math.max(1, echoes.length - 1);
+    const metrics = normalizeSpatialMetrics(input.metricsById?.[word.id], word.text);
+    const desired = 0.62 + recency * 0.12;
+    const scale = fitSpatialScale(
+      metrics,
+      width * 0.37,
+      rowHeight * 0.82,
+      0,
+      desired,
+      0.09,
+      desired,
+    );
+
     placements.push({
       id: word.id,
       role: word.role,
-      x: -width * 0.225 + index * width * 0.003,
-      y: startY + index * spacing,
-      scale: 0.62 + recency * 0.12,
-      rotation: (index - echoes.length * 0.5) * 0.004,
+      x: -width * 0.235,
+      y: startY + index * rowHeight,
+      scale,
+      rotation: 0,
       alpha: clamp(0.12 + recency * 0.22, 0.1, 0.38),
       zIndex: echoCount - index,
       treatment: "outline",
@@ -170,9 +284,10 @@ function planShapeFill(input: TypographySequencePlanInput): TypographySequencePl
   const width = Math.max(1, input.width);
   const height = Math.max(1, input.height);
   const shapeVariant = shapeFillVariantForScope(input.window.scopeStartLineIndex);
-  const slots = buildShapeFillSlots(
+  const layout = input.staticLayout ?? buildShapeFillLayout(
     shapeVariant,
-    Math.max(1, input.window.scopeWordCount),
+    input.window.scopeWords,
+    input.metricsById ?? {},
     width,
     height,
   );
@@ -182,30 +297,31 @@ function planShapeFill(input: TypographySequencePlanInput): TypographySequencePl
   const active = visible.find(word => word.role === "active");
 
   const placements = visible.map(word => {
-    const slot = slots[word.scopeOrdinal % Math.max(1, slots.length)];
+    const slot = layout.get(word.id);
     const isActive = word.role === "active";
     const recent = word.role === "recent";
     const isIncoming = word.role === "incoming";
     const arrival = isIncoming ? 1 - clamp(word.age / 0.12) : 1;
+    const baseScale = slot?.scale ?? 0.5;
 
     return {
       id: word.id,
       role: word.role,
       x: slot?.x ?? 0,
       y: slot?.y ?? 0,
-      scale: isActive ? 1.06 : recent ? 1.02 : 1,
+      // Shape geometry is the composition: never grow a packed word beyond
+      // its collision-solved slot just because it becomes active.
+      scale: baseScale,
       rotation: slot?.rotation ?? 0,
       alpha: isActive
         ? 1
         : recent
-          ? 0.92
+          ? 0.94
           : isIncoming
-            ? 0.08 + arrival * 0.42
-            : 0.76,
+            ? 0.08 + arrival * 0.46
+            : 0.8,
       zIndex: isActive ? input.window.scopeWordCount + 10 : word.scopeOrdinal + 1,
       treatment: "solid",
-      maxWidth: slot?.width,
-      maxHeight: slot?.height,
     } satisfies TypographySequencePlacement;
   });
 
@@ -224,8 +340,9 @@ function planShapeFill(input: TypographySequencePlanInput): TypographySequencePl
 function planManifestoWall(input: TypographySequencePlanInput): TypographySequencePlan {
   const width = Math.max(1, input.width);
   const height = Math.max(1, input.height);
-  const slots = buildManifestoSlots(
-    Math.max(1, input.window.scopeWordCount),
+  const layout = input.staticLayout ?? buildManifestoPageLayout(
+    input.window.scopeWords,
+    input.metricsById ?? {},
     width,
     height,
   );
@@ -235,61 +352,44 @@ function planManifestoWall(input: TypographySequencePlanInput): TypographySequen
   const active = visible.find(word => word.role === "active");
 
   const placements = visible.map(word => {
-    const slot = slots[word.scopeOrdinal % Math.max(1, slots.length)];
+    const slot = layout.get(word.id);
     const finalX = slot?.x ?? 0;
     const finalY = slot?.y ?? 0;
     const finalRotation = slot?.rotation ?? 0;
+    const finalScale = slot?.scale ?? 0.7;
     const isActive = word.role === "active";
-    const recent = word.role === "recent";
     const incoming = word.role === "incoming";
     const cueProgress = isActive
       ? clamp((input.window.time - word.start) / Math.max(0.04, word.end - word.start))
       : incoming
         ? 0
         : 1;
-    const snapProgress = isActive ? clamp(cueProgress / 0.18) : incoming ? 0 : 1;
-    const snap = 1 - Math.pow(1 - snapProgress, 4);
-    const entryDistanceX = Math.max(slot?.width ?? width * 0.08, width * 0.055);
-    const entryDistanceY = Math.max(slot?.height ?? height * 0.08, height * 0.06);
+    const snapProgress = isActive ? clamp(cueProgress / 0.16) : incoming ? 0 : 1;
+    const snap = 1 - Math.pow(1 - snapProgress, 5);
+    const entryDistance = Math.max(18, Math.min(width, height) * 0.035);
     const direction = word.scopeOrdinal % 4;
-    const entryX = direction === 0
-      ? -entryDistanceX
-      : direction === 1
-        ? entryDistanceX
-        : 0;
-    const entryY = direction === 2
-      ? -entryDistanceY
-      : direction === 3
-        ? entryDistanceY
-        : 0;
-    const entryRotation = finalRotation + (
-      direction % 2 === 0 ? -0.055 : 0.055
-    );
+    const entryX = direction === 0 ? -entryDistance : direction === 1 ? entryDistance : 0;
+    const entryY = direction === 2 ? -entryDistance : direction === 3 ? entryDistance : 0;
+    const entryRotation = finalRotation + (direction % 2 === 0 ? -0.025 : 0.025);
 
     return {
       id: word.id,
       role: word.role,
       x: lerp(finalX + entryX, finalX, snap),
       y: lerp(finalY + entryY, finalY, snap),
-      scale: lerp(1.14, 1, snap),
+      // Stamp from slightly smaller into the reserved page slot. Scaling above
+      // the solved slot would create a transient collision with neighboring type.
+      scale: finalScale * lerp(0.92, 1, snap),
       rotation: lerp(entryRotation, finalRotation, snap),
-      alpha: incoming
-        ? 0
-        : isActive
-          ? clamp(snap * 1.7)
-          : recent
-            ? 0.96
-            : 0.82,
+      alpha: incoming ? 0 : isActive ? clamp(snap * 1.8) : 0.9,
       zIndex: isActive ? input.window.scopeWordCount + 20 : word.scopeOrdinal + 1,
       treatment: "solid",
-      maxWidth: slot?.width,
-      maxHeight: slot?.height,
     } satisfies TypographySequencePlacement;
   });
 
   return {
     grammar: "manifesto-wall",
-    variant: "masonry",
+    variant: "editorial-page",
     heroId: active?.id,
     words: placements,
   };
@@ -298,6 +398,7 @@ function planManifestoWall(input: TypographySequencePlanInput): TypographySequen
 function planRibbonPath(input: TypographySequencePlanInput): TypographySequencePlan {
   const width = Math.max(1, input.width);
   const height = Math.max(1, input.height);
+  const minDimension = Math.min(width, height);
   const started = input.window.words
     .filter(word => word.role !== "incoming")
     .sort(compareNewest)
@@ -306,54 +407,123 @@ function planRibbonPath(input: TypographySequencePlanInput): TypographySequenceP
   const activeProgress = active
     ? clamp((input.window.time - active.start) / Math.max(0.04, active.end - active.start))
     : 0;
-  const placements: TypographySequencePlacement[] = started.map((word, rank) => {
-    const units = rank + activeProgress;
-    const u = 0.74 - units * 0.075;
-    const point = pointOnRibbon(u, width, height);
-    const depth = clamp(units / 10);
-    const isActive = word.role === "active";
-    const recent = word.role === "recent";
-    const trailScale = lerp(recent ? 0.78 : 0.68, 0.34, depth);
-    const trailAlpha = lerp(recent ? 0.82 : 0.62, 0.07, depth);
-    // Position already hands off continuously through rank + activeProgress.
-    // Do the same for scale/alpha/orientation so the outgoing hero arrives at
-    // the exact visual state its rank-1 trail node will use after the boundary.
-    const scale = isActive ? lerp(1.14, 0.78, activeProgress) : trailScale;
-    const alpha = isActive ? lerp(1, 0.82, activeProgress) : trailAlpha;
-    const rotation = isActive
-      ? point.rotation * lerp(0.45, 1, activeProgress)
-      : point.rotation;
+  const placements: TypographySequencePlacement[] = [];
+  const occupied: TypographySpatialBox[] = [];
 
-    return {
-      id: word.id,
-      role: word.role,
-      x: point.x,
-      y: point.y,
-      scale,
-      rotation,
-      alpha,
-      zIndex: 100 - Math.round(units * 6),
-      treatment: isActive || recent ? "solid" : "outline",
-    };
-  });
-
+  // Give the imminent next word collision priority during the lead window.
+  // This makes the outgoing active word yield *before* the handoff, so the same
+  // spacing solution continues after the incoming word becomes rank 0.
   const incoming = input.window.words
     .filter(word => word.role === "incoming")
     .sort(compareChronological)[0];
+
   if (incoming) {
+    const metrics = normalizeSpatialMetrics(input.metricsById?.[incoming.id], incoming.text);
     const arrival = 1 - clamp(incoming.age / 0.12);
-    const point = pointOnRibbon(lerp(0.86, 0.74, arrival), width, height);
-    placements.push({
+    const u = lerp(0.86, 0.74, arrival);
+    const point = pointOnRibbon(u, width, height);
+    const scale = lerp(0.52, 0.82, arrival);
+    const placement: TypographySequencePlacement = {
       id: incoming.id,
       role: incoming.role,
       x: point.x,
       y: point.y,
-      scale: lerp(0.52, 0.82, arrival),
+      scale,
       rotation: point.rotation,
-      alpha: 0.06 + arrival * 0.18,
+      alpha: 0.04 + arrival * 0.2,
       zIndex: 104,
       treatment: "outline",
-    });
+    };
+    placements.push(placement);
+    occupied.push(spatialBoxFor(
+      metrics,
+      placement,
+      Math.max(2, minDimension * 0.0035),
+    ));
+  }
+
+  for (let rank = 0; rank < started.length; rank++) {
+    const word = started[rank];
+    const metrics = normalizeSpatialMetrics(input.metricsById?.[word.id], word.text);
+    const baseUnits = rank + activeProgress;
+    let u = 0.74 - baseUnits * 0.075;
+    let chosen: TypographySequencePlacement | undefined;
+    let chosenBox: TypographySpatialBox | undefined;
+
+    for (let attempt = 0; attempt < 28; attempt++) {
+      const extraDepth = attempt * 0.11;
+      const units = baseUnits + extraDepth;
+      const depth = clamp(units / 10);
+      const point = pointOnRibbon(u, width, height);
+      const isActive = word.role === "active";
+      const recent = word.role === "recent";
+      const trailScale = lerp(recent ? 0.78 : 0.68, 0.34, depth);
+      const trailAlpha = lerp(recent ? 0.82 : 0.62, 0.07, depth);
+      const scale = isActive ? lerp(1.14, 0.78, activeProgress) : trailScale;
+      const alpha = isActive ? lerp(1, 0.82, activeProgress) : trailAlpha;
+      const rotation = isActive
+        ? point.rotation * lerp(0.45, 1, activeProgress)
+        : point.rotation;
+      const box = spatialBoxFor(metrics, {
+        x: point.x,
+        y: point.y,
+        scale,
+        rotation,
+      }, Math.max(3, minDimension * 0.0045));
+
+      if (!occupied.some(other => spatialBoxesOverlap(box, other))) {
+        chosen = {
+          id: word.id,
+          role: word.role,
+          x: point.x,
+          y: point.y,
+          scale,
+          rotation,
+          alpha,
+          zIndex: 100 - Math.round(units * 6),
+          treatment: isActive || recent ? "solid" : "outline",
+        };
+        chosenBox = box;
+        break;
+      }
+
+      u -= 0.014 + attempt * 0.0011;
+    }
+
+    if (!chosen && word.role === "history") continue;
+
+    if (!chosen) {
+      // Active/recent words must remain present. Keep walking down the ribbon at
+      // reduced scale until a measured free footprint exists.
+      for (let emergency = 0; emergency < 40 && !chosen; emergency++) {
+        u -= 0.018;
+        const point = pointOnRibbon(u, width, height);
+        const scale = Math.max(0.16, 0.42 * Math.pow(0.94, emergency));
+        const box = spatialBoxFor(metrics, {
+          x: point.x,
+          y: point.y,
+          scale,
+          rotation: point.rotation,
+        }, 2);
+        if (occupied.some(other => spatialBoxesOverlap(box, other))) continue;
+        chosen = {
+          id: word.id,
+          role: word.role,
+          x: point.x,
+          y: point.y,
+          scale,
+          rotation: point.rotation,
+          alpha: word.role === "active" ? 0.9 : 0.58,
+          zIndex: 80 - emergency,
+          treatment: "solid",
+        };
+        chosenBox = box;
+      }
+    }
+
+    if (!chosen) continue;
+    placements.push(chosen);
+    if (chosenBox) occupied.push(chosenBox);
   }
 
   return {

@@ -2280,7 +2280,7 @@ kbd {
 }
 
 
-/* v0.11 sequence previews: filled silhouette vs architectural manifesto wall */
+/* v0.11 sequence previews: filled silhouette vs progressive editorial manifesto page */
 .director-miniature[data-preview="sequence-shape-fill"] {
   background: #070a0d;
 }
@@ -2306,24 +2306,33 @@ kbd {
     0 19px 0 rgba(255,255,255,.28);
 }
 .director-miniature[data-preview="sequence-manifesto"] {
-  background:
-    linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
-    linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px),
-    #0b0b0c;
-  background-size: 13px 13px;
+  background: #08090b;
 }
 .director-miniature[data-preview="sequence-manifesto"]::before {
   content: "";
   position: absolute;
-  inset: 9px 6px;
+  inset: 7px 8px;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 2px;
   background:
-    linear-gradient(90deg, rgba(255,255,255,.88) 0 42%, transparent 42% 44%, rgba(255,255,255,.42) 44% 100%) top / 100% 24% no-repeat,
-    linear-gradient(90deg, rgba(255,255,255,.4) 0 18%, transparent 18% 20%, rgba(132,255,242,.62) 20% 72%, transparent 72% 74%, rgba(255,255,255,.42) 74%) center / 100% 31% no-repeat,
-    linear-gradient(90deg, rgba(255,255,255,.56) 0 61%, transparent 61% 63%, rgba(255,255,255,.34) 63%) bottom / 100% 27% no-repeat;
+    linear-gradient(90deg, rgba(255,255,255,.88) 0 28%, transparent 28% 32%, rgba(255,255,255,.52) 32% 66%, transparent 66% 70%, rgba(255,255,255,.34) 70% 100%) 5px 7px / calc(100% - 10px) 6px no-repeat,
+    linear-gradient(90deg, rgba(132,255,242,.68) 0 46%, transparent 46% 50%, rgba(255,255,255,.44) 50% 86%) 5px 18px / calc(100% - 10px) 5px no-repeat,
+    linear-gradient(90deg, rgba(255,255,255,.42) 0 22%, transparent 22% 26%, rgba(255,255,255,.7) 26% 73%, transparent 73%) 5px 29px / calc(100% - 10px) 7px no-repeat,
+    linear-gradient(90deg, rgba(255,255,255,.28) 0 58%, transparent 58% 63%, rgba(255,255,255,.48) 63% 100%) 5px 42px / calc(100% - 10px) 5px no-repeat,
+    rgba(255,255,255,.025);
+  transform: perspective(90px) rotateY(-5deg) rotateX(2deg);
+}
+.director-miniature[data-preview="sequence-manifesto"]::after {
+  content: "BY";
+  position: absolute;
+  right: 11px;
+  top: 24px;
+  color: rgba(255,255,255,.6);
+  font-size: 6px;
+  font-weight: 900;
+  letter-spacing: -.04em;
+  transform: rotate(90deg);
 }
 .director-miniature[data-preview="sequence-manifesto"] b {
-  font-size: 7px;
-  color: #08090b;
-  z-index: 2;
-  transform: translate(-54%,-55%);
+  display: none;
 }

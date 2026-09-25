@@ -2,12 +2,12 @@
 
 **Last updated:** 2026-09-25  
 **Merged baseline:** `40a5f29a078f1983285dea984ef468f98efa23ec`  
-**Active candidate:** none  
-**Current phase/milestone:** Shape Fill / Manifesto / edge-safety visual acceptance
+**Active candidate:** `feat/spatial-typography-v0.11.1` / PR #51  
+**Current phase/milestone:** spatial typography + progressive Manifesto
 
 ## Current objective
 
-Use merged PR #48 as the deterministic sequence/output baseline and visually acceptance-test the new packed silhouettes, masonry wall grammar and physical-edge guards on real tracks/displays.
+Build on merged PR #48 with PR #51: make typography globally aware of its measured size in screen space, correct Manifesto into a progressive book/editorial page, and use those metrics to prevent Shape/Spiral/Ribbon/current-line collisions.
 
 ## Current implementation state
 
@@ -371,6 +371,23 @@ See `docs/OPERATOR_OUTPUT_LOWER_THIRDS.md`.
 - displacement/smear/post FX use gradual edge guards;
 - final post FX is opaque;
 - DOM bloom/scanline/grain overlays fade before the physical output edge.
+
+See `docs/SHAPE_FILL_MANIFESTO_EDGE_SAFETY.md`.
+See `docs/TYPOGRAPHY_SPATIAL_SYSTEM.md` for the shared measurement/collision contract.
+
+## Active candidate — Spatial typography v0.11.1
+
+PR #51 establishes one shared spatial contract rather than fixing overlap per effect.
+
+- `typographySpatial.ts` defines measured geometry, rotated screen boxes, overlap checks and envelopes.
+- `TypographyMetrics.ts` measures the actual Pixi style and supplements it with native Canvas ink bounds.
+- sequence windows expose the complete phrase scope so future words can reserve invisible space without reflow.
+- Shape Fill performs deterministic occupied-space packing with shrink/retry and never intentionally drops lyrics.
+- Manifesto reserves a chronological editorial page, starts visually empty, and reveals words into immutable slots.
+- current-line composition receives real per-word width + height.
+- Spiral/Ribbon use measured collision boxes along their trajectories.
+- static Shape/Manifesto phrase geometry is cached; only reveal/emphasis/camera state evaluates per frame.
+- Manifesto camera follows active focus while respecting the envelope of revealed page content.
 
 See `docs/SHAPE_FILL_MANIFESTO_EDGE_SAFETY.md`.
 

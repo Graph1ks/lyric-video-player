@@ -21,6 +21,7 @@ export interface TypographyCompositionInput {
   height: number;
   lineIndex: number;
   wordWidths: number[];
+  wordHeights?: number[];
   wordHeight?: number;
   wordTexts?: string[];
   readingDirection?: ReadingDirection;
@@ -218,34 +219,37 @@ export function assessTypographyComposition(
 function stabilizeComposition(
   words: WordCompositionPlacement[],
   wordWidths: number[],
-  wordHeight: number,
+  wordHeights: number[],
   field: TypographyAttentionField,
   direction: ReadingDirection,
   anchorIndex: number,
 ) {
   if (words.length < 2) {
-    if (words[0]) clampToAttentionField(words[0], wordWidths[0], wordHeight, field);
+    if (words[0]) clampToAttentionField(words[0], wordWidths[0], wordHeights[0] ?? 1, field);
     return;
   }
 
-  const gap = Math.max(10, wordHeight * 0.16);
+  const averageHeight = wordHeights.length
+    ? wordHeights.reduce((sum, value) => sum + value, 0) / wordHeights.length
+    : 84;
+  const gap = Math.max(10, averageHeight * 0.16);
   const flowSign = direction === "ltr" ? 1 : -1;
 
   // First keep every readable word inside the central title/attention field.
   words.forEach((word, index) => {
-    clampToAttentionField(word, wordWidths[index], wordHeight, field);
+    clampToAttentionField(word, wordWidths[index], wordHeights[index] ?? 1, field);
   });
 
   // Deterministic collision relaxation. The later cue yields more than the
   // earlier cue so reading order remains visually recoverable.
-  for (let pass = 0; pass < 8; pass++) {
+  for (let pass = 0; pass < 12; pass++) {
     let changed = false;
     for (let i = 0; i < words.length; i++) {
       for (let j = i + 1; j < words.length; j++) {
-        const a = boundsFor(words[i], wordWidths[i], wordHeight);
-        const b = boundsFor(words[j], wordWidths[j], wordHeight);
+        const a = boundsFor(words[i], wordWidths[i], wordHeights[i] ?? averageHeight);
+        const b = boundsFor(words[j], wordWidths[j], wordHeights[j] ?? averageHeight);
         const overlap = overlapAmount(a, b);
-        if (overlap.x <= gap || overlap.y <= gap) continue;
+        if (overlap.x <= 0 || overlap.y <= 0) continue;
 
         changed = true;
         const jIsAnchor = j === anchorIndex;
@@ -257,7 +261,7 @@ function stabilizeComposition(
         const tryX = words[j].x + flowSign * xShift * (jIsAnchor ? 0.28 : 0.72);
         const originalX = words[j].x;
         words[j].x = tryX;
-        clampToAttentionField(words[j], wordWidths[j], wordHeight, field);
+        clampToAttentionField(words[j], wordWidths[j], wordHeights[j] ?? averageHeight, field);
         const movedX = Math.abs(words[j].x - originalX);
 
         if (movedX < xShift * 0.42) {
@@ -271,8 +275,8 @@ function stabilizeComposition(
           words[i].x -= flowSign * xShift * 0.10;
         }
 
-        clampToAttentionField(words[i], wordWidths[i], wordHeight, field);
-        clampToAttentionField(words[j], wordWidths[j], wordHeight, field);
+        clampToAttentionField(words[i], wordWidths[i], wordHeights[i] ?? averageHeight, field);
+        clampToAttentionField(words[j], wordWidths[j], wordHeights[j] ?? averageHeight, field);
       }
     }
     if (!changed) break;
@@ -280,19 +284,19 @@ function stabilizeComposition(
 
   // Last resort: scale down only the words that still collide. This is safer
   // than allowing unreadable overlaps or sending text outside the focal field.
-  for (let pass = 0; pass < 5; pass++) {
+  for (let pass = 0; pass < 8; pass++) {
     let collision = false;
     for (let i = 0; i < words.length; i++) {
       for (let j = i + 1; j < words.length; j++) {
         const overlap = overlapAmount(
-          boundsFor(words[i], wordWidths[i], wordHeight),
-          boundsFor(words[j], wordWidths[j], wordHeight),
+          boundsFor(words[i], wordWidths[i], wordHeights[i] ?? averageHeight),
+          boundsFor(words[j], wordWidths[j], wordHeights[j] ?? averageHeight),
         );
-        if (overlap.x <= gap * 0.7 || overlap.y <= gap * 0.7) continue;
+        if (overlap.x <= 0 || overlap.y <= 0) continue;
         collision = true;
         const target = words[j].emphasis <= words[i].emphasis ? j : i;
         words[target].scale = Math.max(0.34, words[target].scale * 0.9);
-        clampToAttentionField(words[target], wordWidths[target], wordHeight, field);
+        clampToAttentionField(words[target], wordWidths[target], wordHeights[target] ?? averageHeight, field);
       }
     }
     if (!collision) break;
@@ -349,6 +353,10 @@ export function planTypographyComposition(
   const height = Math.max(1, input.height);
   const wordWidths = input.wordWidths.map(value => Math.max(1, value));
   const wordHeight = Math.max(24, input.wordHeight ?? Math.min(112, height * 0.105));
+  const wordHeights = wordWidths.map((_, index) => Math.max(
+    1,
+    input.wordHeights?.[index] ?? wordHeight,
+  ));
   const count = wordWidths.length;
   const direction = input.readingDirection ?? "ltr";
   const layout = resolveTypographyLayout(input.preset, input.scene, input.lineIndex, count);
@@ -526,7 +534,7 @@ export function planTypographyComposition(
     });
   }
 
-  stabilizeComposition(words, wordWidths, wordHeight, field, direction, anchorIndex);
+  stabilizeComposition(words, wordWidths, wordHeights, field, direction, anchorIndex);
 
   return {
     layout,

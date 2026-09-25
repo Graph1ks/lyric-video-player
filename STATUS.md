@@ -2,12 +2,12 @@
 
 **Last updated:** 2026-09-25  
 **Last known good merged baseline:** `40a5f29a078f1983285dea984ef468f98efa23ec`  
-**Active candidate:** none  
-**Current phase/milestone:** Shape Fill / Manifesto / edge-safety visual acceptance
+**Active candidate:** `feat/spatial-typography-v0.11.1` / PR #51  
+**Current phase/milestone:** spatial typography + progressive Manifesto acceptance
 
 ## Current objective
 
-Visually accept the merged Shape Fill / Manifesto Wall / v0.11 edge-safety baseline on real Enhanced LRC tracks and the previously failing fullscreen display cases.
+Land PR #51's shared spatial typography model, replacing heuristic word size assumptions with real renderer metrics and correcting Manifesto Wall into a progressive editorial page that remains spatially framed.
 
 ## Current state
 
@@ -48,8 +48,14 @@ Visually accept the merged Shape Fill / Manifesto Wall / v0.11 edge-safety basel
 - Merged PR #48 adds **Shape Fill**: phrase-stable packed silhouettes using Tree, Star and Human/Figure masks. Words occupy interior slots rather than tracing a border.
 - Shape Fill slots expose explicit text-fit boxes so Pixi can respect actual font metrics while the layout remains pure and deterministic.
 - Legacy `shape-build` remains an internal compatibility alias, but Director/AUTO use `shape-fill`.
-- Merged PR #48 adds **Manifesto Wall**: phrase-wide deterministic masonry subdivision, variable anchor blocks, 90° bracket columns and rigid snap-in arrivals.
-- Manifesto Wall suppresses elastic/bass pulse behavior after landing; camera follows active wall focus with heavily bounded micro-motion.
+- PR #51 corrects **Manifesto Wall** from the initial masonry interpretation into a progressive editorial/book-page build: the page begins empty and words reveal into immutable pre-reserved positions.
+- Manifesto is mostly horizontal with occasional ±90° editorial brackets and moderate anchor hierarchy; old words persist rather than aging out.
+- PR #51 introduces shared measured typography geometry (width/height/advance/ascent/descent/padding) plus rotated spatial boxes and collision helpers.
+- Spatial ownership and non-regression rules are documented in `docs/TYPOGRAPHY_SPATIAL_SYSTEM.md`.
+- Shape Fill uses real measured extents, occupied-space collision checks and deterministic shrink/retry rather than anonymous slots.
+- Current-line composition consumes per-word measured width **and height**, improving collision resolution across ordinary/Vortex layouts.
+- Spiral Depth and Ribbon Path now use measured screen-space collision to move older words farther along their path instead of allowing overlap.
+- Manifesto camera framing blends active-word focus with the revealed-page envelope and adds only subtle bounded skew/rotation.
 - Poster AUTO direction now exposes Hero/Echo, Manifesto Wall, Shape Fill and classic outline-panel families.
 - Edge safety v0.11 adds 12% opaque world bleed, shader edge guards for displacement/smear/barrel/chroma and opaque final post-FX output.
 - DOM bloom/scanline/grain treatment now fades before the physical output edge while remaining overscanned.
@@ -152,11 +158,11 @@ Visually accept the merged Shape Fill / Manifesto Wall / v0.11 edge-safety basel
 
 ## Next concrete action
 
-1. Visually verify edge guards under the previously failing fullscreen/CRT/smear cases.
-2. Visually accept Tree/Star/Figure Shape Fill and Manifesto Wall on real Enhanced LRC tracks, including Rapid/Burst passages.
-3. Check Manifesto anchor-size hierarchy, 90° brackets and camera reading flow at 1080p/1440p/4K.
-4. Continue section-level tension/release + shot-size sequencing after the new persistent grammars are accepted.
-5. Attach Director PLAN + Lower Third persistence/runtime execution to serialized scene/project directives, then map that contract per song when playlist support lands.
+1. Get PR #51 green on Linux validation and Windows packaging.
+2. Visually verify Shape Fill collision-free packing with short/long words plus the previously failing Vortex/Spiral overlaps.
+3. Check progressive Manifesto reveal, page stability and camera reading flow at 1080p/1440p/4K.
+4. Re-test edge guards under the original fullscreen/CRT/smear failure cases.
+5. Continue section-level tension/release + shot-size sequencing after spatial typography is accepted.
 
 ## Do not redo
 

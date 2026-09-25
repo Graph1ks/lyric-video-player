@@ -5,6 +5,7 @@ import {
   clamp,
   createVisualPalette,
   evaluateCinematicCameraPlan,
+  resolveManifestoPageScope,
   SceneDirector,
 } from "@graph1ks/emo-engine-core";
 import type {
@@ -527,9 +528,13 @@ export class EngineRenderer {
       (lyricTime - phraseStart) / Math.max(0.08, phraseEnd - phraseStart),
     );
     const persistent = Boolean(this.sequenceLyrics.getGrammar());
+    const sequenceGrammar = persistent ? this.sequenceLyrics.getGrammar() : undefined;
     const focus = persistent
       ? this.sequenceLyrics.getFocusPoint()
       : this.lyrics.getFocusPoint(lyricTime);
+    const framing = persistent
+      ? this.sequenceLyrics.getCameraFraming()
+      : undefined;
     const activeLine = this.lines[this.lastLineIndex];
     const readability = activeLine
       ? analyzeKineticReadability({
@@ -542,9 +547,11 @@ export class EngineRenderer {
     this.cameraRig.setCinematicPlan(evaluateCinematicCameraPlan({
       mode: direction.mode,
       shotRole: direction.shotRole,
-      sequenceGrammar: persistent ? this.sequenceLyrics.getGrammar() : undefined,
+      sequenceGrammar,
       phraseProgress,
       focus,
+      contentCenter: framing?.center,
+      contentFitScale: framing?.fitScale,
       readabilityPressure: readability?.pressure ?? 0,
       intensity: this.intensity,
     }));
@@ -594,10 +601,26 @@ export class EngineRenderer {
       grammar = this.typographySequence;
     }
 
+    let scopeStart = direction?.phraseStartLine ?? Math.max(0, this.lastLineIndex);
+    let scopeEnd = direction?.phraseEndLine ?? Math.max(-1, this.lastLineIndex);
+
+    // Explicit/manual Manifesto is a continuing book/page treatment, not a
+    // four-line Director phrase. Keep writing one page for a longer chapter,
+    // then turn to a fresh page at a deterministic boundary.
+    if (this.typographySequence === "manifesto-wall") {
+      const page = resolveManifestoPageScope(
+        Math.max(0, this.lastLineIndex),
+        this.lines.length,
+        12,
+      );
+      scopeStart = page.startLine;
+      scopeEnd = page.endLine;
+    }
+
     this.sequenceLyrics.setSequence(
       grammar,
-      direction?.phraseStartLine ?? Math.max(0, this.lastLineIndex),
-      direction?.phraseEndLine ?? Math.max(-1, this.lastLineIndex),
+      scopeStart,
+      scopeEnd,
     );
     const persistent = Boolean(grammar);
     this.sequenceLyrics.container.visible = persistent;

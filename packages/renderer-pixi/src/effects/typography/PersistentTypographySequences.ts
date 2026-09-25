@@ -2,15 +2,23 @@ import { Container, Text, TextStyle } from "pixi.js";
 import type { AudioBands } from "@graph1ks/emo-audio-web";
 import {
   analyzeKineticReadability,
+  buildManifestoPageLayout,
+  buildShapeFillLayout,
   clamp,
   deriveTypographySequenceWindow,
   planTypographySequence,
+  shapeFillVariantForScope,
   type LineCue,
+  spatialBoxFor,
+  spatialEnvelope,
   type QualityMode,
   type SequenceTypographyTreatment,
   type TypographySequenceGrammarId,
+  type TypographyPackingSlot,
+  type TypographySpatialMetrics,
   type VisualPalette,
 } from "@graph1ks/emo-engine-core";
+import { measureTypographyText } from "./TypographyMetrics.js";
 
 interface SequenceNode {
   node: Text;
@@ -31,6 +39,12 @@ export class PersistentTypographySequences {
   private w = 1;
   private h = 1;
   private baseFontSize = 84;
+  private scopeMetrics = new Map<string, TypographySpatialMetrics>();
+  private staticLayout?: Map<string, TypographyPackingSlot>;
+  private staticLayoutKey = "";
+  private framingCenterX = 0;
+  private framingCenterY = 0;
+  private framingScale = 1;
   private focusX = 0;
   private focusY = 0;
   private hasFocus = false;
@@ -72,6 +86,16 @@ export class PersistentTypographySequences {
       : { x: 0, y: 0 };
   }
 
+  getCameraFraming() {
+    return {
+      center: {
+        x: this.framingCenterX,
+        y: this.framingCenterY,
+      },
+      fitScale: this.framingScale,
+    };
+  }
+
   setPalette(palette: VisualPalette, _refreshStatic = true) {
     this.palette = palette;
     // Outline scenes need independent fill + stroke palette roles. A single Pixi
@@ -98,6 +122,9 @@ export class PersistentTypographySequences {
     for (const entry of this.nodes.values()) {
       entry.node.style = this.styleFor(entry.treatment);
     }
+    this.scopeMetrics.clear();
+    this.staticLayout = undefined;
+    this.staticLayoutKey = "";
   }
 
   update(time: number, audio: AudioBands) {
@@ -121,16 +148,20 @@ export class PersistentTypographySequences {
     const architecturalWall = this.grammar === "manifesto-wall";
     const persistentStructure = structuralShape || architecturalWall;
     const historySeconds = persistentStructure
-      ? (cinema ? 24 : 16)
+      ? 3600
       : (cinema ? 7.5 : 4.5) * (0.48 + echoBudget * 0.52);
-    const maxWords = structuralShape
-      ? (cinema ? 72 : 48)
-      : architecturalWall
-        ? (cinema ? 48 : 32)
-        : Math.max(
-            8,
-            Math.round((cinema ? 42 : 24) * (0.42 + echoBudget * 0.58)),
-          );
+    const phraseWordCount = this.lines
+      .slice(
+        this.phraseStartLine,
+        Math.min(this.lines.length, this.phraseEndLine + 1),
+      )
+      .reduce((sum, line) => sum + line.words.length, 0);
+    const maxWords = persistentStructure
+      ? Math.max(1, phraseWordCount)
+      : Math.max(
+          8,
+          Math.round((cinema ? 42 : 24) * (0.42 + echoBudget * 0.58)),
+        );
     const window = deriveTypographySequenceWindow(this.lines, time, {
       historySeconds,
       recentSeconds: Math.min(historySeconds, cinema ? 1.55 : 1.15),
@@ -139,11 +170,84 @@ export class PersistentTypographySequences {
       lineStartIndex: this.phraseStartLine,
       lineEndIndex: this.phraseEndLine,
     });
+    const metricsById: Record<string, TypographySpatialMetrics> = {};
+    const solidMetricStyle = this.styleFor("solid");
+    const outlineMetricStyle = persistentStructure
+      ? undefined
+      : this.styleFor("outline");
+    for (const scopeWord of window.scopeWords) {
+      let metrics = this.scopeMetrics.get(scopeWord.id);
+      if (!metrics) {
+        const solid = measureTypographyText(
+          scopeWord.text.toUpperCase(),
+          solidMetricStyle,
+          Math.max(2, this.baseFontSize * 0.035),
+        );
+        if (outlineMetricStyle) {
+          const outline = measureTypographyText(
+            scopeWord.text.toUpperCase(),
+            outlineMetricStyle,
+            Math.max(2, this.baseFontSize * 0.035),
+          );
+          metrics = {
+            width: Math.max(solid.width, outline.width),
+            height: Math.max(solid.height, outline.height),
+            advanceWidth: Math.max(solid.advanceWidth, outline.advanceWidth),
+            lineHeight: Math.max(solid.lineHeight, outline.lineHeight),
+            ascent: Math.max(solid.ascent, outline.ascent),
+            descent: Math.max(solid.descent, outline.descent),
+            padding: Math.max(solid.padding, outline.padding),
+          };
+        } else {
+          metrics = solid;
+        }
+        this.scopeMetrics.set(scopeWord.id, metrics);
+      }
+      metricsById[scopeWord.id] = metrics;
+    }
+
+    let staticLayout: Map<string, TypographyPackingSlot> | undefined;
+    if (persistentStructure) {
+      const layoutKey = [
+        this.grammar,
+        this.phraseStartLine,
+        this.phraseEndLine,
+        Math.round(this.w),
+        Math.round(this.h),
+        Math.round(this.baseFontSize * 100),
+        window.scopeWords.length,
+      ].join(":");
+
+      if (!this.staticLayout || this.staticLayoutKey !== layoutKey) {
+        this.staticLayout = architecturalWall
+          ? buildManifestoPageLayout(
+              window.scopeWords,
+              metricsById,
+              this.w,
+              this.h,
+            )
+          : buildShapeFillLayout(
+              shapeFillVariantForScope(window.scopeStartLineIndex),
+              window.scopeWords,
+              metricsById,
+              this.w,
+              this.h,
+            );
+        this.staticLayoutKey = layoutKey;
+      }
+      staticLayout = this.staticLayout;
+    } else if (this.staticLayout) {
+      this.staticLayout = undefined;
+      this.staticLayoutKey = "";
+    }
+
     const plan = planTypographySequence({
       grammar: this.grammar,
       window,
       width: this.w,
       height: this.h,
+      metricsById,
+      staticLayout,
     });
     const refs = new Map(window.words.map(word => [word.id, word]));
     const activeIds = new Set<string>();
@@ -158,6 +262,7 @@ export class PersistentTypographySequences {
       ? clamp(heroPlacement.y / Math.max(1, this.h * 0.5), -1, 1)
       : 0;
 
+    const framingBoxes = [];
     for (const placement of plan.words) {
       const ref = refs.get(placement.id);
       if (!ref) continue;
@@ -237,6 +342,30 @@ export class PersistentTypographySequences {
         ? Math.max(placement.alpha, readability?.motion.alphaFloor ?? 0)
         : placement.alpha;
       node.zIndex = placement.zIndex;
+
+      const metrics = metricsById[placement.id];
+      if (metrics && placement.role !== "incoming") {
+        framingBoxes.push(spatialBoxFor(metrics, {
+          x: placement.x * travelScale,
+          y: placement.y * travelScale - focusPulse * this.h * focusLift * this.intensity,
+          scale: finalScale,
+          rotation: node.rotation,
+        }));
+      }
+    }
+
+    const envelope = spatialEnvelope(framingBoxes);
+    if (framingBoxes.length) {
+      this.framingCenterX = clamp(envelope.cx / Math.max(1, this.w * 0.5), -0.9, 0.9);
+      this.framingCenterY = clamp(envelope.cy / Math.max(1, this.h * 0.5), -0.86, 0.86);
+      this.framingScale = clamp(Math.min(
+        this.w * 0.88 / Math.max(1, envelope.width),
+        this.h * 0.8 / Math.max(1, envelope.height),
+      ), 0.78, 1.18);
+    } else {
+      this.framingCenterX = 0;
+      this.framingCenterY = 0;
+      this.framingScale = 1;
     }
 
     for (const [id, entry] of this.nodes) {
@@ -318,6 +447,12 @@ export class PersistentTypographySequences {
       entry.node.destroy();
     }
     this.nodes.clear();
+    this.scopeMetrics.clear();
+    this.staticLayout = undefined;
+    this.staticLayoutKey = "";
+    this.framingCenterX = 0;
+    this.framingCenterY = 0;
+    this.framingScale = 1;
     this.focusX = 0;
     this.focusY = 0;
     this.hasFocus = false;
