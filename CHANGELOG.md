@@ -40,6 +40,8 @@ Git history remains the complete technical history. This file records meaningful
 - Dedicated Step 4 art-direction worlds: Editorial, Print, Architecture and Aurora.
 - Color Canvas polarity modes: Night, Paper, Color Field and Poster, plus deterministic AUTO chapters.
 - Root development orchestrator that starts/health-checks the Node runtime before Vite.
+- Phrase-level cinematic direction groundwork with coherent AUTO typography/layout/motion bundles and Establish/Develop/Accent/Release roles.
+- Kinetic readability pressure analysis with adaptive nonzero motion budgets for rapid and burst lyric timing.
 
 ### Changed
 
@@ -56,6 +58,8 @@ Git history remains the complete technical history. This file records meaningful
 - AUTO word layouts preserve LTR row progression and limit vertical words to logical edge accents instead of arbitrary zig-zag cue paths.
 - Dedicated art-direction worlds suppress generic ambient particle/blob/ring/beam layers so their large-scale composition remains visually distinct.
 - Root `npm run dev` no longer starts Vite before its `/api` runtime dependency is available; `npm run dev:web` preserves the explicit web-only workflow.
+- AUTO typography direction is becoming phrase-stable instead of independently rotating preset/layout/motion each lyric line.
+- Fast lyric passages reduce large spatial excursions and competing clutter while retaining visible local kinetic motion.
 - GSAP remains excluded because the planned visual-editor direction could intersect its visual-animation-builder restriction.
 
 ### Security / Privacy
