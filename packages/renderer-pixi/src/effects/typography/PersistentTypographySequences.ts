@@ -1,6 +1,7 @@
 import { Container, Text, TextStyle } from "pixi.js";
 import type { AudioBands } from "@graph1ks/emo-audio-web";
 import {
+  analyzeKineticReadability,
   clamp,
   deriveTypographySequenceWindow,
   planTypographySequence,
@@ -62,17 +63,11 @@ export class PersistentTypographySequences {
     return this.grammar;
   }
 
-  setPalette(palette: VisualPalette, refreshStatic = true) {
+  setPalette(palette: VisualPalette, _refreshStatic = true) {
     this.palette = palette;
-    if (!refreshStatic) {
-      for (const entry of this.nodes.values()) {
-        entry.node.tint = entry.treatment === "solid"
-          ? palette.textPrimary
-          : palette.textSecondary;
-      }
-      return;
-    }
-
+    // Outline scenes need independent fill + stroke palette roles. A single Pixi
+    // tint would multiply both and corrupt Color Canvas polarity, so even dynamic
+    // palette flow refreshes the bounded sequence styles explicitly.
     for (const entry of this.nodes.values()) {
       entry.node.style = this.styleFor(entry.treatment);
       entry.node.tint = 0xffffff;
@@ -104,11 +99,25 @@ export class PersistentTypographySequences {
 
     this.container.visible = true;
     const cinema = this.quality === "cinema";
+    const activeLine = this.findActiveLine(time);
+    const readability = activeLine
+      ? analyzeKineticReadability({
+          lineStart: activeLine.start,
+          lineEnd: activeLine.end,
+          words: activeLine.words,
+        })
+      : undefined;
+    const echoBudget = readability?.motion.echoScale ?? 1;
+    const historySeconds = (cinema ? 7.5 : 4.5) * (0.48 + echoBudget * 0.52);
+    const maxWords = Math.max(
+      8,
+      Math.round((cinema ? 42 : 24) * (0.42 + echoBudget * 0.58)),
+    );
     const window = deriveTypographySequenceWindow(this.lines, time, {
-      historySeconds: cinema ? 7.5 : 4.5,
-      recentSeconds: cinema ? 1.55 : 1.15,
+      historySeconds,
+      recentSeconds: Math.min(historySeconds, cinema ? 1.55 : 1.15),
       leadSeconds: 0.12,
-      maxWords: cinema ? 42 : 24,
+      maxWords,
       lineStartIndex: this.phraseStartLine,
       lineEndIndex: this.phraseEndLine,
     });
@@ -136,19 +145,29 @@ export class PersistentTypographySequences {
       const maxWidthRatio = placement.id === plan.heroId
         ? (this.grammar === "hero-echo" ? 0.62 : 0.72)
         : 0.72;
-      const desiredScale = placement.scale * activeLift;
+      const travelScale = readability
+        ? 0.7 + readability.motion.travelScale * 0.3
+        : 1;
+      const rotationScale = readability?.motion.rotationScale ?? 1;
+      const scaleExcursion = readability?.motion.scaleExcursion ?? 1;
+      const directedScale = 1 + (placement.scale - 1) * scaleExcursion;
+      const desiredScale = directedScale * activeLift;
       const fitScale = node.width > 0
         ? Math.min(1, (this.w * maxWidthRatio) / Math.max(1, node.width * desiredScale))
         : 1;
       const finalScale = Math.max(0.08, desiredScale * fitScale);
 
       node.position.set(
-        this.w * 0.5 + placement.x,
-        this.h * 0.5 + placement.y - focusPulse * this.h * 0.012 * this.intensity,
+        this.w * 0.5 + placement.x * travelScale,
+        this.h * 0.5
+          + placement.y * travelScale
+          - focusPulse * this.h * 0.012 * this.intensity,
       );
       node.scale.set(finalScale);
-      node.rotation = placement.rotation;
-      node.alpha = placement.alpha;
+      node.rotation = placement.rotation * rotationScale;
+      node.alpha = ref.role === "active" || ref.role === "recent"
+        ? Math.max(placement.alpha, readability?.motion.alphaFloor ?? 0)
+        : placement.alpha;
       node.zIndex = placement.zIndex;
     }
 
@@ -158,6 +177,18 @@ export class PersistentTypographySequences {
       entry.node.destroy();
       this.nodes.delete(id);
     }
+  }
+
+  private findActiveLine(time: number) {
+    for (
+      let index = this.phraseStartLine;
+      index <= Math.min(this.phraseEndLine, this.lines.length - 1);
+      index++
+    ) {
+      const line = this.lines[index];
+      if (line && time >= line.start && time < line.end) return line;
+    }
+    return undefined;
   }
 
   private ensureNode(
