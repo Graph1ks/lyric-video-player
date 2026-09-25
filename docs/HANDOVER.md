@@ -373,6 +373,7 @@ See `docs/OPERATOR_OUTPUT_LOWER_THIRDS.md`.
 - DOM bloom/scanline/grain overlays fade before the physical output edge.
 
 See `docs/SHAPE_FILL_MANIFESTO_EDGE_SAFETY.md`.
+See `docs/TYPOGRAPHY_SPATIAL_SYSTEM.md` for the shared measurement/collision contract.
 
 ## Active candidate — Spatial typography v0.11.1
 

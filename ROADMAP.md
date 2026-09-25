@@ -198,6 +198,7 @@ See `docs/SHAPE_FILL_MANIFESTO_EDGE_SAFETY.md`.
 - pixel-mask / glyph-alpha exact collision — future only if conservative boxes prove too sparse
 
 See `docs/SHAPE_FILL_MANIFESTO_EDGE_SAFETY.md`.
+See `docs/TYPOGRAPHY_SPATIAL_SYSTEM.md` for the shared measurement/collision contract.
 
 ## Milestone 0.9 — Editor
 - scene browser

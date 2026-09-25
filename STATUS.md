@@ -51,6 +51,7 @@ Land PR #51's shared spatial typography model, replacing heuristic word size ass
 - PR #51 corrects **Manifesto Wall** from the initial masonry interpretation into a progressive editorial/book-page build: the page begins empty and words reveal into immutable pre-reserved positions.
 - Manifesto is mostly horizontal with occasional ±90° editorial brackets and moderate anchor hierarchy; old words persist rather than aging out.
 - PR #51 introduces shared measured typography geometry (width/height/advance/ascent/descent/padding) plus rotated spatial boxes and collision helpers.
+- Spatial ownership and non-regression rules are documented in `docs/TYPOGRAPHY_SPATIAL_SYSTEM.md`.
 - Shape Fill uses real measured extents, occupied-space collision checks and deterministic shrink/retry rather than anonymous slots.
 - Current-line composition consumes per-word measured width **and height**, improving collision resolution across ordinary/Vortex layouts.
 - Spiral Depth and Ribbon Path now use measured screen-space collision to move older words farther along their path instead of allowing overlap.
