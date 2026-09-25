@@ -416,7 +416,7 @@ test("art direction presets meet the dedicated fidelity floor", async () => {
   assert.doesNotMatch(aurora, /\.poly\(/);
   assert.doesNotMatch(aurora, /Math\.random\(/);
   const curtainStart = aurora.indexOf("float curtain(");
-  const curtainEnd = aurora.indexOf("void main(void)");
+  const curtainEnd = aurora.indexOf("void main(void)", curtainStart);
   assert.ok(curtainStart >= 0 && curtainEnd > curtainStart);
   assert.doesNotMatch(aurora.slice(curtainStart, curtainEnd), /u(?:Energy|Mid|Treble)/);
 });
