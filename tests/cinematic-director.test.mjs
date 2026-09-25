@@ -139,3 +139,51 @@ test("AUTO exposes Ribbon Path on Neon phrase family", () => {
   assert.equal(scene.mode, "neon");
   assert.equal(scene.typography.sequenceGrammar, "ribbon-path");
 });
+
+
+test("performance profile constrains AUTO scene and coherent typography pools", () => {
+  const director = new SceneDirector();
+  director.setAutoProfile({
+    scenes: ["neon"],
+    typographyPresets: ["wave"],
+    sequences: ["off", "ribbon-path"],
+    layouts: ["split-stage"],
+    motions: ["conveyor"],
+  });
+  director.load([
+    line(0, 1.1, "compact phrase", 2),
+    line(1.1, 2.2, "would normally be poster", 2),
+    line(3.2, 4.5, "new phrase", 3),
+  ]);
+
+  const first = director.sceneFor(0);
+  const second = director.sceneFor(2);
+  for (const scene of [first, second]) {
+    assert.equal(scene.mode, "neon");
+    assert.equal(scene.typography.typographyPreset, "wave");
+    assert.equal(scene.typography.layout, "split-stage");
+    assert.equal(scene.typography.motion, "conveyor");
+    assert.ok(
+      scene.typography.sequenceGrammar === undefined
+      || scene.typography.sequenceGrammar === "ribbon-path",
+    );
+  }
+});
+
+test("performance profile can disable persistent sequences while keeping AUTO direction", () => {
+  const director = new SceneDirector();
+  director.setAutoProfile({
+    scenes: ["poster"],
+    typographyPresets: ["impact", "outline"],
+    sequences: ["off"],
+    layouts: ["editorial", "center-stack"],
+    motions: ["takeover", "panel"],
+  });
+  director.load([
+    line(0, 1.2, "first hit", 2),
+    line(1.2, 2.4, "second hit", 2),
+  ]);
+
+  assert.equal(director.sceneFor(0).mode, "poster");
+  assert.equal(director.sceneFor(0).typography.sequenceGrammar, undefined);
+});
