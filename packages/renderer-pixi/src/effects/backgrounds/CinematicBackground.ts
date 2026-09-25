@@ -9,6 +9,7 @@ import type {
   VisualPalette,
 } from "@graph1ks/emo-engine-core";
 import { hash01, seeded } from "@graph1ks/emo-engine-core";
+import { ArtDirectionWorlds } from "./ArtDirectionWorlds.js";
 import { ProceduralLiquidFX } from "./ProceduralLiquidFX.js";
 
 const EMPTY_SPECTRUM = new Float32Array(0);
@@ -33,15 +34,23 @@ interface Blob {
 }
 
 const AUTO_BACKGROUND_PRESETS: Record<SceneMode, BackgroundPresetId[]> = {
-  poster: ["cinematic", "lyrics", "grid", "spectrum", "sparks", "minimal", "rays"],
-  neon: ["nebula", "liquid", "spectrum", "sparks", "lyrics", "starfield", "grid", "rays"],
-  vortex: ["vortex", "starfield", "lyrics", "liquid", "sparks", "spectrum", "nebula", "cinematic"],
+  poster: ["editorial", "print", "lyrics", "architecture", "cinematic", "spectrum", "minimal"],
+  neon: ["aurora", "architecture", "liquid", "spectrum", "nebula", "editorial", "starfield", "rays"],
+  vortex: ["architecture", "print", "vortex", "aurora", "starfield", "lyrics", "liquid", "sparks"],
 };
+
+const ART_DIRECTION_PRESETS = new Set<BackgroundPresetId>([
+  "editorial",
+  "print",
+  "architecture",
+  "aurora",
+]);
 
 export class CinematicBackground {
   readonly container = new Container();
 
   private base = new Graphics();
+  private artDirection = new ArtDirectionWorlds();
   private liquidSurface = new Graphics();
   private liquidFX = new ProceduralLiquidFX();
   private geometry = new Graphics();
@@ -74,6 +83,7 @@ export class CinematicBackground {
   constructor() {
     this.container.addChild(
       this.base,
+      this.artDirection.container,
       this.liquidSurface,
       this.lyricBackdropLayer,
       this.blobLayer,
@@ -137,6 +147,7 @@ export class CinematicBackground {
   setLineIndex(index: number) {
     if (index === this.lineIndex) return;
     this.lineIndex = index;
+    this.artDirection.setLineIndex(index);
     if (this.preset !== "auto") return;
     const previous = this.resolvedPreset;
     this.resolvePreset();
@@ -149,17 +160,20 @@ export class CinematicBackground {
 
   setPalette(palette: VisualPalette, refreshStatic = true) {
     this.palette = palette;
+    this.artDirection.setPalette(palette);
     this.applyModePalette();
     if (refreshStatic) this.rebuildLyricBackdrop();
   }
 
   setIntensity(value: number) {
     this.intensity = Math.max(0.2, Math.min(1.8, value));
+    this.artDirection.setIntensity(this.intensity);
     this.liquidFX.setIntensity(this.intensity);
   }
 
   setQuality(value: QualityMode) {
     this.quality = value;
+    this.artDirection.setQuality(value);
     this.liquidFX.setQuality(value);
     this.applyPresetVisibility();
   }
@@ -167,6 +181,7 @@ export class CinematicBackground {
   resize(w: number, h: number) {
     this.w = w;
     this.h = h;
+    this.artDirection.resize(w, h);
     this.redrawBase();
     this.redrawLiquidSurface();
     this.liquidFX.resize(w, h);
@@ -181,6 +196,7 @@ export class CinematicBackground {
     const energy = audio.energy * intensity;
     const transient = audio.transient * intensity;
 
+    this.artDirection.update(time, audio);
     if (this.liquidSurface.visible) this.liquidFX.update(time, audio);
     this.updateGeometry(time, audio);
     this.updateLyricBackdrop(time, audio);
@@ -215,6 +231,9 @@ export class CinematicBackground {
 
   private applyPresetVisibility() {
     const cinema = this.quality === "cinema";
+    const artWorld = ART_DIRECTION_PRESETS.has(this.resolvedPreset);
+    this.artDirection.setPreset(this.resolvedPreset);
+    this.artDirection.setLineIndex(this.lineIndex);
     this.liquidSurface.visible = this.resolvedPreset === "liquid";
     this.lyricBackdropLayer.visible = this.resolvedPreset === "lyrics";
     this.sparkLayer.visible = this.resolvedPreset === "sparks";
@@ -236,10 +255,12 @@ export class CinematicBackground {
               : cinema ? 1 : 2;
 
     this.particles.forEach((particle, index) => {
-      particle.g.visible = index % particleStride === 0;
+      particle.g.visible = !artWorld && index % particleStride === 0;
     });
 
-    const blobLimit = this.resolvedPreset === "nebula"
+    const blobLimit = artWorld
+      ? 0
+      : this.resolvedPreset === "nebula"
       ? cinema ? 6 : 4
       : this.resolvedPreset === "cinematic"
         ? cinema ? 4 : 2
@@ -252,16 +273,20 @@ export class CinematicBackground {
       blob.g.visible = index < blobLimit;
     });
 
-    const ringsVisible = this.resolvedPreset === "vortex"
+    const ringsVisible = !artWorld && (
+      this.resolvedPreset === "vortex"
       || this.resolvedPreset === "rays"
-      || this.resolvedPreset === "cinematic";
+      || this.resolvedPreset === "cinematic"
+    );
     this.rings.forEach((ring, index) => {
       ring.visible = ringsVisible && (cinema || index % 2 === 0);
     });
 
-    const beamsVisible = this.resolvedPreset === "rays"
+    const beamsVisible = !artWorld && (
+      this.resolvedPreset === "rays"
       || this.resolvedPreset === "cinematic"
-      || this.resolvedPreset === "nebula";
+      || this.resolvedPreset === "nebula"
+    );
     this.beams.forEach((beam, index) => {
       beam.visible = beamsVisible && (cinema || index < 2);
     });
@@ -771,7 +796,8 @@ export class CinematicBackground {
     const cy = h * 0.5;
 
     if (
-      this.resolvedPreset === "liquid"
+      ART_DIRECTION_PRESETS.has(this.resolvedPreset)
+      || this.resolvedPreset === "liquid"
       || this.resolvedPreset === "spectrum"
       || this.resolvedPreset === "sparks"
       || this.resolvedPreset === "lyrics"

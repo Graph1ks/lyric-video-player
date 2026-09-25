@@ -126,7 +126,7 @@ Before adding more worlds, enforce the constraints every world must respect:
 
 See `docs/VISUAL_READABILITY_COLOR_RULES.md`.
 
-## Step 4 — Visual World Expansion
+## Step 4 — Visual World Expansion — active candidate
 
 Move from effect variants to distinct art-direction worlds:
 
@@ -142,6 +142,20 @@ Move from effect variants to distinct art-direction worlds:
 - optional image/video treatment.
 
 Every world must declare which palette roles it consumes and its readability budget.
+
+**Implemented candidate baseline:**
+
+- Editorial — edge plates/bars/framing;
+- Print — halftone field + print texture;
+- Architecture — nested frames/vanishing structure;
+- Aurora — layered edge ribbons + horizon glow;
+- dedicated art worlds suppress the generic ambient-particle layers;
+- all four use shared palette roles and deterministic time/audio input;
+- AUTO background routing exposes them across scene families.
+
+See `docs/ART_DIRECTION_WORLDS.md`.
+
+**Acceptance:** each world must be recognizably different with the color removed from consideration; readable lyric space must remain intentional rather than accidental.
 
 ## Step 5 — Semantic Visual Director
 

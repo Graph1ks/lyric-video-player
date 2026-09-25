@@ -61,7 +61,11 @@ export type ProjectBackgroundPreset =
   | "spectrum"
   | "sparks"
   | "lyrics"
-  | "minimal";
+  | "minimal"
+  | "editorial"
+  | "print"
+  | "architecture"
+  | "aurora";
 
 export interface EmoProjectDefaults {
   visualMode?: ProjectVisualMode;

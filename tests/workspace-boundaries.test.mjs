@@ -85,7 +85,7 @@ test("emo.project/v1 selects nested media and carries visual defaults", async ()
         typographyPreset: "tunnel",
         typographyLayout: "vertical-accent",
         compositionMotion: "camera-handoff",
-        backgroundPreset: "lyrics",
+        backgroundPreset: "editorial",
         colorHarmony: "split-complement",
         colorMood: "heartbreak",
         colorFlow: "rainbow",
@@ -104,7 +104,7 @@ test("emo.project/v1 selects nested media and carries visual defaults", async ()
     assert.equal(found.manifest?.defaults?.typographyPreset, "tunnel");
     assert.equal(found.manifest?.defaults?.typographyLayout, "vertical-accent");
     assert.equal(found.manifest?.defaults?.compositionMotion, "camera-handoff");
-    assert.equal(found.manifest?.defaults?.backgroundPreset, "lyrics");
+    assert.equal(found.manifest?.defaults?.backgroundPreset, "editorial");
     assert.equal(found.manifest?.defaults?.colorHarmony, "split-complement");
     assert.equal(found.manifest?.defaults?.colorMood, "heartbreak");
     assert.equal(found.manifest?.defaults?.colorFlow, "rainbow");

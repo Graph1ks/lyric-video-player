@@ -53,7 +53,7 @@ Manifest mode is the stable path for projects that use nested media, multiple au
 - `defaults.typographyPreset`: `auto`, `impact`, `cascade`, `wave`, `scatter`, `elastic`, `outline`, `tunnel` or `glitch`.
 - `defaults.typographyLayout`: `auto`, `center-stack`, `directional-stage`, `editorial`, `vertical-accent`, `split-stage` or `crossword`.
 - `defaults.compositionMotion`: `auto`, `handoff`, `conveyor`, `anchor-build`, `collapse`, `takeover`, `flip`, `camera-handoff`, `portal` or `panel`.
-- `defaults.backgroundPreset`: `auto`, `cinematic`, `nebula`, `grid`, `starfield`, `rays`, `vortex`, `liquid`, `spectrum`, `sparks`, `lyrics` or `minimal`.
+- `defaults.backgroundPreset`: `auto`, `cinematic`, `nebula`, `grid`, `starfield`, `rays`, `vortex`, `liquid`, `spectrum`, `sparks`, `lyrics`, `minimal`, `editorial`, `print`, `architecture` or `aurora`.
 - `defaults.colorHarmony`: `auto`, `split-complement`, `analogous`, `complement`, `triad`, `tetrad` or `monochrome`.
 - `defaults.colorMood`: `auto`, `tender`, `heartbreak`, `longing`, `euphoria`, `rage`, `dream`, `tension` or `calm`.
 - `defaults.colorFlow`: `static` or `rainbow`. Rainbow is a slow hue drift; backgrounds remain intentionally low-chroma while accents carry most of the color movement.

@@ -30,7 +30,7 @@ Frame-critical motion remains outside React. PixiJS, Web Audio and the E-MO cloc
 - lyric mood palettes: Tender, Heartbreak, Longing, Euphoria, Rage, Dream, Tension and Calm
 - slow deterministic Rainbow Drift for accent/glow hue movement
 - central attention-field composition with collision-aware readable word placement
-- background presets: Cinematic, Nebula, Grid, Starfield, Rays, Vortex, Liquid, Spectrum, Sparks, Recursive Lyrics and Minimal
+- background presets: Cinematic, Nebula, Grid, Starfield, Rays, Vortex, Liquid, Spectrum, Sparks, Recursive Lyrics, Minimal, Editorial, Print, Architecture and Aurora
 - Poster / Neon / Vortex visual families
 - deterministic Auto Director
 - virtual camera impulses
@@ -159,7 +159,7 @@ The desktop renderer has no Node integration. Native directory selection is expo
 ## Near-term work
 
 1. visually validate collision-safe composition + mood/rainbow color direction on real tracks
-2. expand distinct art-direction/background worlds on the OKLCH palette-role contract
+2. visually accept the new Editorial / Print / Architecture / Aurora art-direction worlds on real tracks
 3. complete the remaining typography families: soft-3D/inflate, brush/stroke reveal and dissolve/smear exits
 4. add scene-stack serialization and per-section visual directives
 5. visually tune typography/background preset combinations on real tracks

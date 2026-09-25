@@ -107,6 +107,10 @@ const BACKGROUND_PRESETS: BackgroundPreset[] = [
   "sparks",
   "lyrics",
   "minimal",
+  "editorial",
+  "print",
+  "architecture",
+  "aurora",
 ];
 
 export function App() {
