@@ -35,6 +35,12 @@ export class CameraRig {
   setEffectLevels(cameraMotion: number, impactPulse: number) {
     this.cameraMotion = Math.max(0, Math.min(3, cameraMotion));
     this.impactPulse = Math.max(0, Math.min(3, impactPulse));
+    if (this.impactPulse <= 0.001) {
+      this.xImpulse = 0;
+      this.yImpulse = 0;
+      this.zoomImpulse = 0;
+      this.rotationImpulse = 0;
+    }
   }
 
   setCinematicPlan(plan?: CinematicCameraPlan) {
