@@ -72,7 +72,7 @@ export function sendDirectorCommand(command: DirectorCommand) {
   if (typeof BroadcastChannel === "undefined") return;
   const channel = new BroadcastChannel(COMMAND_CHANNEL_NAME);
   channel.postMessage(command);
-  queueMicrotask(() => channel.close());
+  window.setTimeout(() => channel.close(), 0);
 }
 
 export function listenDirectorCommands(listener: (command: DirectorCommand) => void) {

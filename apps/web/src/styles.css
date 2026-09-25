@@ -2174,3 +2174,57 @@ kbd { min-width: 19px; height: 19px; display: inline-grid; place-items: center; 
     max-width: 88vw;
   }
 }
+
+
+/* PLAN workspace follows the same professional readability floor. */
+.planner-kicker {
+  font-size: 10px;
+}
+.director-planner__composer h1 {
+  font-size: clamp(30px, 3vw, 44px);
+}
+.director-planner__composer > p {
+  font-size: 12px;
+  line-height: 1.6;
+}
+.planner-capture label span,
+.planner-track__head b,
+.director-cue-list__head span {
+  font-size: 10px;
+}
+.planner-capture input {
+  font-size: 12px;
+}
+.planner-capture button,
+.director-cue-list__head button {
+  font-size: 10px;
+}
+.planner-track__head span {
+  font-size: 11px;
+}
+.director-cue-list__head b {
+  font-size: 14px;
+}
+.director-cue__copy time {
+  font-size: 11px;
+}
+.director-cue__copy b {
+  font-size: 13px;
+}
+.director-cue__copy p {
+  font-size: 11px;
+}
+.director-cue__copy small {
+  font-size: 10px;
+  line-height: 1.35;
+}
+.director-cue__actions button {
+  min-height: 31px;
+  font-size: 10px;
+}
+.director-cues-empty span {
+  font-size: 10px;
+}
+.director-cues-empty b {
+  font-size: 12px;
+}

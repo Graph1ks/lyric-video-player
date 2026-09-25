@@ -20,7 +20,13 @@ export function LowerThirdOverlay() {
     return () => window.clearInterval(timer);
   }, [previewUntil]);
 
-  const visible = shouldShowLowerThird(mode, playback, previewUntil, now);
+  const scheduled = shouldShowLowerThird(mode, playback, previewUntil, now);
+  const previewing = previewUntil > now;
+  const hasTrackIdentity = Boolean(
+    titleOverride.trim()
+    || (title && title !== "NO TRACK LOADED"),
+  );
+  const visible = scheduled && (previewing || hasTrackIdentity);
   const preset = resolveLowerThirdPreset(requestedPreset, playback);
   const displayArtist = artistOverride.trim() || artist || "ARTIST";
   const displayTitle = titleOverride.trim() || title || "TRACK";
