@@ -173,8 +173,6 @@ export class LegacyLyricsWorld {
 
   destroy() {
     this.destroyTypography();
-    this.stage.destroy();
-    this.typography.destroy({ children: true });
     this.container.destroy({ children: true });
   }
 
