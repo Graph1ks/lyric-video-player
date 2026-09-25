@@ -776,7 +776,7 @@ Windows packaging remains a separate required gate.
 
 PR #51 Linux validation and Windows packaging passed: typecheck, build, tests, publication audit, Node 22/24 launcher smokes, NSIS, portable x64 and artifact upload.
 
-Draft PR #74 Phase-A/B runtime through `445c85d`: Linux install/typecheck/build/tests/publication audit passed; Windows Node 22/24 dev-launcher smokes plus full build, NSIS, portable packaging and artifact upload passed. Real-display acceptance for Vortex/Rays/Starfield/Nebula/Grid remains separate and pending.
+Draft PR #74 rebuilt Phase-A/B runtime through `c863794`: Linux install/typecheck/build/tests/publication audit passed; Windows Node 22/24 dev-launcher smokes plus full build, NSIS, portable packaging and artifact upload passed. Real-display acceptance for Vortex/Rays/Starfield/Nebula/Grid remains separate and pending.
 
 ## Next concrete work
 
