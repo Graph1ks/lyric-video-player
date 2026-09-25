@@ -19,10 +19,10 @@ This audit is the implementation companion to `WORLD_BACKGROUND_REHABILITATION_P
 | `sparks` | shared spark Graphics | burst / impact event | transient continuously scaled all spark length/alpha | event envelope controls emission/accent; trajectory/lifetime stay autonomous |
 | `lyrics` | recursive Text layer | mechanical / continuous | bass directly scales recursive text depth | time-owned composition; audio limited to light/emphasis |
 | `minimal` | reduced shared layers | mechanical / continuous | identity is mostly "less of the generic stack" | dedicated sparse composition with fixed spacing grammar |
-| `editorial` | ArtDirectionWorlds | mechanical / continuous | bass changed corner geometry size | time-authored graphic motion; audio on ink/light emphasis |
-| `print` | ArtDirectionWorlds | rhythmic local texture | direct band-driven dot sizing | bounded smoothed texture response; preserve print registration structure |
-| `architecture` | ArtDirectionWorlds | mechanical / continuous | bass changed whole nested-frame scale | fixed spatial frame system; camera/parallax time-owned |
-| `aurora` | ArtDirectionWorlds | mechanical / continuous deformation | band values directly changed ribbon amplitude/width | continuous ribbon phase; only smoothed bounded local deformation/light |
+| `editorial` | dedicated `LegacyEditorialWorld` | mechanical / continuous | legacy Graphics geometry coupled identity to shared renderer | fullscreen modular editorial shader; layout/time own geometry, audio only ink/material response |
+| `print` | dedicated `LegacyPrintWorld` | mechanical / material | direct band-driven dot sizing in old Graphics field | layered rotated halftone shader with time-owned misregistration; audio only ink/material response |
+| `architecture` | dedicated `LegacyArchitectureWorld` | one-way depth / mechanical | old flat nested frames lacked real spatial depth | perspective corridor with time-owned `worldZ`, repeated structural frames, pillars, arches and recess parallax |
+| `aurora` | dedicated `LegacyAuroraWorld` | mechanical / continuous field | old Graphics ribbons mixed audio into ribbon amplitude/width | procedural FBM curtain field with folded-volume lighting; audio only emission/highlight response |
 
 ## Shared correction landed in this phase
 
@@ -46,6 +46,17 @@ The five worst motion offenders are isolated from the generic shared layer stack
 
 All five consume semantic `VisualPalette` roles. Their geometry/phase/direction is timestamp-owned; smoothed legacy audio is restricted to light/material emphasis.
 
+## Art-direction rehabilitation candidate
+
+Draft PR #78 removes active runtime ownership from the old shared `ArtDirectionWorlds` Graphics path and routes the four remaining preset IDs through dedicated renderers:
+
+- `editorial` → `LegacyEditorialWorld`: fullscreen modular graphic-layout shader with protected center, plates, rules and registration/crop structure;
+- `print` → `LegacyPrintWorld`: layered rotated halftone material with deterministic mechanical misregistration and print substrate structure;
+- `architecture` → `LegacyArchitectureWorld`: fullscreen perspective corridor with time-owned depth travel, projected frames, pillars, arches and side recess parallax;
+- `aurora` → `LegacyAuroraWorld`: procedural multi-layer FBM curtain density with striation and folded-volume lighting.
+
+All four consume semantic `VisualPalette` roles. Geometry/phase/depth are timestamp- or deterministic-line-owned; smoothed legacy audio is restricted to ink/material/light response.
+
 ## Next implementation slice
 
-Continue dedicated fidelity work on `cinematic`, `liquid`, `spectrum`, `sparks`, `lyrics` and `minimal`, then rebuild the four `ArtDirectionWorlds` presets. After the world identities are stable, wire per-world `WorldColorContext` into typography treatment with contrast floors and polarity hysteresis.
+Once PR #78 is merged, all 15 legacy preset identities have dedicated rehabilitation paths. Next wire per-world `WorldColorContext` into typography treatment with contrast floors, smoothing and polarity hysteresis, then run the full real-display acceptance matrix before WORLD_09/10.
