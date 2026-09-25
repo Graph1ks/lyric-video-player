@@ -1,6 +1,6 @@
 # Operator Output Safety + Lower Thirds
 
-**Status:** active candidate  
+**Status:** merged baseline — PR #46 / `13cd90f2f81e73d7675d6c285ebe80d85d34ec07`  
 **Started:** 2026-09-25  
 **Scope:** edge-safe presentation, detached-Director operator ownership, readable bilingual controls, manual persistent sequences and screen-space artist/title graphics.
 
@@ -175,7 +175,7 @@ Playlist support should reference the same per-song plan contract rather than in
 
 ## Manual acceptance
 
-Before this baseline is considered visually accepted, verify:
+The implementation baseline is merged and CI-verified. Before it is considered visually accepted on production displays, verify:
 
 - fullscreen enter/exit at 1080p and 4K has no bottom strip;
 - strong camera pans/zooms never expose black behind the world;

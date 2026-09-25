@@ -1,13 +1,13 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `da1def09667a4c87a91240bfcf996705e2b424ef`  
-**Active candidate:** `feat/operator-render-lower-thirds-v0.10` / PR #46  
-**Current phase/milestone:** cinematic sequence direction + temporal readability
+**Last known good merged baseline:** `13cd90f2f81e73d7675d6c285ebe80d85d34ec07`  
+**Active candidate:** none  
+**Current phase/milestone:** operator output + presentation acceptance
 
 ## Current objective
 
-Close the current presentation/operation gaps: edge-safe fullscreen rendering, crisp zoom typography, detached-Director transport ownership, explicit persistent-sequence controls, readable DE/EN Director UI and a ten-style Lower Third system.
+Visually accept the merged operator-output baseline on real displays/tracks: fullscreen edge safety, large-type fidelity, detached Director transport, explicit persistent sequences, bilingual controls and all ten Lower Third looks.
 
 ## Current state
 
@@ -27,7 +27,7 @@ Close the current presentation/operation gaps: edge-safe fullscreen rendering, c
 - Ordinary and persistent typography expose deterministic focus points. Current-line focus begins handing off toward the next word near cue end.
 - CameraRig now treats bass/transient drift as bounded micro-response layered over the directed shot rather than the primary framing source.
 - Shape Build deliberately stays wider and follows focus less; Hero/Spiral/Ribbon receive stronger eye-trace following.
-- The Visual Director now uses preview cards and six task-oriented sections: Scene, Type, Motion, World, Color and System.
+- The Visual Director uses preview cards and seven task-oriented sections: Scene, Type, Motion, World, Color, Titles and System.
 - Effect cards expose a semantic miniature, name, short behavioral explanation, selected state and AUTO-resolved LIVE state.
 - The resolved live stack is continuously visible above the Director controls.
 - Main player and detached Director use the same `VisualDirector` component and shared control state.
@@ -36,8 +36,8 @@ Close the current presentation/operation gaps: edge-safe fullscreen rendering, c
 - Detached Director provides LIVE and PLAN workspaces.
 - PLAN can capture timestamped complete look snapshots, show them on a rail and recall them live; cues are explicitly session-only until project scene serialization lands.
 - Visual Director design/architecture contract is `docs/VISUAL_DIRECTOR_WORKSPACE.md`.
-- Active candidate separates the screen-anchored background/world from the typography camera so lyric/camera travel cannot expose black render-target edges.
-- Active candidate adds ResizeObserver + fullscreenchange + VisualViewport handling and explicitly resizes Pixi/render targets to the final host bounds.
+- Merged PR #46 separates the screen-anchored background/world from the typography camera so lyric/camera travel cannot expose black render-target edges.
+- Merged PR #46 adds ResizeObserver + fullscreenchange + VisualViewport handling and explicitly resizes Pixi/render targets to the final host bounds.
 - DOM screen FX now overscan beyond the output edge and are clipped by the shell.
 - Primary/persistent lyric Text textures use a minimum 3× internal raster resolution (4× cap) to keep large zooms substantially crisper.
 - Persistent sequences are now manually selectable in the Director: Auto, Off/Classic, Spiral Depth, Hero/Echo, Shape Build and Ribbon Path.
@@ -136,12 +136,14 @@ Close the current presentation/operation gaps: edge-safe fullscreen rendering, c
 - Elastic Tether + Camera Continuity (PR #42): Windows Node 22/24 launcher smokes + full build/NSIS/portable/artifact upload — passed.
 - Visual Director Workspace (PR #44): Linux typecheck/build/tests/publication audit — passed.
 - Visual Director Workspace (PR #44): Windows Node 22/24 launcher smokes + full build/NSIS/portable/artifact upload — passed.
+- Operator Output + Lower Thirds (PR #46): Linux typecheck/build/tests/publication audit — passed.
+- Operator Output + Lower Thirds (PR #46): Windows Node 22/24 launcher smokes + full build/NSIS/portable/artifact upload — passed.
 
 ## Next concrete action
 
-1. Get PR #46 green on Linux and Windows packaging.
-2. Manually verify fullscreen/edge safety, high-zoom type fidelity and Director operator mode at 1080p/1440p/4K.
-3. Visually accept all ten Lower Third presets and manual Spiral/Hero/Shape/Ribbon controls.
+1. Manually verify fullscreen/edge safety, high-zoom type fidelity and Director operator mode at 1080p/1440p/4K.
+2. Visually accept all ten Lower Third presets and manual Spiral/Hero/Shape/Ribbon controls.
+3. Run multi-monitor/Desktop acceptance of Director reopen/focus and live transport synchronization.
 4. Return to real-track cinematic acceptance and section-level tension/release + shot-size sequencing.
 5. Attach Director PLAN + Lower Third persistence/runtime execution to serialized scene/project directives, then map that contract per song when playlist support lands.
 
