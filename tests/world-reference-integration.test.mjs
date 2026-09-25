@@ -29,26 +29,28 @@ test("specialized stage and laser worlds suppress generic background layers", as
   assert.match(background, /!artWorld && !specializedWorld/);
 });
 
-test("prism stage world owns volumetric beam layers and visible fixture hub", async () => {
+test("Prism Stage Beams uses a GPU volumetric shader instead of cartoon Graphics fixtures", async () => {
   const prism = await source("packages/renderer-pixi/src/effects/backgrounds/PrismStageBeamsWorld.ts");
 
-  assert.match(prism, /private readonly beams = new Graphics\(\)/);
-  assert.match(prism, /private readonly fixtures = new Graphics\(\)/);
-  assert.match(prism, /private readonly flare = new Graphics\(\)/);
-  assert.match(prism, /this\.beams\.blendMode = "add"/);
-  assert.match(prism, /transient/);
-  assert.match(prism, /COLORS/);
+  assert.match(prism, /Filter, GlProgram/);
+  assert.match(prism, /wrappedAngle/);
+  assert.match(prism, /streakNoise/);
+  assert.match(prism, /sourceBloom/);
+  assert.match(prism, /anamorphic/);
+  assert.match(prism, /filmic shoulder/i);
+  assert.doesNotMatch(prism, /private readonly fixtures = new Graphics/);
+  assert.doesNotMatch(prism, /\.circle\(/);
 });
 
-test("laser canopy world owns crisp beam cores, overhead rig and floor hit points", async () => {
+test("Laser Canopy uses analytic shader lines, rig apertures and floor hit lighting", async () => {
   const laser = await source("packages/renderer-pixi/src/effects/backgrounds/LaserCanopyGridWorld.ts");
 
-  assert.match(laser, /private readonly rig = new Graphics\(\)/);
-  assert.match(laser, /private readonly beams = new Graphics\(\)/);
-  assert.match(laser, /private readonly floor = new Graphics\(\)/);
-  assert.match(laser, /crispWidth/);
-  assert.match(laser, /landingX/);
-  assert.match(laser, /hitRadius/);
+  assert.match(laser, /Filter, GlProgram/);
+  assert.match(laser, /sdSegment/);
+  assert.match(laser, /coreWidth/);
+  assert.match(laser, /floorHalo/);
+  assert.match(laser, /Fixture apertures/);
+  assert.match(laser, /Perspective floor/);
 });
 
 test("13-world reference roadmap remains durable in repository documentation", async () => {
