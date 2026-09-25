@@ -1,13 +1,13 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `b17be7bbee7839fd842cf8a29b07fc4dd77c1b69`  
-**Active candidate:** `fix/windows-node24-dev-spawn`  
+**Last known good merged baseline:** `aa2b9fd8a39249b02d68e0b40deb2de44178f8e2`  
+**Active candidate:** none  
 **Current phase/milestone:** v0.8 lyric-scene composition + color direction
 
 ## Current objective
 
-Fix the Windows Node 24 npm child-process launch regression in the dev orchestrator, then return to real-track Color Canvas / Step 4 acceptance.
+Visually accept the merged Color Canvas variety and Step 4 worlds on real Enhanced LRC tracks, then continue the remaining typography primitives.
 
 ## Current state
 
@@ -58,7 +58,7 @@ Fix the Windows Node 24 npm child-process launch regression in the dev orchestra
 - Paper/Poster use dark colored typography on light/chromatic fields; Night/Color Field use light tinted typography with the same contrast contract.
 - Rainbow Drift becomes canvas-aware: Night stays restrained while Paper/Color Field/Poster can shift the coherent background field itself.
 - Root `npm run dev` owns runtime startup, waits for `/api/runtime`, then starts Vite; this removes the normal `ECONNREFUSED 127.0.0.1:3040` startup race.
-- Active candidate fixes Windows/Node 24 Vite child startup by avoiding direct `npm.cmd` spawning and adds real Windows launcher smoke coverage on Node 22 + 24.
+- Windows/Node 24 Vite child startup is fixed by avoiding direct `npm.cmd` spawning; Windows launcher smoke coverage now runs on Node 22 + 24.
 - Default server mode creates the repository `projects/` root when no explicit project root is configured.
 - Step 4 now includes four merged large-scale **Art Direction Worlds**:
   - Editorial — asymmetric plates, bars and framing marks;
@@ -85,12 +85,15 @@ Fix the Windows Node 24 npm child-process launch regression in the dev orchestra
 - Readability + Mood Color Direction: Windows full build, NSIS packaging, portable x64 packaging and artifact upload — passed.
 - Dev Runtime + Color Canvas Variety: Linux install/typecheck/build/tests/publication audit — passed.
 - Dev Runtime + Color Canvas Variety: Windows full build, NSIS packaging, portable x64 packaging and artifact upload — passed.
+- Windows Node 24 Dev Launcher (PR #35): Linux validation — passed.
+- Windows Node 24 Dev Launcher (PR #35): Windows launcher smoke on Node 22 — passed.
+- Windows Node 24 Dev Launcher (PR #35): Windows launcher smoke on Node 24 — passed.
 
 ## Next concrete action
 
-1. Get the Windows Node 22 + 24 dev-launcher smoke and normal validation green.
-2. Visually verify AUTO moves through Color Field / Night / Paper / Poster without rapid flicker and keeps lyric contrast on real tracks.
-3. Continue real-track acceptance of Editorial / Print / Architecture / Aurora and narrow/mobile tuning.
+1. Visually verify AUTO moves through Color Field / Night / Paper / Poster without rapid flicker and keeps lyric contrast on real tracks.
+2. Continue real-track acceptance of Editorial / Print / Architecture / Aurora.
+3. Tune narrow/mobile composition combinations.
 4. Finish soft-3D/inflate, brush/stroke reveal and dissolve/smear exits, then stabilize scene-stack serialization.
 
 ## Do not redo
