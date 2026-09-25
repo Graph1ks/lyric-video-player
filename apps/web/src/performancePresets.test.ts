@@ -2,48 +2,50 @@ import { describe, expect, it } from "vitest";
 import {
   BUILTIN_PERFORMANCE_PRESETS,
   clonePerformancePreset,
+  createCustomPerformancePreset,
   defaultPerformancePresets,
+  type PerformancePresetDefinition,
 } from "./performancePresets";
+import { DEFAULT_VISUAL_FX_RACK } from "@graph1ks/emo-engine-core";
+
+const fixture: PerformancePresetDefinition = {
+  id: "fixture",
+  label: "Fixture",
+  emotion: "Custom",
+  pace: "mid",
+  description: "fixture",
+  intensity: 1,
+  colorFlow: "static",
+  auto: {
+    scenes: ["neon"],
+    backgrounds: ["aurora"],
+  },
+  fx: { ...DEFAULT_VISUAL_FX_RACK },
+};
 
 describe("Director performance preset library", () => {
-  it("covers the complete emotion vocabulary with deliberate AUTO pools", () => {
-    const emotions = new Set(BUILTIN_PERFORMANCE_PRESETS.map(item => item.emotion.toLowerCase()));
-    for (const emotion of ["tender", "heartbreak", "longing", "euphoria", "rage", "dream", "tension", "calm"]) {
-      expect(emotions.has(emotion)).toBe(true);
-    }
-
-    for (const preset of BUILTIN_PERFORMANCE_PRESETS) {
-      expect(preset.auto.scenes?.length).toBeGreaterThan(0);
-      expect(preset.auto.typographyPresets?.length).toBeGreaterThan(0);
-      expect(preset.auto.sequences?.length).toBeGreaterThan(0);
-      expect(preset.auto.layouts?.length).toBeGreaterThan(0);
-      expect(preset.auto.motions?.length).toBeGreaterThan(0);
-      expect(preset.auto.backgrounds?.length).toBeGreaterThan(0);
-      expect(preset.auto.harmonies?.length).toBeGreaterThan(0);
-      expect(preset.auto.moods?.length).toBeGreaterThan(0);
-      expect(preset.auto.canvases?.length).toBeGreaterThan(0);
-    }
+  it("ships no authored performance presets", () => {
+    expect(BUILTIN_PERFORMANCE_PRESETS).toHaveLength(0);
+    expect(defaultPerformancePresets()).toHaveLength(0);
   });
 
-  it("deep-clones editable pools so one preset edit cannot mutate the authored baseline", () => {
-    const [authored] = BUILTIN_PERFORMANCE_PRESETS;
-    const cloned = clonePerformancePreset(authored);
+  it("deep-clones user presets so edits never mutate the source", () => {
+    const cloned = clonePerformancePreset(fixture);
     cloned.auto.scenes?.splice(0, 1);
-    cloned.fx.displacement = authored.fx.displacement === 1.23 ? 0 : 1.23;
-    expect(cloned.auto.scenes).not.toEqual(authored.auto.scenes);
-    expect(cloned.fx.displacement).not.toBe(authored.fx.displacement);
+    cloned.fx.displacement = 0;
 
-    const defaults = defaultPerformancePresets();
-    expect(defaults[0]).not.toBe(BUILTIN_PERFORMANCE_PRESETS[0]);
-    expect(defaults[0].auto.scenes).not.toBe(BUILTIN_PERFORMANCE_PRESETS[0].auto.scenes);
-    expect(defaults[0].fx).not.toBe(BUILTIN_PERFORMANCE_PRESETS[0].fx);
+    expect(fixture.auto.scenes).toEqual(["neon"]);
+    expect(fixture.fx.displacement).toBe(1);
+    expect(cloned.auto.scenes).toEqual([]);
+    expect(cloned.fx.displacement).toBe(0);
   });
 
-  it("spans true off states through extreme world and distortion values", () => {
-    const allFx = BUILTIN_PERFORMANCE_PRESETS.flatMap(preset => Object.values(preset.fx));
-    expect(allFx.some(value => value === 0)).toBe(true);
-    expect(allFx.some(value => value >= 2)).toBe(true);
-    expect(BUILTIN_PERFORMANCE_PRESETS.some(preset => preset.fx.worldIntensity >= 2.5)).toBe(true);
-    expect(BUILTIN_PERFORMANCE_PRESETS.some(preset => preset.fx.displacement >= 2)).toBe(true);
+  it("creates user-owned custom presets from the supplied source", () => {
+    const created = createCustomPerformancePreset(fixture, 3);
+    expect(created.id).toMatch(/^custom-/);
+    expect(created.label).toBe("Custom 3");
+    expect(created.auto.backgrounds).toEqual(["aurora"]);
+    expect(created.fx).toEqual(DEFAULT_VISUAL_FX_RACK);
+    expect(created.fx).not.toBe(fixture.fx);
   });
 });
