@@ -1,8 +1,8 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `bfd0d95f5e44eecd06663c40027143dcbd9ba261`  
-**Active candidate:** none  
+**Last known good merged baseline:** `120c247de32316ece937d0f2abe1bb374f3dc196`  
+**Active candidate:** `feat/legacy-world-rehab-phase-a` — draft PR #74  
 **Current phase/milestone:** legacy world/background rehabilitation
 
 ## Current objective
@@ -10,6 +10,15 @@
 Rehabilitate all 15 legacy Background presets before WORLD_09/10: remove raw-audio twitch/pump/reversal behavior, perform a hard fidelity upgrade, route worlds through the semantic OKLCH palette, and make lyric typography contrast adapt to the actual rendered world rather than only the nominal canvas color.
 
 ## Current state
+
+- **Draft PR #74 starts Phase A in runtime code:** `WorldAudioReactivity` now provides seek/discontinuity-safe attack/release bands, rising-edge transient events, a positive decay envelope and long-energy smoothing for the legacy stack.
+- The first systemic corrections remove raw bass/transient whole-geometry pumping from shared blobs, particles, rings, beams, editorial/architecture geometry and liquid absolute-time phase/topology.
+- `WorldColorContext` now exists as the pure engine-core contract for representative/title-safe luminance, highlight risk, chroma/busyness pressure, polarity hysteresis and outline-support pressure; renderer-to-typography wiring is still pending.
+- **The five worst legacy motion offenders are now dedicated fidelity worlds:** `LegacyVortexWorld`, `LegacyRaysWorld`, `LegacyStarfieldWorld`, `LegacyNebulaWorld` and `LegacyGridWorld` replace the shared generic stack for those preset IDs.
+- Vortex uses projected-depth helical ribbons/hoops + one-way tracers. Rays is now a fullscreen participating-media shader with broad soft cones, atmospheric breakup and source bloom. Starfield is fixed-axis 3D forward flight with strictly decreasing z between wraps and analytic streak history. Nebula is a fullscreen domain-warped FBM gas field with ridged filaments/cavities/folded lighting. Grid is a fullscreen infinite-perspective environment with floor/ceiling structure, horizon atmosphere, moving side architecture and deterministic energy traffic.
+- All five are isolated from generic blobs/particles/rings/beams, consume semantic `VisualPalette` roles, and keep geometry/phase/direction timestamp-owned. Audio is restricted to smoothed light/material emphasis; Rays uses the positive transient envelope for light only. Full-frame barrel/displacement/smear sampling distance is also time-owned now so global post FX cannot reintroduce bass-driven scene breathing.
+- Automated source/motion contracts now lock the shader/3D fidelity architecture as well as one-way motion ownership, but **real browser/Desktop visual acceptance at 1080p/1440p/4K is still pending**. The PR remains draft for that reason.
+- Full 15-preset motion audit: `docs/LEGACY_WORLD_MOTION_AUDIT.md`.
 
 - **Merged PR #61 repairs a real post-FX regression:** the CinematicPostFX shader's final true-bypass blend referenced an undefined `source` sample. The shader now explicitly samples the untouched frame before processing.
 - Exposed FX factory defaults are restored to the pre-exposure authored balance: every formerly implicit renderer/compositor/screen layer is 100% at factory reset.
@@ -29,7 +38,7 @@ Rehabilitate all 15 legacy Background presets before WORLD_09/10: remove raw-aud
 - WORLD_07 Particle Spiral Vortex is merged in PR #68 and uses projected 3D particles moving autonomously inward/deeper along several spiral arms.
 - WORLD_08 Minimal Rainbow Waveform is merged in PR #68 and consumes the real renderer spectrum buffer, applies per-bin smoothing and draws mirrored rainbow spikes with restrained glow.
 - **Legacy rehabilitation is the next runtime milestone:** all pre-reference-set presets (`cinematic`, `nebula`, `grid`, `starfield`, `rays`, `vortex`, `liquid`, `spectrum`, `sparks`, `lyrics`, `minimal`, `editorial`, `print`, `architecture`, `aurora`) must be audited/rebuilt before WORLD_09/10.
-- Current code confirms the failure is systemic: shared legacy layers directly map raw bass/energy/transient into blob scale, vortex breathing, ray expansion, particle push/scale and art-world pulse geometry. This is the same motion-semantics class that previously broke Neon Energy Burst Tunnel.
+- The merged baseline confirmed the failure is systemic: shared legacy layers directly mapped raw bass/energy/transient into blob scale, vortex breathing, ray expansion, particle push/scale and art-world pulse geometry. Draft PR #74 removes the first global mappings and isolates/rebuilds Vortex, Rays, Starfield, Nebula and Grid as dedicated worlds.
 - The fidelity target is not merely smoothing: generic shared blobs/particles/rings/beams must be replaced or isolated where they prevent each preset from having a strong paused-frame identity and authored motion grammar.
 - Color becomes two-way: OKLCH `VisualPalette` drives world materials, while each world exposes a cheap smoothed readability/color context so typography can maintain its existing contrast floors against the **actual world tone**, not only `palette.background`.
 - Durable plan: `docs/WORLD_BACKGROUND_REHABILITATION_PLAN.md`.
@@ -206,14 +215,17 @@ Rehabilitate all 15 legacy Background presets before WORLD_09/10: remove raw-aud
 - Spatial Typography + Progressive Manifesto (PR #51): Linux typecheck/build/tests/publication audit — passed.
 - Spatial Typography + Progressive Manifesto (PR #51): Windows Node 22/24 launcher smokes + full build/NSIS/portable/artifact upload — passed.
 
+- Legacy Rehabilitation Phase A/B (PR #74 runtime through `c863794`): Linux install/typecheck/build/tests/publication audit — passed.
+- Legacy Rehabilitation Phase A/B (PR #74 runtime through `c863794`): Windows Node 22/24 launcher smokes + full build/NSIS/portable/artifact upload — passed.
+- Real-display fidelity acceptance for the five dedicated legacy worlds remains pending; CI does not count as visual acceptance.
+
 ## Next concrete action
 
-1. Start a fresh thread with **Phase A** from `docs/WORLD_BACKGROUND_REHABILITATION_PLAN.md`.
-2. Audit all legacy raw-audio → phase/position/scale/topology mappings and introduce shared smoothed world-audio/event primitives with deterministic seek/discontinuity handling.
-3. Define the `WorldColorContext` / background-aware typography treatment contract before doing one-off color fixes.
-4. Fix the worst motion offenders first: `vortex`, `rays`, `starfield`, `nebula`, `grid`.
-5. Continue through all 15 legacy presets with dedicated fidelity upgrades and semantic OKLCH palette integration.
-6. Only after the legacy stack inherits the new motion/color/readability contracts continue WORLD_09/10.
+1. Visually accept/reject `vortex`, `rays`, `starfield`, `nebula` and `grid` at 1080p/1440p/4K, Performance/Cinema and representative 0–300% World Power/Detail values; source/CI success is not visual acceptance.
+2. Continue dedicated fidelity rebuilds for `cinematic`, `liquid`, `spectrum`, `sparks`, `lyrics` and `minimal`, preserving preset IDs but removing dependence on generic shared layers where identity remains weak.
+3. Rehabilitate `editorial`, `print`, `architecture` and `aurora` with the same motion/palette rules; smoothing alone is not the fidelity target.
+4. Wire per-world estimated `WorldColorContext` into typography treatment with smoothing/polarity hysteresis, then verify primary/secondary/muted contrast floors across bright/dark world states.
+5. Only after the full legacy stack inherits the new motion/color/readability contracts continue WORLD_09/10.
 
 ### Previous visual-acceptance queue
 

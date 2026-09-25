@@ -60,7 +60,9 @@ void main(void) {
     }
 
     float sceneScale = uMode < 0.5 ? 1.0 : uMode < 1.5 ? 0.72 : 1.18;
-    float motion = (0.35 + uBass * 1.8 + uEnergy * 1.2 + uTransient * 8.5)
+    // Trail sampling distance is autonomous. Audio may change trail opacity,
+    // but never the apparent direction/speed of world motion.
+    float motion = (0.92 + 0.14 * sin(uTime * 0.57))
         * uAmount
         * sceneScale
         * mix(0.58, 1.0, uQuality);

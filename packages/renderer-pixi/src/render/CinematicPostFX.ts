@@ -60,7 +60,9 @@ void main(void) {
     );
     float edgeGuard = smoothstep(0.0, 0.075, edgeDistance);
 
-    float barrel = (0.004 + uBass * 0.009 + uTransient * 0.012) * uAmount * edgeGuard;
+    // Spatial lens shape is autonomous. Audio may change light/color below, but
+    // it must never zoom the whole scene in and out on bass/transients.
+    float barrel = (0.004 + 0.0012 * sin(uTime * 0.37)) * uAmount * edgeGuard;
     vec2 uv = clamp(vTextureCoord + centered * radius2 * barrel, vec2(0.001), vec2(0.999));
 
     vec2 smearDir;
@@ -72,7 +74,7 @@ void main(void) {
         smearDir = normalize(vec2(-centered.y, centered.x) + vec2(0.0001));
     }
 
-    float smearPx = (0.65 + uBass * 2.4 + uTransient * 10.0)
+    float smearPx = (0.82 + 0.18 * sin(uTime * 0.61))
         * uAmount
         * mix(0.72, 1.0, uQuality)
         * mix(0.12, 1.0, edgeGuard);
@@ -91,7 +93,8 @@ void main(void) {
     vec3 color = vec3(red, smeared.g, blue);
     color = mix(smeared.rgb, color, clamp(0.22 + uTransient * 0.62, 0.0, 0.88) * uAmount);
 
-    vec2 glowOffset = texel * mix(2.4, 4.4, uQuality) * (1.0 + uBass * 1.2);
+    // Sampling radius stays spatially stable; audio controls emitted light, not radius.
+    vec2 glowOffset = texel * mix(2.4, 4.4, uQuality) * (1.0 + 0.08 * sin(uTime * 0.43));
     vec3 glow = vec3(0.0);
     glow += texture2D(uTexture, clamp(uv + vec2(glowOffset.x, 0.0), vec2(0.001), vec2(0.999))).rgb;
     glow += texture2D(uTexture, clamp(uv - vec2(glowOffset.x, 0.0), vec2(0.001), vec2(0.999))).rgb;

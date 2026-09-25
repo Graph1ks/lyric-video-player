@@ -198,6 +198,22 @@ A preset should not exist merely because a generic layer receives different cons
 
 Where necessary, move legacy presets into dedicated renderer classes instead of continuing to expand one giant `CinematicBackground` branch table.
 
+### Fidelity escalation rule
+
+Do not substitute a visually continuous medium or spatial environment with a handful of primitive `Graphics` shapes merely because those shapes are easy to animate.
+
+Use the rendering primitive that matches the identity:
+
+- volumetric gas / nebula / haze → procedural fullscreen field (FBM/domain warp/ridged density and lighting) or a measured volumetric escalation;
+- crepuscular / stage light → broad participating-media light volumes with occlusion/falloff, not thin line or polygon stand-ins;
+- deep star flight → explicit world-space depth + perspective + one-way z travel + analytic streak history;
+- infinite/cyber grid → a full spatial environment with perspective depth, horizon, major/minor structure and world traffic/architecture, not a narrow floor strip;
+- projected depth/relief/occlusion → projected 3D Graphics, Mesh or a second 3D renderer when the measured requirement actually crosses that boundary.
+
+The internal `Graph1ks/website` background stack is a quality benchmark here: its strongest worlds use custom shaders, domain-warped noise, raymarched/implicit surfaces, explicit perspective and layered material lighting rather than shape-count approximations.
+
+Paused-frame acceptance is a hard gate. If the preset name is not obvious with playback paused, the renderer has not reached the fidelity floor.
+
 ### Target direction per legacy preset
 
 These are art-direction targets, not frozen implementation mandates.

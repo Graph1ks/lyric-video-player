@@ -57,20 +57,20 @@ void main(void) {
         float band = floor(uv.y * 28.0 + uTime * 2.0);
         float gate = step(0.76, hash11(band + floor(uTime * 9.0)));
         float shove = (hash11(band * 3.17 + 4.2) - 0.5) * 2.0;
-        warp.x += shove * gate * (0.0015 + uTransient * 0.011) * uAmount * quality;
-        warp.y += sin(uv.x * 18.0 + uTime * 3.0) * uMid * 0.0009 * uAmount;
+        warp.x += shove * gate * (0.0018 + 0.0005 * sin(uTime * 0.73)) * uAmount * quality;
+        warp.y += sin(uv.x * 18.0 + uTime * 3.0) * 0.00075 * uAmount;
     } else if (uMode < 1.5) {
         float liquidX = sin(uv.y * 15.0 + uTime * 1.45) + sin(uv.y * 31.0 - uTime * 0.72) * 0.35;
         float liquidY = cos(uv.x * 12.0 - uTime * 1.15) + cos(uv.x * 27.0 + uTime * 0.58) * 0.28;
         warp += vec2(liquidX, liquidY)
-            * (0.00075 + uMid * 0.0016 + uTransient * 0.0032)
+            * (0.00115 + 0.00022 * sin(uTime * 0.47))
             * uAmount * quality;
     } else {
         float radius = length(centered);
         vec2 tangent = normalize(vec2(-centered.y, centered.x) + vec2(0.00001));
         float falloff = 1.0 - smoothstep(0.12, 0.74, radius);
-        float swirl = (0.0018 + uBass * 0.006 + uTransient * 0.012) * falloff;
-        float ripple = sin(radius * 52.0 - uTime * 4.2) * (0.0006 + uBass * 0.0018);
+        float swirl = (0.0028 + 0.0005 * sin(uTime * 0.39)) * falloff;
+        float ripple = sin(radius * 52.0 - uTime * 4.2) * 0.00078;
         warp += tangent * swirl * uAmount * quality;
         warp += normalize(centered + vec2(0.00001)) * ripple * uAmount;
     }

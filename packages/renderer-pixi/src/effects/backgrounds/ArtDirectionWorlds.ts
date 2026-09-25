@@ -89,7 +89,7 @@ export class ArtDirectionWorlds {
     const w = this.w;
     const h = this.h;
     const power = Math.max(0, this.intensity);
-    const pulse = 1 + audio.bass * (0.04 + power * 0.06);
+    const pulse = 1 + Math.sin(time * 0.21 + this.lineIndex * 0.37) * (0.008 + power * 0.01);
     const drift = Math.sin(time * 0.28 + this.lineIndex * 0.61);
     const vertical = this.lineIndex % 2 === 0;
 
@@ -188,7 +188,7 @@ export class ArtDirectionWorlds {
     const cinema = this.quality === "cinema";
     const frames = Math.max(4, Math.min(22, Math.round((cinema ? 9 : 6) * Math.max(0.45, this.detail))));
     const power = Math.max(0, this.intensity);
-    const breathe = 1 + Math.sin(time * 0.38) * (0.008 + power * 0.009) + audio.bass * (0.012 + power * 0.022);
+    const breathe = 1 + Math.sin(time * 0.38) * (0.008 + power * 0.009);
 
     for (let index = 0; index < frames; index++) {
       const t = index / Math.max(1, frames - 1);
