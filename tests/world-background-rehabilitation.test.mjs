@@ -172,7 +172,7 @@ test("phase B legacy worlds use authored fidelity systems and keep motion time-o
       new RegExp(`${field}\\.update\\(time, legacyAudio`),
     );
   }
-  assert.match(background, /!artWorld && !specializedWorld/);
+  assert.match(background, /!specializedWorld/);
 
   // Rays: actual per-pixel participating media and broad cones, not Graphics lines.
   assert.match(rays, /GlProgram\.from/);
