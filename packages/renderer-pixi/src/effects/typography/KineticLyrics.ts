@@ -33,6 +33,7 @@ import {
   type TypographyPreset,
   type TypographyPresetId,
   type VisualPalette,
+  type WorldTypographyTreatment,
   type WordCue,
 } from "@graph1ks/emo-engine-core";
 import { measureTypographyText } from "./TypographyMetrics.js";
@@ -108,6 +109,7 @@ export class KineticLyrics {
   private fontSize = 84;
   private glyphCount = 0;
   private palette?: VisualPalette;
+  private worldTreatment?: WorldTypographyTreatment;
   private wordHitListeners = new Set<(index: number, audio: AudioBands) => void>();
 
   private mainStyle = new TextStyle({
@@ -248,6 +250,28 @@ export class KineticLyrics {
       this.configureStyle();
       this.rebuildEchoLayers();
     }
+  }
+
+
+  setWorldTypographyTreatment(treatment?: WorldTypographyTreatment) {
+    const previous = this.worldTreatment;
+    if (
+      previous?.polarity === treatment?.polarity
+      && previous?.primary === treatment?.primary
+      && previous?.secondary === treatment?.secondary
+      && previous?.muted === treatment?.muted
+      && previous?.accent === treatment?.accent
+      && previous?.supportColor === treatment?.supportColor
+      && previous?.supportLevel === treatment?.supportLevel
+    ) return;
+
+    this.worldTreatment = treatment;
+    if (!this.line) return;
+
+    this.configureStyle();
+    this.remeasureWords();
+    this.layout();
+    this.rebuildEchoLayers();
   }
 
   setIntensity(value: number) {
@@ -754,6 +778,14 @@ export class KineticLyrics {
   }
 
   private glyphTint(active: boolean, past: boolean, filled: boolean) {
+    if (this.worldTreatment) {
+      if (this.worldTreatment.supportLevel > 0) return 0xffffff;
+      return active
+        ? (filled ? this.worldTreatment.primary : this.worldTreatment.accent)
+        : past
+          ? this.worldTreatment.secondary
+          : this.worldTreatment.muted;
+    }
     if (this.palette) {
       return active
         ? (filled ? this.palette.textPrimary : this.palette.accentA)
@@ -888,8 +920,8 @@ export class KineticLyrics {
           fontWeight: "900",
           fontSize: this.fontSize * 1.02,
           fill: i === 0
-            ? (this.palette?.accentA ?? 0x36fff0)
-            : (this.palette?.accentB ?? 0xff387f),
+            ? (this.worldTreatment?.accent ?? this.palette?.accentA ?? 0x36fff0)
+            : (this.worldTreatment?.secondary ?? this.palette?.accentB ?? 0xff387f),
           letterSpacing: -2,
         });
         const echo = new Text({ text: lineText, style, resolution: textTextureResolution() });
@@ -903,10 +935,10 @@ export class KineticLyrics {
   }
 
   private echoStyle(index: number) {
-    const background = this.palette?.background ?? 0x050607;
-    const textPrimary = this.palette?.textPrimary ?? 0xffffff;
-    const accentA = this.palette?.accentA ?? (this.mode === "vortex" ? 0xff5260 : 0x73767e);
-    const accentB = this.palette?.accentB ?? (this.mode === "neon" ? 0xff447c : 0xff704d);
+    const background = this.worldTreatment?.supportColor ?? this.palette?.background ?? 0x050607;
+    const textPrimary = this.worldTreatment?.primary ?? this.palette?.textPrimary ?? 0xffffff;
+    const accentA = this.worldTreatment?.accent ?? this.palette?.accentA ?? (this.mode === "vortex" ? 0xff5260 : 0x73767e);
+    const accentB = this.worldTreatment?.secondary ?? this.palette?.accentB ?? (this.mode === "neon" ? 0xff447c : 0xff704d);
 
     if (this.resolvedPreset === "outline") {
       return new TextStyle({
@@ -1066,11 +1098,39 @@ export class KineticLyrics {
       : this.mode === "poster"
         ? -3
         : -2;
-    const textPrimary = this.palette?.textPrimary ?? (this.mode === "vortex" ? 0xfff0eb : 0xffffff);
-    this.mainStyle.fill = textPrimary;
-    this.mainStyle.stroke = this.resolvedPreset === "outline"
-      ? { color: textPrimary, width: 1.3 }
-      : { color: textPrimary, width: 0 };
+
+    const treatment = this.worldTreatment;
+    const textPrimary = treatment?.primary
+      ?? this.palette?.textPrimary
+      ?? (this.mode === "vortex" ? 0xfff0eb : 0xffffff);
+    const supportWidths = [
+      0,
+      Math.max(1.1, this.fontSize * 0.010),
+      Math.max(1.8, this.fontSize * 0.018),
+      Math.max(2.6, this.fontSize * 0.028),
+    ];
+    const supportWidth = treatment
+      ? supportWidths[treatment.supportLevel]
+      : 0;
+
+    // When support is active the text texture owns its final fill and outline,
+    // so glyph tint stays neutral. Without support we keep the existing per-word
+    // tint semantics on a white source texture.
+    this.mainStyle.fill = treatment?.supportLevel ? textPrimary : treatment ? 0xffffff : textPrimary;
+
+    if (treatment?.supportLevel) {
+      this.mainStyle.stroke = {
+        color: treatment.supportColor,
+        width: Math.max(
+          supportWidth,
+          this.resolvedPreset === "outline" ? 1.3 : 0,
+        ),
+      };
+    } else {
+      this.mainStyle.stroke = this.resolvedPreset === "outline"
+        ? { color: textPrimary, width: 1.3 }
+        : { color: textPrimary, width: 0 };
+    }
   }
 
   private remeasureWords() {

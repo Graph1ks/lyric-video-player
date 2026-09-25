@@ -6,6 +6,7 @@ import {
   chooseWorldTextPolarity,
   createVisualPalette,
   createWorldColorContext,
+  resolveWorldTypographyTreatment,
 } from "../packages/engine-core/dist/index.js";
 import { WorldAudioReactivity } from "../packages/renderer-pixi/dist/effects/backgrounds/WorldAudioReactivity.js";
 
@@ -109,6 +110,82 @@ test("world color context selects stable polarity and requests support for busy 
   assert.equal(chooseWorldTextPolarity(0.55, "light"), "dark");
   assert.equal(chooseWorldTextPolarity(0.04, "dark"), "light");
 });
+
+test("world typography treatment adapts polarity and adds structural support when solid contrast is impossible", () => {
+  const palette = createVisualPalette({
+    harmony: "split-complement",
+    mood: "dream",
+    canvas: "night",
+    scene: "neon",
+    lineIndex: 3,
+  });
+
+  const darkContext = createWorldColorContext({
+    palette,
+    titleSafeLuminance: 0.025,
+    busyness: 0.12,
+  });
+  const darkTreatment = resolveWorldTypographyTreatment(palette, darkContext);
+  assert.equal(darkTreatment.polarity, "light");
+  assert.ok(darkTreatment.primaryContrast >= 7);
+  assert.equal(darkTreatment.supportColor, 0x050507);
+
+  const brightContext = createWorldColorContext({
+    palette,
+    titleSafeLuminance: 0.82,
+    busyness: 0.12,
+    previousPolarity: "dark",
+  });
+  const brightTreatment = resolveWorldTypographyTreatment(palette, brightContext);
+  assert.equal(brightTreatment.polarity, "dark");
+  assert.ok(brightTreatment.primaryContrast >= 7);
+  assert.equal(brightTreatment.supportColor, 0xfafafa);
+
+  const busyMidContext = createWorldColorContext({
+    palette,
+    titleSafeLuminance: 0.18,
+    highlightRisk: 0.82,
+    busyness: 0.94,
+    chromaPressure: 0.8,
+  });
+  const busyMidTreatment = resolveWorldTypographyTreatment(palette, busyMidContext);
+  assert.ok(busyMidTreatment.primaryContrast < 7);
+  assert.ok(busyMidTreatment.supportLevel >= 2);
+  assert.ok(busyMidTreatment.supportStrength > 0.5);
+});
+
+test("world context is analytical, smoothed and shared by both typography renderers", async () => {
+  const [background, renderer, kinetic, persistent] = await Promise.all([
+    source("packages/renderer-pixi/src/effects/backgrounds/CinematicBackground.ts"),
+    source("packages/renderer-pixi/src/render/EngineRenderer.ts"),
+    source("packages/renderer-pixi/src/effects/typography/KineticLyrics.ts"),
+    source("packages/renderer-pixi/src/effects/typography/PersistentTypographySequences.ts"),
+  ]);
+
+  assert.match(background, /WORLD_READABILITY_PROFILES/);
+  assert.match(background, /"laser-canopy-grid": \{ centerSurface:/);
+  assert.match(background, /getWorldColorContext\(previousPolarity\?: WorldTextPolarity\)/);
+  assert.match(background, /this\.lastWorldEnergy = legacyAudio\.energy/);
+  assert.match(background, /relativeLuminance\(palette\.background\)/);
+  assert.doesNotMatch(background, /readPixels|readback|getPixels/i);
+
+  assert.match(renderer, /this\.background\.update\(time, audio, spectrum\);\n    this\.updateWorldTypographyContext\(dt, discontinuity\);/);
+  assert.match(renderer, /1 - Math\.exp\(-dt \/ 0\.22\)/);
+  assert.match(renderer, /previousPolarity: previous\?\.recommendedPolarity/);
+  assert.match(renderer, /resolveWorldTypographyTreatment\(palette, context\)/);
+  assert.match(renderer, /this\.lyrics\.setWorldTypographyTreatment\(treatment\)/);
+  assert.match(renderer, /this\.sequenceLyrics\.setWorldTypographyTreatment\(treatment\)/);
+
+  assert.match(kinetic, /setWorldTypographyTreatment\(treatment\?: WorldTypographyTreatment\)/);
+  assert.match(kinetic, /previous\?\.supportLevel === treatment\?\.supportLevel/);
+  assert.match(kinetic, /supportWidths/);
+  assert.match(kinetic, /if \(this\.worldTreatment\.supportLevel > 0\) return 0xffffff/);
+
+  assert.match(persistent, /setWorldTypographyTreatment\(treatment\?: WorldTypographyTreatment\)/);
+  assert.match(persistent, /this\.scopeMetrics\.clear\(\)/);
+  assert.match(persistent, /world\?\.supportLevel/);
+});
+
 
 test("legacy shared geometry consumes smoothed/event audio instead of raw global pump mappings", async () => {
   const [background, liquid] = await Promise.all([

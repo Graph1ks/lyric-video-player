@@ -17,6 +17,7 @@ import {
   type TypographyPackingSlot,
   type TypographySpatialMetrics,
   type VisualPalette,
+  type WorldTypographyTreatment,
 } from "@graph1ks/emo-engine-core";
 import { measureTypographyText } from "./TypographyMetrics.js";
 
@@ -34,6 +35,7 @@ export class PersistentTypographySequences {
   private phraseEndLine = -1;
   private nodes = new Map<string, SequenceNode>();
   private palette?: VisualPalette;
+  private worldTreatment?: WorldTypographyTreatment;
   private quality: QualityMode = "cinema";
   private intensity = 1;
   private w = 1;
@@ -105,6 +107,32 @@ export class PersistentTypographySequences {
       entry.node.style = this.styleFor(entry.treatment);
       entry.node.tint = 0xffffff;
     }
+  }
+
+
+  setWorldTypographyTreatment(treatment?: WorldTypographyTreatment) {
+    const previous = this.worldTreatment;
+    if (
+      previous?.polarity === treatment?.polarity
+      && previous?.primary === treatment?.primary
+      && previous?.secondary === treatment?.secondary
+      && previous?.muted === treatment?.muted
+      && previous?.accent === treatment?.accent
+      && previous?.supportColor === treatment?.supportColor
+      && previous?.supportLevel === treatment?.supportLevel
+    ) return;
+
+    this.worldTreatment = treatment;
+    for (const entry of this.nodes.values()) {
+      entry.node.style = this.styleFor(entry.treatment);
+      entry.node.tint = 0xffffff;
+    }
+
+    // Stroke/support width changes measured extents. Invalidate cached phrase
+    // geometry once per discrete treatment change, never on every animation frame.
+    this.scopeMetrics.clear();
+    this.staticLayout = undefined;
+    this.staticLayoutKey = "";
   }
 
   setQuality(quality: QualityMode) {
@@ -415,9 +443,17 @@ export class PersistentTypographySequences {
   }
 
   private styleFor(treatment: SequenceTypographyTreatment) {
-    const textPrimary = this.palette?.textPrimary ?? 0xffffff;
-    const textSecondary = this.palette?.textSecondary ?? 0xb8bcc5;
-    const background = this.palette?.background ?? 0x050607;
+    const world = this.worldTreatment;
+    const textPrimary = world?.primary ?? this.palette?.textPrimary ?? 0xffffff;
+    const textSecondary = world?.secondary ?? this.palette?.textSecondary ?? 0xb8bcc5;
+    const background = world?.supportColor ?? this.palette?.background ?? 0x050607;
+    const supportWidths = [
+      0,
+      Math.max(1.0, this.baseFontSize * 0.010),
+      Math.max(1.7, this.baseFontSize * 0.018),
+      Math.max(2.5, this.baseFontSize * 0.028),
+    ];
+    const supportWidth = world ? supportWidths[world.supportLevel] : 0;
 
     if (treatment === "outline") {
       return new TextStyle({
@@ -425,7 +461,14 @@ export class PersistentTypographySequences {
         fontSize: this.baseFontSize,
         fontWeight: "900",
         fill: background,
-        stroke: { color: textSecondary, width: Math.max(1.2, this.baseFontSize * 0.018) },
+        stroke: {
+          color: textSecondary,
+          width: Math.max(
+            1.2,
+            this.baseFontSize * 0.018,
+            supportWidth,
+          ),
+        },
         align: "center",
         letterSpacing: -2,
       });
@@ -436,6 +479,9 @@ export class PersistentTypographySequences {
       fontSize: this.baseFontSize,
       fontWeight: "900",
       fill: textPrimary,
+      stroke: world?.supportLevel
+        ? { color: world.supportColor, width: supportWidth }
+        : { color: textPrimary, width: 0 },
       align: "center",
       letterSpacing: -2,
     });

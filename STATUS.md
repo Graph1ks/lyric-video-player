@@ -1,8 +1,8 @@
 # Project Status
 
 **Last updated:** 2026-09-26  
-**Last known good merged baseline:** `7611eb4d57bb03559b5d8866c961ced7f9d895e0`  
-**Active candidate:** `feat/rebuild-laser-canopy-sparks` — draft PR #79  
+**Last known good merged baseline:** `e08d40119d55c28fe50ad8d010f2f9e0b05246e6`  
+**Active candidate:** `feat/world-color-context-typography` — draft PR #80
 **Current phase/milestone:** legacy world/background rehabilitation
 
 ## Current objective
@@ -19,7 +19,10 @@ Rehabilitate all 15 legacy Background presets before WORLD_09/10: remove raw-aud
 - **Real-display rejection after PR #78 exposed two remaining fidelity failures in non-legacy/newer worlds:** `laser-canopy-grid` still read as flat 2D beams from one screen-space rig, and `sparks` read as four repeating baby-firework fountains.
 - **Draft PR #79 supersedes those identities:** Laser Canopy now uses explicit projected 3D club-room coordinates, perspective floor/ceiling truss depth and transverse/longitudinal/diagonal canopy beams; Sparks is now a fullscreen procedural multi-direction spark storm with no fixed emitters or ballistic fountain arcs. Audio is restricted to light/emission response and Laser now consumes semantic `VisualPalette` roles.
 - The first systemic corrections remove raw bass/transient whole-geometry pumping from shared blobs, particles, rings, beams, editorial/architecture geometry and liquid absolute-time phase/topology.
-- `WorldColorContext` now exists as the pure engine-core contract for representative/title-safe luminance, highlight risk, chroma/busyness pressure, polarity hysteresis and outline-support pressure; renderer-to-typography wiring is still pending.
+- `WorldColorContext` is now wired into the renderer-to-typography path in draft PR #80: each active background gets an analytical title-safe luminance/highlight/busyness/chroma estimate with no GPU readback.
+- `EngineRenderer` smooths those world metrics with a 220 ms time constant and recomputes polarity from the smoothed title-safe luminance using hysteresis.
+- `WorldTypographyTreatment` resolves primary/secondary/muted/accent colors against the actual world. Mid-tone cases that cannot mathematically reach 7:1 with any solid fill receive a quantized opposite-polarity support stroke instead of frame-to-frame black/white switching.
+- The same treatment is consumed by both `KineticLyrics` and `PersistentTypographySequences`; style rebuilds occur only on discrete palette/polarity/support-level changes.
 - **The five worst legacy motion offenders are now dedicated fidelity worlds:** `LegacyVortexWorld`, `LegacyRaysWorld`, `LegacyStarfieldWorld`, `LegacyNebulaWorld` and `LegacyGridWorld` replace the shared generic stack for those preset IDs.
 - Vortex uses projected-depth helical ribbons/hoops + one-way tracers. Rays is now a fullscreen participating-media shader with broad soft cones, atmospheric breakup and source bloom. Starfield is fixed-axis 3D forward flight with strictly decreasing z between wraps and analytic streak history. Nebula is a fullscreen domain-warped FBM gas field with ridged filaments/cavities/folded lighting. Grid is a fullscreen infinite-perspective environment with floor/ceiling structure, horizon atmosphere, moving side architecture and deterministic energy traffic.
 - All five are isolated from generic blobs/particles/rings/beams, consume semantic `VisualPalette` roles, and keep geometry/phase/direction timestamp-owned. Audio is restricted to smoothed light/material emphasis; Rays uses the positive transient envelope for light only. Full-frame barrel/displacement/smear sampling distance is also time-owned now so global post FX cannot reintroduce bass-driven scene breathing.
