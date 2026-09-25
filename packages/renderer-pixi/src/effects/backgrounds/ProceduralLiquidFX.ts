@@ -235,7 +235,8 @@ void main(void) {
   float vignette = 1.0 - smoothstep(0.30, 0.86, dot(p * vec2(0.72, 1.0), p * vec2(0.72, 1.0)));
   color *= 0.74 + vignette * 0.30;
 
-  color = finish(color);\n  gl_FragColor = vec4(max(color, vec3(0.0)), 1.0);
+  color = finish(color);
+  gl_FragColor = vec4(max(color, vec3(0.0)), 1.0);
 }
 `;
 
