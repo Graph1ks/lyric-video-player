@@ -2,7 +2,7 @@
 
 **Status:** accepted architecture note for E-MO world development  
 **Last updated:** 2026-09-25  
-**Primary scope:** WORLD_05 onward, especially WORLD_09 / WORLD_10
+**Primary scope:** WORLD_05 onward; WORLD_09 / WORLD_10 resume after legacy background rehabilitation
 
 This document captures the reusable 3D findings behind the WORLD_05/06 rebuild and the rendering benchmark taken from `Graph1ks/website`. It exists so future world work does not rediscover the same distinction between **real spatial geometry** and a flat image that merely looks distorted.
 
@@ -462,18 +462,21 @@ If the terrain needs true normals, multiple lights, depth-buffered geometry and 
 
 ## Continuation rule
 
-For the next thread, read in this order:
+WORLD_09/10 are intentionally deferred until the legacy world/background rehabilitation in `docs/WORLD_BACKGROUND_REHABILITATION_PLAN.md` establishes the shared motion/color/readability contracts.
+
+For the thread that eventually resumes 3D expansion, read in this order:
 
 1. `AGENTS.md`
 2. `PROJECT.md`
 3. `STATUS.md`
 4. `docs/HANDOVER.md`
-5. `docs/3D_WORLD_RENDERING_ARCHITECTURE.md`
-6. `docs/WORLD_RENDERING_TECH_RESEARCH.md`
-7. `docs/WORLD_REFERENCE_SET_13.md`
-8. `docs/WORLD_MOTION_AUDIO_REACTIVITY.md`
+5. `docs/WORLD_BACKGROUND_REHABILITATION_PLAN.md`
+6. `docs/3D_WORLD_RENDERING_ARCHITECTURE.md`
+7. `docs/WORLD_RENDERING_TECH_RESEARCH.md`
+8. `docs/WORLD_REFERENCE_SET_13.md`
+9. `docs/WORLD_MOTION_AUDIO_REACTIVITY.md`
 
-Do not restart the Pixi-vs-Three debate from zero.
+Do not restart the Pixi-vs-Three debate from zero, and do not skip the legacy rehabilitation milestone.
 
 The accepted default is:
 
