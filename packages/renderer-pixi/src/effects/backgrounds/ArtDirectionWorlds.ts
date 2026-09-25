@@ -67,7 +67,10 @@ export class ArtDirectionWorlds {
 
   update(time: number, audio: AudioBands) {
     if (!this.container.visible || !this.palette) return;
+    const power = Math.max(0, this.intensity);
+    this.container.alpha = Math.min(1, power);
     this.clear();
+    if (power <= 0.001) return;
 
     if (this.preset === "editorial") this.drawEditorial(time, audio);
     else if (this.preset === "print") this.drawPrint(time, audio);
