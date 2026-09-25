@@ -37,6 +37,14 @@ export type TypographyPresetId =
   | "tunnel"
   | "glitch";
 export type TypographyPreset = "auto" | TypographyPresetId;
+export type TypographyLayoutId =
+  | "center-stack"
+  | "directional-stage"
+  | "editorial"
+  | "vertical-accent"
+  | "split-stage"
+  | "crossword";
+export type TypographyLayoutPreset = "auto" | TypographyLayoutId;
 export type BackgroundPresetId =
   | "cinematic"
   | "nebula"
@@ -50,13 +58,23 @@ export type BackgroundPresetId =
   | "lyrics"
   | "minimal";
 export type BackgroundPreset = "auto" | BackgroundPresetId;
+export type ColorHarmonyId =
+  | "split-complement"
+  | "analogous"
+  | "complement"
+  | "triad"
+  | "tetrad"
+  | "monochrome";
+export type ColorHarmonyMode = "auto" | ColorHarmonyId;
 
 export interface VisualSettings {
   mode: VisualMode;
   intensity: number;
   quality: QualityMode;
   typographyPreset?: TypographyPreset;
+  typographyLayout?: TypographyLayoutPreset;
   backgroundPreset?: BackgroundPreset;
+  colorHarmony?: ColorHarmonyMode;
 }
 
 export interface AudioBands {

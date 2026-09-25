@@ -23,7 +23,9 @@ Frame-critical motion remains outside React. PixiJS, Web Audio and the E-MO cloc
 - bass / mid / treble / energy / transient analysis
 - deterministic timestamp-driven glyph/word motion
 - deterministic typography selector engine: range, stagger, wave, wiggle, random and audio weighting
-- eight typography presets: Impact, Cascade, Wave, Scatter, Elastic, Outline, Tunnel and Glitch
+- eight typography motion presets: Impact, Cascade, Wave, Scatter, Elastic, Outline, Tunnel and Glitch
+- word-level typography compositions: Center Stack, Directional Stage, Editorial, Vertical Accent, Split Stage and Crossword
+- OKLCH palette director with Split Complement, Analogous, Complement, Triad, Tetrad and Monochrome harmonies
 - background presets: Cinematic, Nebula, Grid, Starfield, Rays, Vortex, Liquid, Spectrum, Sparks, Recursive Lyrics and Minimal
 - Poster / Neon / Vortex visual families
 - deterministic Auto Director
@@ -90,8 +92,10 @@ See `docs/PLATFORM_ARCHITECTURE.md` and `docs/DECISIONS.md`.
 | `Shift + ←` / `Shift + →` | seek 15 seconds |
 | `0` | Auto Director |
 | `1` / `2` / `3` | Poster / Neon / Vortex |
-| `T` | cycle typography preset |
+| `T` | cycle typography motion preset |
+| `L` | cycle typography composition |
 | `B` | cycle background preset |
+| `C` | cycle OKLCH color harmony |
 | `,` / `.` | lyric sync -/+ 50 ms |
 | `Esc` | restore hidden HUD |
 

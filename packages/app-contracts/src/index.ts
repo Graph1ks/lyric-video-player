@@ -11,6 +11,22 @@ export type ProjectTypographyPreset =
   | "outline"
   | "tunnel"
   | "glitch";
+export type ProjectTypographyLayout =
+  | "auto"
+  | "center-stack"
+  | "directional-stage"
+  | "editorial"
+  | "vertical-accent"
+  | "split-stage"
+  | "crossword";
+export type ProjectColorHarmony =
+  | "auto"
+  | "split-complement"
+  | "analogous"
+  | "complement"
+  | "triad"
+  | "tetrad"
+  | "monochrome";
 export type ProjectBackgroundPreset =
   | "auto"
   | "cinematic"
@@ -30,7 +46,9 @@ export interface EmoProjectDefaults {
   intensity?: number;
   quality?: ProjectQualityMode;
   typographyPreset?: ProjectTypographyPreset;
+  typographyLayout?: ProjectTypographyLayout;
   backgroundPreset?: ProjectBackgroundPreset;
+  colorHarmony?: ProjectColorHarmony;
   syncMs?: number;
 }
 

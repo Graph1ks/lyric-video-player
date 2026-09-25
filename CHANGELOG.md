@@ -30,7 +30,9 @@ Git history remains the complete technical history. This file records meaningful
 - Deterministic typography selector engine and eight typography preset families.
 - Independent deterministic background preset engine.
 - Reusable logarithmic FFT spectrum resampling for graphics.
-- Procedural GPU liquid background and mirrored spectrum-ribbon background candidate.
+- Procedural GPU liquid background and mirrored spectrum-ribbon background.
+- Word-level typography composition engine with six deterministic layout families.
+- OKLCH palette director with harmony generation, gamut reduction, semantic color roles and contrast checks.
 
 ### Changed
 
@@ -40,6 +42,8 @@ Git history remains the complete technical history. This file records meaningful
 - Virtual-camera rotation and zoom pivot around viewport center.
 - Primary lyric entry and word-punch motion remains evaluated analytically from lyric timestamps.
 - Manual typography/background preset changes reset temporal feedback to prevent stale visual history.
+- Typography composition is now independent from glyph animation, allowing fixed 90°/editorial stage layouts while glyph effects continue inside each word.
+- Primary lyric and background layers now share one generated OKLCH palette contract.
 - GSAP remains excluded because the planned visual-editor direction could intersect its visual-animation-builder restriction.
 
 ### Security / Privacy

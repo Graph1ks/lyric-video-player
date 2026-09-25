@@ -1,63 +1,83 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `659008d754fc3f4eab921e3b3241ee8d9d79abdb`  
-**Active candidate:** none  
-**Current phase/milestone:** v0.7 visualization-engine expansion
+**Merged baseline:** `4e0e30d09596a57ed628ddbf9827f4850c4be7fc`  
+**Active candidate:** `feature/composition-palette-v0.8`  
+**Current phase/milestone:** v0.8 lyric-scene composition + color direction
 
 ## Current objective
 
-Close the remaining typography families, then stabilize scene-stack serialization before editor work.
+Land the first two lyric-video design layers above the existing glyph engine: typography composition and OKLCH palette direction.
 
 ## Current implementation state
 
-Merged visual engine includes:
+### Existing merged engine
 
-- deterministic typography selectors;
-- Impact / Cascade / Wave / Scatter / Elastic / Outline / Tunnel / Glitch;
-- RenderTexture compositor + temporal feedback;
-- displacement / velocity smear / threshold bloom / cinematic post-FX;
-- Cinematic / Nebula / Grid / Starfield / Rays / Vortex / Liquid / Spectrum / Minimal backgrounds;
-- logarithmic FFT spectrum sampling and mirrored spectrum ribbons;
-- procedural GPU liquid flow;
-- React/project preset controls.
+- deterministic Enhanced LRC/audio clock;
+- selector-driven glyph typography;
+- RenderTexture compositor + feedback/displacement/smear/bloom;
+- advanced background families including Liquid, Spectrum, Sparks and Recursive Lyrics;
+- React Visual Director and project defaults;
+- hosted/desktop project runtime and Windows packaging gates.
 
-### Merged visual accents
+### Step 1 candidate — Typography Composition Engine
 
-**Sparks**
+New pure engine-core planner returns per-word:
 
-A single deterministic Graphics layer analytically reconstructs radial sparks/trails from playback time, cue index and stable hashes. Transient/treble/impact values change length and brightness without creating historical particle state.
+- x/y stage placement;
+- fixed layout rotation;
+- layout scale;
+- entry x/y vector;
+- entry scale;
+- entry rotation;
+- emphasis weight.
 
-**Recursive lyrics**
+Initial layouts:
 
-The current Enhanced LRC line is rendered into a low-alpha background typography stack. Poster uses stacked rows, Neon uses diagonal drifting repetitions and Vortex uses recursive scale/rotation depth. Text is rebuilt only on line, mode, preset, quality or resize changes.
+- `center-stack`
+- `directional-stage`
+- `editorial`
+- `vertical-accent`
+- `split-stage`
+- `crossword`
 
-New selectable background IDs:
+AUTO layout is deterministic by scene family + cue index. KineticLyrics consumes the composition plan while its existing glyph selector/motion presets continue to run inside each word container.
 
-- `sparks`
-- `lyrics`
+Renderer, React and `emo.project/v1` expose typography layout controls. Keyboard `L` cycles layouts.
 
-Both participate in deterministic AUTO routing and project defaults.
+### Step 2 candidate — OKLCH Palette Director
+
+New engine-core color system provides:
+
+- OKLCH → sRGB conversion;
+- chroma reduction for sRGB gamut;
+- relative-luminance/contrast calculation;
+- Split Complement / Analogous / Complement / Triad / Tetrad / Monochrome;
+- deterministic AUTO harmony;
+- semantic roles for background, surface, text, accents, glow and muted values;
+- contrast-adjusted primary/secondary lyric colors.
+
+KineticLyrics consumes text/accent roles. CinematicBackground consumes generated background/accent roles. React exposes harmony selection and a live palette swatch preview. Keyboard `C` cycles harmonies. `emo.project/v1` can persist the default.
 
 ## Important files / entry points
 
 | Path | Why it matters |
 |---|---|
-| `packages/renderer-pixi/src/effects/backgrounds/CinematicBackground.ts` | all deterministic background families + active accents |
-| `packages/renderer-pixi/src/effects/backgrounds/ProceduralLiquidFX.ts` | GPU liquid flow |
-| `packages/audio-web/src/index.ts` | band + logarithmic spectrum analysis |
-| `packages/renderer-pixi/src/effects/typography/KineticLyrics.ts` | primary selector-driven lyric typography |
-| `packages/renderer-pixi/src/render/EngineRenderer.ts` | explicit frame/preset orchestration |
-| `apps/web/src/App.tsx` | Visual Director |
-| `docs/PROJECT_FORMAT.md` | project preset contract |
+| `docs/LYRIC_VISUALIZATION_ENGINE_PLAN.md` | authoritative visual-engine implementation order |
+| `packages/engine-core/src/typographyComposition.ts` | pure word composition planner |
+| `packages/engine-core/src/colorHarmony.ts` | OKLCH conversion + palette director |
+| `packages/renderer-pixi/src/effects/typography/KineticLyrics.ts` | composition + glyph-motion consumer |
+| `packages/renderer-pixi/src/effects/backgrounds/CinematicBackground.ts` | palette/background consumer |
+| `packages/renderer-pixi/src/render/EngineRenderer.ts` | composition/palette orchestration |
+| `apps/web/src/App.tsx` | Visual Director controls |
+| `docs/PROJECT_FORMAT.md` | persisted layout/harmony defaults |
 
 ## Known risks / pending acceptance
 
-- Recursive text density and spark brightness still need real-track visual tuning.
-- Procedural Liquid shader has CI build validation but still needs human browser/GPU acceptance.
-- Remaining typography work: inflate/soft-3D, brush/stroke reveal, dissolve/smear exit.
-- Root legacy UI remains pending React acceptance.
-- Safari/M4A remains real-device work.
+- Mixed word compositions require real-track tuning for very long words/lines and small mobile viewports.
+- The baseline palette is wired into primary text/background/geometry; some specialist shader worlds still retain internal scene-specific shading and should migrate to palette uniforms in Step 4.
+- The Visual Director is increasingly dense; a later UI pass should group controls without hiding the engine features.
+- Real browser/Desktop visual acceptance remains required even after compile/CI validation.
 
 ## Verification
 
@@ -69,15 +89,16 @@ npm test
 python scripts/repo_audit.py
 ```
 
-Windows packaging remains a separate required CI gate.
+Windows packaging remains a separate required gate.
 
 ## Next concrete work
 
-1. Implement remaining typography families.
-2. Stabilize a serializable scene/effect stack.
-3. Run visual tuning/acceptance across real Enhanced LRC tracks.
-4. Begin editor/timeline only after the engine contracts stop moving.
+1. Merge v0.8 after all gates.
+2. Implement composition-level motion grammar.
+3. Migrate specialist background shaders to full palette-role uniforms.
+4. Complete remaining typography primitives.
+5. Stabilize scene-stack serialization before timeline/editor work.
 
 ## Resume instruction
 
-Read `AGENTS.md`, `PROJECT.md`, `STATUS.md`, this file, `ROADMAP.md`, `docs/PROJECT_FORMAT.md`, `docs/PLATFORM_ARCHITECTURE.md` and `docs/DECISIONS.md`.
+Read `AGENTS.md`, `PROJECT.md`, `STATUS.md`, this file, `docs/LYRIC_VISUALIZATION_ENGINE_PLAN.md`, `ROADMAP.md`, `docs/PROJECT_FORMAT.md`, `docs/PLATFORM_ARCHITECTURE.md` and `docs/DECISIONS.md`.

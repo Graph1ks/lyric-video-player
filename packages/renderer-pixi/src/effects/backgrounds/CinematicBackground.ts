@@ -6,6 +6,7 @@ import type {
   LineCue,
   QualityMode,
   SceneMode,
+  VisualPalette,
 } from "@graph1ks/emo-engine-core";
 import { hash01, seeded } from "@graph1ks/emo-engine-core";
 import { ProceduralLiquidFX } from "./ProceduralLiquidFX.js";
@@ -68,6 +69,7 @@ export class CinematicBackground {
   private intensity = 1;
   private impact = 0;
   private previousTime = 0;
+  private palette?: VisualPalette;
 
   constructor() {
     this.container.addChild(
@@ -143,6 +145,12 @@ export class CinematicBackground {
       this.redrawBase();
       this.hit(0.62);
     }
+  }
+
+  setPalette(palette: VisualPalette) {
+    this.palette = palette;
+    this.applyModePalette();
+    this.rebuildLyricBackdrop();
   }
 
   setIntensity(value: number) {
@@ -540,7 +548,10 @@ export class CinematicBackground {
                 ? 0x070305
                 : 0x03090d;
 
-    this.base.clear().rect(0, 0, this.w, this.h).fill({ color: baseColor, alpha: 1 });
+    this.base.clear().rect(0, 0, this.w, this.h).fill({
+      color: this.palette?.background ?? baseColor,
+      alpha: 1,
+    });
     this.flash.clear().rect(0, 0, this.w, this.h).fill({ color: 0xffffff, alpha: 1 });
   }
 
@@ -560,18 +571,21 @@ export class CinematicBackground {
     const count = this.quality === "cinema" ? 14 : 8;
     const textLength = Math.max(6, text.length);
     const fontSize = Math.max(22, Math.min(68, this.w / Math.max(10, textLength * 0.58)));
-    const primary = this.mode === "poster"
-      ? 0xffffff
-      : this.mode === "vortex"
-        ? 0xff4960
-        : 0x65fff2;
+    const primary = this.palette?.accentA ?? (
+      this.mode === "poster"
+        ? 0xffffff
+        : this.mode === "vortex"
+          ? 0xff4960
+          : 0x65fff2
+    );
+    const textBackground = this.palette?.background ?? (this.mode === "poster" ? 0x050505 : 0x020405);
 
     for (let index = 0; index < count; index++) {
       const style = new TextStyle({
         fontFamily: "Arial Black, Impact, Helvetica Neue, Arial, sans-serif",
         fontWeight: "900",
         fontSize: fontSize * (1 + index * 0.012),
-        fill: this.mode === "poster" ? 0x050505 : 0x020405,
+        fill: textBackground,
         stroke: {
           color: primary,
           width: index % 3 === 0 ? 1.4 : 0.7,
@@ -632,16 +646,20 @@ export class CinematicBackground {
     const cy = this.h * 0.5;
     const count = this.quality === "cinema" ? 76 : 38;
     const radiusMax = Math.hypot(this.w, this.h) * 0.46;
-    const primary = this.mode === "poster"
-      ? 0xffffff
-      : this.mode === "vortex"
-        ? 0xff4259
-        : 0x69fff2;
-    const secondary = this.mode === "poster"
-      ? 0xff5260
-      : this.mode === "vortex"
-        ? 0xff9a69
-        : 0x9b76ff;
+    const primary = this.palette?.accentA ?? (
+      this.mode === "poster"
+        ? 0xffffff
+        : this.mode === "vortex"
+          ? 0xff4259
+          : 0x69fff2
+    );
+    const secondary = this.palette?.accentB ?? (
+      this.mode === "poster"
+        ? 0xff5260
+        : this.mode === "vortex"
+          ? 0xff9a69
+          : 0x9b76ff
+    );
     const burst = 0.35 + audio.treble * 0.9 + audio.transient * 2.4 + this.impact * 0.55;
 
     for (let index = 0; index < count; index++) {
@@ -715,16 +733,20 @@ export class CinematicBackground {
       area.push(bottom[index], bottom[index + 1]);
     }
 
-    const primary = this.mode === "poster"
-      ? 0xff5365
-      : this.mode === "vortex"
-        ? 0xff3c58
-        : 0x64fff1;
-    const secondary = this.mode === "poster"
-      ? 0xffffff
-      : this.mode === "vortex"
-        ? 0xff8b64
-        : 0x8b6cff;
+    const primary = this.palette?.accentA ?? (
+      this.mode === "poster"
+        ? 0xff5365
+        : this.mode === "vortex"
+          ? 0xff3c58
+          : 0x64fff1
+    );
+    const secondary = this.palette?.accentB ?? (
+      this.mode === "poster"
+        ? 0xffffff
+        : this.mode === "vortex"
+          ? 0xff8b64
+          : 0x8b6cff
+    );
 
     this.spectrumLayer
       .poly(area)
@@ -769,7 +791,7 @@ export class CinematicBackground {
 
     if (this.resolvedPreset === "grid") {
       const horizon = h * (this.mode === "poster" ? 0.58 : 0.63);
-      const color = this.mode === "poster" ? 0xff5362 : 0x70fff2;
+      const color = this.palette?.accentA ?? (this.mode === "poster" ? 0xff5362 : 0x70fff2);
       for (let index = 0; index <= 16; index++) {
         const t = index / 16;
         const x = t * w;
@@ -793,7 +815,7 @@ export class CinematicBackground {
     }
 
     if (this.resolvedPreset === "rays") {
-      const color = this.mode === "vortex" ? 0xff4a54 : 0x70fff2;
+      const color = this.palette?.accentA ?? (this.mode === "vortex" ? 0xff4a54 : 0x70fff2);
       const rotation = time * 0.045;
       for (let index = 0; index < 14; index++) {
         const angle = (index / 14) * Math.PI * 2 + rotation;
@@ -820,7 +842,7 @@ export class CinematicBackground {
     }
 
     if (this.resolvedPreset === "starfield") {
-      const color = this.mode === "vortex" ? 0xff5060 : 0x8cfff7;
+      const color = this.palette?.accentA ?? (this.mode === "vortex" ? 0xff5060 : 0x8cfff7);
       const rotation = time * 0.018;
       for (let index = 0; index < 10; index++) {
         const angle = (index / 10) * Math.PI * 2 + rotation;
@@ -834,7 +856,7 @@ export class CinematicBackground {
     }
 
     if (this.resolvedPreset === "nebula") {
-      const color = this.mode === "vortex" ? 0xff4e67 : 0x72fff3;
+      const color = this.palette?.accentA ?? (this.mode === "vortex" ? 0xff4e67 : 0x72fff3);
       const shift = Math.sin(time * 0.17) * h * 0.06;
       for (let index = 0; index < 7; index++) {
         const y = h * (0.16 + index * 0.115) + shift * (index % 2 ? -1 : 1);
@@ -895,11 +917,15 @@ export class CinematicBackground {
   }
 
   private applyModePalette() {
-    const palette = this.mode === "poster"
+    const fallback = this.mode === "poster"
       ? { primary: 0xff3d4e, secondary: 0xffffff }
       : this.mode === "vortex"
         ? { primary: 0xff293f, secondary: 0xff6a48 }
         : { primary: 0x56fff1, secondary: 0x7c5cff };
+    const palette = {
+      primary: this.palette?.accentA ?? fallback.primary,
+      secondary: this.palette?.accentB ?? fallback.secondary,
+    };
 
     this.blobs.forEach((blob, index) => {
       blob.g.tint = index % 2 ? palette.primary : palette.secondary;

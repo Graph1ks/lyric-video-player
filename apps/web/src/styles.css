@@ -70,24 +70,37 @@ button { color: inherit; }
 .icon-button:active, .mini-button:active, .scene-tab:active, .quality-button:active, .play-button:active { transform: scale(.96); }
 .icon-button { width: 38px; height: 38px; border-radius: 12px; font-size: 15px; }
 
-.scene-panel { position: absolute; top: 98px; right: 18px; width: 250px; border-radius: 20px; padding: 15px; pointer-events: auto; }
+.scene-panel {
+  position: absolute; top: 98px; right: 18px; width: 268px; max-height: calc(100vh - 210px);
+  border-radius: 20px; padding: 15px; pointer-events: auto; overflow: auto; scrollbar-width: thin;
+}
 .panel-kicker { font-size: 8.5px; letter-spacing: .2em; font-weight: 900; color: rgba(255,255,255,.46); margin-bottom: 11px; }
 .scene-tabs { display: grid; grid-template-columns: repeat(4, 1fr); padding: 3px; gap: 3px; background: rgba(0,0,0,.22); border-radius: 11px; }
 .scene-tab { height: 30px; border: 0; border-radius: 8px; font-size: 8px; font-weight: 900; letter-spacing: .06em; color: rgba(255,255,255,.48); }
 .scene-tab.is-active { background: rgba(255,255,255,.13); color: #fff; box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
 .readout-row { margin: 13px 1px 11px; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 8px; letter-spacing: .12em; color: rgba(255,255,255,.42); }
 .readout-row strong { color: white; font-size: 9px; letter-spacing: .04em; }
-.typography-control, .background-control { margin: 0 1px 12px; display: grid; gap: 7px; }
-.typography-grid, .background-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
-.typography-button, .background-button {
+.typography-control, .composition-control, .harmony-control, .background-control { margin: 0 1px 12px; display: grid; gap: 7px; }
+.typography-grid, .composition-grid, .harmony-grid, .background-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+.typography-button, .composition-button, .harmony-button, .background-button {
   appearance: none; height: 24px; padding: 0 5px; border-radius: 7px;
   border: 1px solid rgba(255,255,255,.075); background: rgba(255,255,255,.035);
   color: rgba(255,255,255,.42); font-size: 6.8px; font-weight: 900; letter-spacing: .055em;
   cursor: pointer; transition: background .14s ease, border-color .14s ease, color .14s ease, transform .14s ease;
 }
-.typography-button:hover, .background-button:hover { background: rgba(255,255,255,.09); border-color: rgba(255,255,255,.15); color: rgba(255,255,255,.76); }
-.typography-button:active, .background-button:active { transform: scale(.97); }
-.typography-button.is-active, .background-button.is-active { background: rgba(132,255,242,.12); border-color: rgba(132,255,242,.22); color: #dffffb; box-shadow: inset 0 0 0 1px rgba(132,255,242,.06); }
+.typography-button:hover, .composition-button:hover, .harmony-button:hover, .background-button:hover { background: rgba(255,255,255,.09); border-color: rgba(255,255,255,.15); color: rgba(255,255,255,.76); }
+.typography-button:active, .composition-button:active, .harmony-button:active, .background-button:active { transform: scale(.97); }
+.typography-button.is-active, .composition-button.is-active, .harmony-button.is-active, .background-button.is-active { background: rgba(132,255,242,.12); border-color: rgba(132,255,242,.22); color: #dffffb; box-shadow: inset 0 0 0 1px rgba(132,255,242,.06); }
+.palette-preview {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; padding: 7px;
+  border-radius: 10px; border: 1px solid rgba(255,255,255,.06); background: rgba(0,0,0,.16);
+}
+.palette-preview span { display: grid; justify-items: center; gap: 3px; min-width: 0; }
+.palette-preview i {
+  width: 100%; height: 14px; display: block; border-radius: 5px;
+  border: 1px solid rgba(255,255,255,.12); box-shadow: inset 0 0 0 1px rgba(0,0,0,.12);
+}
+.palette-preview small { font-size: 5.8px; font-weight: 900; letter-spacing: .06em; color: rgba(255,255,255,.36); }
 .control-row { display: grid; gap: 8px; font-size: 8px; letter-spacing: .13em; font-weight: 850; color: rgba(255,255,255,.53); }
 .control-row span { display: flex; justify-content: space-between; }
 .control-row b { color: white; font-size: 8px; }
