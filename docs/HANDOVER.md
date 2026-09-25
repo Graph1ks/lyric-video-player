@@ -1,37 +1,34 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `000b6ddd04a0e08b1724ab98e900796056ed52a3`  
-**Active candidate:** `feature/project-manifest-v1`  
-**Current phase/milestone:** v0.5 project model stabilization
+**Merged baseline:** `0e8847d6eb431193f947e3ed4adb50ac0254abfd`  
+**Current phase/milestone:** v0.5 project/runtime acceptance
 
 ## Current objective
 
-Finish the first stable E-MO project schema so browser/server/Desktop loading can address explicit nested assets and reproduce player defaults without weakening filesystem confinement.
+Exercise the merged project model through the real hosted/Desktop runtime path, finish React visual acceptance, and then retire the temporary legacy application before returning to deeper renderer/editor work.
 
 ## Current implementation state
 
-### Merged platform
+### Application/platform
 
-- React 19 / Vite 8 application shell is merged.
+- React 19 / Vite 8 is the main application shell.
 - PixiJS remains outside React's frame-critical state path.
 - Node `EmoServer` serves the React build, project metadata and byte-range media.
 - Electron starts the same server on loopback with a sandboxed renderer and typed preload folder picker.
-- Windows packaging CI successfully produced NSIS and portable x64 artifacts.
+- Windows packaging CI produces NSIS and portable x64 artifacts.
 
-### Project manifest candidate
+### Project model
 
-`feature/project-manifest-v1` adds:
+`emo.project/v1` is merged and supports:
 
-- `emo.project/v1` typed contracts;
-- explicit audio and lyrics paths;
-- optional nested assets and preset files;
-- optional project display name;
-- optional visual mode, intensity, quality and sync defaults;
-- manifest path validation against absolute paths and traversal;
+- explicit project display name;
+- explicit nested audio and Enhanced LRC paths;
+- optional auxiliary assets and preset files;
+- optional visual mode, intensity, render quality and lyric-sync defaults;
+- strict rejection of absolute, drive-prefixed, dot/dot-dot and null-byte paths;
 - manifest-aware project discovery;
-- React application of manifest defaults during project load;
-- Node tests covering nested assets, defaults and traversal rejection.
+- React application of manifest defaults on project load.
 
 Convention-mode folders remain supported and require no manifest.
 
@@ -42,20 +39,22 @@ Convention-mode folders remain supported and require no manifest.
 | `docs/PROJECT_FORMAT.md` | authoritative `emo.project/v1` schema |
 | `packages/app-contracts/src/index.ts` | shared manifest/project DTOs |
 | `packages/platform-node/src/index.ts` | validation, discovery and root confinement |
-| `apps/web/src/App.tsx` | applies project defaults on load |
-| `apps/server/src/server.ts` | serves discovered project/asset IDs |
-| `tests/workspace-boundaries.test.mjs` | manifest/security regression tests |
+| `packages/platform-web/src/index.ts` | hosted project/media client |
+| `apps/server/src/server.ts` | hosted/Desktop HTTP runtime |
+| `apps/web/src/App.tsx` | loads projects and applies manifest defaults |
 | `apps/desktop/src/main.ts` | Electron project-root selection |
+| `tests/workspace-boundaries.test.mjs` | engine/project/security regression tests |
 | `packages/renderer-pixi/src/render/EngineRenderer.ts` | frame-critical renderer |
 
 ## Known risks / pending acceptance
 
-- Manifest schema is intentionally small; scene timelines/effect graphs are not yet represented.
-- A malformed manifest currently makes discovery fail loudly rather than silently falling back to convention mode.
-- Electron artifacts are mechanically packaged but still need human runtime/visual smoke testing on Windows.
+- Manifest schema is intentionally small; scene timelines/effect graphs are not represented yet.
+- A malformed manifest fails discovery loudly instead of silently falling back to convention mode.
+- Electron artifacts are mechanically packaged but still need a human runtime/visual smoke test on Windows.
 - React HUD still needs owner visual acceptance.
 - Safari/M4A behavior remains real-device work.
 - The root legacy Vite app is still present as a temporary compatibility surface.
+- Current post-FX remains a single custom pass; ping-pong feedback/RenderTexture composition is not yet implemented.
 
 ## Verification
 
@@ -77,17 +76,17 @@ npm run build
 npm --workspace @graph1ks/emo-desktop run dist
 ```
 
-Manifest regression coverage must include valid nested files/defaults plus traversal rejection.
+The next automated acceptance layer should instantiate `EmoServer` against a temporary manifest project and verify runtime metadata, project discovery, lyric/media loading and HTTP range behavior.
 
 ## Next concrete work
 
-1. Merge the manifest candidate only after green Linux validation.
-2. Load a real manifest project in hosted mode and Electron.
+1. Add hosted-server integration coverage for manifest-backed projects and byte-range media.
+2. Smoke a real project in hosted and Electron modes.
 3. Complete owner visual/interaction acceptance of the React cutover.
 4. Retire the root legacy UI in its own cleanup PR.
-5. Add project-owned scene/effect data only when the editor/render-graph model is ready.
-6. Resume RenderTexture composition and selector-driven typography.
+5. Resume multi-pass RenderTexture composition and selector-driven typography.
+6. Add project-owned scene/effect data only when the editor/render-graph model is ready.
 
 ## Resume instruction
 
-Read `AGENTS.md`, `PROJECT.md`, `STATUS.md`, this file, `docs/PROJECT_FORMAT.md`, `docs/PLATFORM_ARCHITECTURE.md`, and `docs/DECISIONS.md`. Then inspect current main/PR CI before changing project or renderer contracts.
+Read `AGENTS.md`, `PROJECT.md`, `STATUS.md`, this file, `docs/PROJECT_FORMAT.md`, `docs/PLATFORM_ARCHITECTURE.md`, and `docs/DECISIONS.md`. Then inspect current main CI before changing runtime, project or renderer contracts.
