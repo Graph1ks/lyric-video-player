@@ -60,6 +60,8 @@ Git history remains the complete technical history. This file records meaningful
 - Measured collision separation for Spiral Depth and Ribbon Path.
 - Shape Fill persistent grammar with Tree, Star and Human/Figure packed word silhouettes.
 - Manifesto Wall persistent grammar with progressive editorial-page writing, rigid snap-ins, moderate hierarchy and occasional vertical bracket words.
+- Editable Director Performance Presets that constrain AUTO scene/type/sequence/layout/motion/world/color pools, with curated emotion + pace profiles and local custom-preset persistence.
+- Lower Third scheduling with Off / Scheduled / Always modes, configurable start/duration, optional pre-outro trigger and an immediate Director trigger.
 
 ### Changed
 
@@ -88,6 +90,8 @@ Git history remains the complete technical history. This file records meaningful
 - Shape Build UI/AUTO semantics are corrected from frame/ring paths to true interior Shape Fill; legacy `shape-build` remains an internal alias.
 - Background/filter edge safety now combines source bleed, shader edge guards, opaque final output and DOM overlay edge fades.
 - Cinematic camera consumes the actually resolved/manual persistent grammar instead of the AUTO bundle's nominated grammar.
+- AUTO can now be intentionally narrowed by an active Performance Preset instead of drawing from the complete visual catalog; manual axis overrides remain available.
+- Detached Director transport uses a two-row responsive control bar so playback, seek, metadata and volume are no longer crushed by operator actions.
 - GSAP remains excluded because the planned visual-editor direction could intersect its visual-animation-builder restriction.
 
 ### Fixed
@@ -96,6 +100,7 @@ Git history remains the complete technical history. This file records meaningful
 - Recursive Lyrics backdrop text is now lazy: it is allocated only while that background is actually active, reused for an unchanged visual key, and explicitly destroyed when replaced.
 - Full-frame displacement, velocity-smear and cinematic post filters no longer request transparent Pixi filter padding; the compositor also keeps an unfiltered current-frame safety plane beneath filtered output.
 - Procedural Liquid now guarantees an opaque background output so downstream warps cannot expose the canvas clear color.
+- Player HUD text button now owns an explicit auto-width border box instead of inheriting the square icon-button width.
 
 ### Security / Privacy
 
