@@ -88,6 +88,18 @@ const DE_ITEMS: Record<string, ItemTranslation> = {
   "harmony-triad": { description: "Drei ausgewogene Farbanker" },
   "harmony-tetrad": { description: "Vierpunkt-Palette mit grafischer Spannung" },
   "harmony-monochrome": { description: "Eine Farbe mit tonaler Hierarchie" },
+
+  "lower-auto": { label: "Auto-Rotation", description: "Rotiert bei wiederkehrenden Einblendungen durch die Lower-Third-Familie" },
+  "lower-clean": { description: "Ausgewogene Broadcast-Hierarchie mit zurückhaltender Bewegung" },
+  "lower-underline": { description: "Ruhige Typografie mit einer einzelnen animierten Linie" },
+  "lower-editorial": { description: "Magazinartige Künstler-/Titel-Aufteilung mit klarer Ausrichtung" },
+  "lower-block": { description: "Massive Farbfläche für laute, direkte Intros" },
+  "lower-glass": { description: "Transparente Glasfläche mit moderner Tiefenwirkung" },
+  "lower-neon": { description: "Kompakter leuchtender Tag für dunkle Bildwelten" },
+  "lower-corner": { description: "Eng gestapelte Typografie in der Safe-Area-Ecke" },
+  "lower-ribbon": { description: "Langes horizontales Band mit gerichteter Einfahrt" },
+  "lower-stamp": { description: "Gedrehter grafischer Stempel mit Poster-Energie" },
+  "lower-credit": { description: "Elegante Film-Credit-Anmutung mit weiter Laufweite" },
 };
 
 export function localizeDirectorItem<T extends string>(
