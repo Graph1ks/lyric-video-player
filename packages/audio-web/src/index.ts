@@ -3,12 +3,46 @@ import type { AudioBands, TickClock } from "@graph1ks/emo-engine-core";
 
 export type { AudioBands } from "@graph1ks/emo-engine-core";
 
+export function resampleSpectrum(
+  bins: Uint8Array,
+  output: Float32Array,
+  sampleRate: number,
+  minHz = 40,
+  maxHz = 16000,
+) {
+  if (!output.length) return output;
+  if (!bins.length || !Number.isFinite(sampleRate) || sampleRate <= 0) {
+    output.fill(0);
+    return output;
+  }
+
+  const nyquist = sampleRate * 0.5;
+  const upper = Math.max(minHz + 1, Math.min(maxHz, nyquist * 0.96));
+  const ratio = upper / Math.max(1, minHz);
+
+  for (let index = 0; index < output.length; index++) {
+    const t0 = index / output.length;
+    const t1 = (index + 1) / output.length;
+    const fromHz = minHz * Math.pow(ratio, t0);
+    const toHz = minHz * Math.pow(ratio, t1);
+    const from = Math.max(0, Math.min(bins.length - 1, Math.floor((fromHz / nyquist) * bins.length)));
+    const to = Math.max(from + 1, Math.min(bins.length, Math.ceil((toHz / nyquist) * bins.length)));
+
+    let sum = 0;
+    for (let bin = from; bin < to; bin++) sum += bins[bin];
+    output[index] = clamp(sum / Math.max(1, to - from) / 255);
+  }
+
+  return output;
+}
+
 export class AudioEngine {
   readonly element = new Audio();
   private ctx?: AudioContext;
   private analyser?: AnalyserNode;
   private sourceNode?: MediaElementAudioSourceNode;
   private bins = new Uint8Array(1024);
+  private spectrumBuffer = new Float32Array(48);
   private objectUrl?: string;
   private prevEnergy = 0;
   private transientEnvelope = 0;
@@ -124,6 +158,16 @@ export class AudioEngine {
       energy,
       transient: clamp(this.transientEnvelope),
     };
+  }
+
+  spectrum(sampleCount = 48) {
+    const count = Math.max(8, Math.min(128, Math.round(sampleCount)));
+    if (this.spectrumBuffer.length !== count) this.spectrumBuffer = new Float32Array(count);
+    if (!this.analyser || !this.ctx) {
+      this.spectrumBuffer.fill(0);
+      return this.spectrumBuffer;
+    }
+    return resampleSpectrum(this.bins, this.spectrumBuffer, this.ctx.sampleRate);
   }
 }
 

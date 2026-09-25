@@ -24,7 +24,7 @@ Frame-critical motion remains outside React. PixiJS, Web Audio and the E-MO cloc
 - deterministic timestamp-driven glyph/word motion
 - deterministic typography selector engine: range, stagger, wave, wiggle, random and audio weighting
 - eight typography presets: Impact, Cascade, Wave, Scatter, Elastic, Outline, Tunnel and Glitch
-- seven background presets: Cinematic, Nebula, Grid, Starfield, Rays, Vortex and Minimal
+- background presets: Cinematic, Nebula, Grid, Starfield, Rays, Vortex, Liquid, Spectrum and Minimal
 - Poster / Neon / Vortex visual families
 - deterministic Auto Director
 - virtual camera impulses
@@ -147,7 +147,7 @@ The desktop renderer has no Node integration. Native directory selection is expo
 
 ## Near-term work
 
-1. complete the remaining visualization-engine families: liquid/procedural backgrounds, spectrum ribbons, recursive typography backgrounds and dissolve exits
+1. complete the remaining visualization-engine families: sparks/trails, recursive typography backgrounds and dissolve exits
 2. add scene-stack serialization and per-section visual directives
 3. visually tune typography/background preset combinations on real tracks
 4. retire the temporary root legacy UI after React acceptance

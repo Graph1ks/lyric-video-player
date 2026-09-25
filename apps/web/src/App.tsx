@@ -47,6 +47,8 @@ const BACKGROUND_PRESETS: BackgroundPreset[] = [
   "starfield",
   "rays",
   "vortex",
+  "liquid",
+  "spectrum",
   "minimal",
 ];
 
@@ -139,12 +141,13 @@ export function App() {
     const offTick = clock.onTick(time => {
       if (disposed) return;
       const bands = audio.bands();
+      const spectrum = audio.spectrum(64);
       const lyricTime = time + syncRef.current / 1000;
       const lyrics = lyricsRef.current;
       const index = activeLineIndex(lyrics, lyricTime);
 
       renderer.setLine(index >= 0 ? lyrics.lines[index] : undefined, index);
-      renderer.update(time, bands, lyricTime);
+      renderer.update(time, bands, lyricTime, spectrum);
 
       const shell = shellRef.current;
       if (shell) {

@@ -44,6 +44,8 @@ export type BackgroundPresetId =
   | "starfield"
   | "rays"
   | "vortex"
+  | "liquid"
+  | "spectrum"
   | "minimal";
 export type BackgroundPreset = "auto" | BackgroundPresetId;
 
