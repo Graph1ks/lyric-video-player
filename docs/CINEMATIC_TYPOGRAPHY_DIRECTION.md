@@ -31,6 +31,10 @@ Source:
 
 **E-MO consequence:** lyric motion must be planned over a phrase/section, not selected independently for every line.
 
+The same CMU paper is also architecturally relevant: it organizes text objects into nested sequence trees with hierarchical **spatial and temporal** coordinate systems. E-MO should preserve its seek-safe functional model, but the persistent multi-cue lyric graph follows the same useful abstraction: words belong to sequences, and sequences can move as coherent units rather than being recreated as unrelated screens.
+
+The paper additionally notes that naive geometric scaling and typographic scaling are not equivalent; geometric scaling can produce poor letter spacing. That is a direct constraint for Elastic Tether and future stretch/squeeze work: geometric anisotropic scaling is acceptable as an initial bounded effect, but large deformation should eventually be typography-aware or mesh-based rather than relying on extreme container scaling.
+
 ### Motion semantics depend on the relationship between text and movement
 
 Research on emotive kinetic typography finds that motion patterns and word groups interact: a motion pattern does not communicate one universal emotion independently of the text it carries.
@@ -88,12 +92,14 @@ Source:
 
 Variable fonts expose continuous design axes and can be animated over time. This is useful evidence for future weight/width/morph animation, but it does not require E-MO to adopt a new font stack immediately.
 
-Source:
+Sources:
 
 - Google Design — *Variable Fonts Are Here to Stay*:  
   https://design.google/library/variable-fonts-are-here-to-stay
+- IBM Design Language — *Classic principles*:  
+  https://www.ibm.com/design/language/animation/classic-principles/
 
-**E-MO consequence:** true stretch/squeeze and variable-axis animation belong in the typography primitive layer after the sequence contracts are stable.
+**E-MO consequence:** true stretch/squeeze and variable-axis animation belong in the typography primitive layer after the sequence contracts are stable. Elastic motion should use anticipation, directional stretch, overshoot and follow-through while staging keeps competing motion subordinate.
 
 ## Cinematic model
 
