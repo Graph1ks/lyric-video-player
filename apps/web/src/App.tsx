@@ -5,27 +5,7 @@ import type { ProjectDescriptor } from "@graph1ks/emo-app-contracts";
 import { AudioEngine, HtmlAudioClock } from "@graph1ks/emo-audio-web";
 import {
   ELRCParser,
-  SCENE_LABELS,
-  hexColorToCss,
-  type BackgroundPreset,
-  type BackgroundPresetId,
-  type ColorCanvasId,
-  type ColorCanvasMode,
-  type ColorHarmonyId,
-  type ColorHarmonyMode,
-  type ColorMoodId,
-  type ColorMoodMode,
-  type CompositionMotionId,
-  type CompositionMotionPreset,
   type ParsedLyrics,
-  type QualityMode,
-  type SceneMode,
-  type TypographyLayoutId,
-  type TypographyLayoutPreset,
-  type TypographyPreset,
-  type TypographyPresetId,
-  type VisualMode,
-  type VisualPalette,
 } from "@graph1ks/emo-engine-core";
 import {
   classifyDroppedFiles,
@@ -35,93 +15,19 @@ import {
   projectAssetUrl,
 } from "@graph1ks/emo-platform-web";
 import { EngineRenderer } from "@graph1ks/emo-renderer-pixi";
+import {
+  BACKGROUND_PRESETS,
+  COLOR_CANVASES,
+  COLOR_HARMONIES,
+  COLOR_MOODS,
+  COMPOSITION_MOTIONS,
+  TYPOGRAPHY_LAYOUTS,
+  TYPOGRAPHY_PRESETS,
+} from "./directorCatalog";
+import { VisualDirector } from "./VisualDirector";
 import { useUiStore } from "./store";
 
 const EMPTY_LYRICS: ParsedLyrics = { offsetMs: 0, lines: [], meta: {} };
-
-const TYPOGRAPHY_PRESETS: TypographyPreset[] = [
-  "auto",
-  "impact",
-  "cascade",
-  "wave",
-  "scatter",
-  "elastic",
-  "outline",
-  "tunnel",
-  "glitch",
-];
-
-const TYPOGRAPHY_LAYOUTS: TypographyLayoutPreset[] = [
-  "auto",
-  "center-stack",
-  "directional-stage",
-  "editorial",
-  "vertical-accent",
-  "split-stage",
-  "crossword",
-];
-
-const COMPOSITION_MOTIONS: CompositionMotionPreset[] = [
-  "auto",
-  "handoff",
-  "conveyor",
-  "anchor-build",
-  "collapse",
-  "takeover",
-  "flip",
-  "camera-handoff",
-  "portal",
-  "panel",
-];
-
-const COLOR_CANVASES: ColorCanvasMode[] = [
-  "auto",
-  "night",
-  "paper",
-  "color-field",
-  "poster",
-];
-
-const COLOR_MOODS: ColorMoodMode[] = [
-  "auto",
-  "tender",
-  "heartbreak",
-  "longing",
-  "euphoria",
-  "rage",
-  "dream",
-  "tension",
-  "calm",
-];
-
-const COLOR_HARMONIES: ColorHarmonyMode[] = [
-  "auto",
-  "split-complement",
-  "analogous",
-  "complement",
-  "triad",
-  "tetrad",
-  "monochrome",
-];
-
-const BACKGROUND_PRESETS: BackgroundPreset[] = [
-  "auto",
-  "cinematic",
-  "nebula",
-  "grid",
-  "starfield",
-  "rays",
-  "vortex",
-  "liquid",
-  "spectrum",
-  "sparks",
-  "lyrics",
-  "minimal",
-  "editorial",
-  "print",
-  "architecture",
-  "aurora",
-];
 
 export function App() {
   const queryClient = useQueryClient();
@@ -129,9 +35,6 @@ export function App() {
   const stageRef = useRef<HTMLDivElement>(null);
   const seekRef = useRef<HTMLInputElement>(null);
   const timeRef = useRef<HTMLDivElement>(null);
-  const bassRef = useRef<HTMLElement>(null);
-  const midRef = useRef<HTMLElement>(null);
-  const trebleRef = useRef<HTMLElement>(null);
   const rendererRef = useRef<EngineRenderer | null>(null);
   const audioRef = useRef(new AudioEngine());
   const clockRef = useRef<HtmlAudioClock | null>(null);
@@ -142,6 +45,7 @@ export function App() {
   const dragDepthRef = useRef(0);
   const audioNameRef = useRef("");
   const lyricsNameRef = useRef("");
+  const directorTelemetryRef = useRef(-1);
 
   const hudVisible = useUiStore(state => state.hudVisible);
   const mode = useUiStore(state => state.mode);
@@ -157,6 +61,7 @@ export function App() {
   const colorFlow = useUiStore(state => state.colorFlow);
   const syncMs = useUiStore(state => state.syncMs);
   const projectDrawerOpen = useUiStore(state => state.projectDrawerOpen);
+  const activeScene = useUiStore(state => state.activeScene);
   const setHudVisible = useUiStore(state => state.setHudVisible);
   const setMode = useUiStore(state => state.setMode);
   const setIntensity = useUiStore(state => state.setIntensity);
@@ -171,17 +76,18 @@ export function App() {
   const setColorFlow = useUiStore(state => state.setColorFlow);
   const setSyncMs = useUiStore(state => state.setSyncMs);
   const setProjectDrawerOpen = useUiStore(state => state.setProjectDrawerOpen);
+  const setActiveScene = useUiStore(state => state.setActiveScene);
+  const setActiveTypography = useUiStore(state => state.setActiveTypography);
+  const setActiveLayout = useUiStore(state => state.setActiveLayout);
+  const setActiveMotion = useUiStore(state => state.setActiveMotion);
+  const setActiveBackground = useUiStore(state => state.setActiveBackground);
+  const setActivePalette = useUiStore(state => state.setActivePalette);
+  const setDirectorTrack = useUiStore(state => state.setDirectorTrack);
+  const setDirectorPlayback = useUiStore(state => state.setDirectorPlayback);
+  const setDirectorPlaying = useUiStore(state => state.setDirectorPlaying);
+  const setDirectorAudioBands = useUiStore(state => state.setDirectorAudioBands);
 
   const [engineStatus, setEngineStatus] = useState("ENGINE READY");
-  const [activeScene, setActiveScene] = useState<SceneMode>("neon");
-  const [activeTypography, setActiveTypography] = useState<TypographyPresetId>("elastic");
-  const [activeLayout, setActiveLayout] = useState<TypographyLayoutId>("directional-stage");
-  const [activeMotion, setActiveMotion] = useState<CompositionMotionId>("handoff");
-  const [activeBackground, setActiveBackground] = useState<BackgroundPresetId>("nebula");
-  const [activeHarmony, setActiveHarmony] = useState<ColorHarmonyId>("split-complement");
-  const [activeMood, setActiveMood] = useState<ColorMoodId>("dream");
-  const [activeCanvas, setActiveCanvas] = useState<ColorCanvasId>("color-field");
-  const [activePalette, setActivePalette] = useState<VisualPalette | null>(null);
   const [hasContent, setHasContent] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
@@ -233,11 +139,7 @@ export function App() {
       if (!disposed) setActiveBackground(preset);
     });
     const offPalette = renderer.onPaletteChange(palette => {
-      if (disposed) return;
-      setActiveHarmony(palette.resolvedHarmony);
-      setActiveMood(palette.resolvedMood);
-      setActiveCanvas(palette.resolvedCanvas);
-      setActivePalette(palette);
+      if (!disposed) setActivePalette(palette);
     });
 
     const offTick = clock.onTick(time => {
@@ -257,9 +159,15 @@ export function App() {
         shell.style.setProperty("--energy", bands.energy.toFixed(3));
         shell.style.setProperty("--transient", bands.transient.toFixed(3));
       }
-      if (bassRef.current) bassRef.current.style.transform = `scaleY(${Math.max(0.04, bands.bass)})`;
-      if (midRef.current) midRef.current.style.transform = `scaleY(${Math.max(0.04, bands.mid)})`;
-      if (trebleRef.current) trebleRef.current.style.transform = `scaleY(${Math.max(0.04, bands.treble)})`;
+      if (directorTelemetryRef.current < 0 || time - directorTelemetryRef.current >= 0.12) {
+        directorTelemetryRef.current = time;
+        setDirectorPlayback(time, clock.duration);
+        setDirectorAudioBands({
+          bass: bands.bass,
+          mid: bands.mid,
+          treble: bands.treble,
+        });
+      }
       if (seekRef.current && !seekingRef.current && clock.duration) {
         seekRef.current.value = String(Math.round((time / clock.duration) * 1000));
       }
@@ -268,14 +176,17 @@ export function App() {
 
     const onPlay = () => {
       setPlaying(true);
+      setDirectorPlaying(true);
       setEngineStatus("PLAYING LIVE");
     };
     const onPause = () => {
       setPlaying(false);
+      setDirectorPlaying(false);
       setEngineStatus(audio.hasSource ? "PAUSED" : "ENGINE READY");
     };
     const onEnded = () => {
       setPlaying(false);
+      setDirectorPlaying(false);
       setEngineStatus("ENDED");
     };
 
@@ -514,8 +425,10 @@ export function App() {
       lyricsNameRef.current ? `${lyrics.lines.length} lyric cues` : undefined,
       audioNameRef.current ? audioNameRef.current.split(".").pop()?.toUpperCase() : undefined,
     ].filter(Boolean);
+    const meta = parts.join(" · ") || "Ready";
     setTrackTitle(title);
-    setTrackMeta(parts.join(" · ") || "Ready");
+    setTrackMeta(meta);
+    setDirectorTrack(title, meta);
   }
 
   async function loadAudioFile(file: File) {
@@ -588,6 +501,22 @@ export function App() {
     }
   }
 
+  async function openDirectorWorkspace() {
+    if (window.emoDesktop?.openDirectorWindow) {
+      await window.emoDesktop.openDirectorWindow();
+      return;
+    }
+
+    const url = new URL(window.location.href);
+    url.searchParams.set("director", "1");
+    const popup = window.open(
+      url.toString(),
+      "emo-visual-director",
+      "popup=yes,width=1180,height=860,resizable=yes,scrollbars=no",
+    );
+    popup?.focus();
+  }
+
   async function chooseProjectRoot() {
     if (!window.emoDesktop) return;
     const result = await window.emoDesktop.chooseProjectRoot();
@@ -641,6 +570,9 @@ export function App() {
                 OPEN FOLDER
               </button>
             )}
+            <button className="project-button director-launch-button" onClick={() => void openDirectorWorkspace()}>
+              DIRECTOR <span>↗</span>
+            </button>
             <div className="status-pill"><span className="status-dot" /><span>{engineStatus}</span></div>
             <button className="icon-button" onClick={() => void toggleFullscreen()} title="Fullscreen · F" aria-label="Toggle fullscreen">⛶</button>
             <button className="icon-button" onClick={() => setHudVisible(false)} title="Hide UI · Ctrl+Shift+H" aria-label="Hide interface">HUD</button>
@@ -678,229 +610,7 @@ export function App() {
         </AnimatePresence>
 
         <aside className="scene-panel glass-panel">
-          <div className="panel-kicker">VISUAL DIRECTOR</div>
-          <div className="scene-tabs" role="group" aria-label="Visual mode">
-            {(["auto", "poster", "neon", "vortex"] as VisualMode[]).map(value => (
-              <button
-                key={value}
-                className={`scene-tab ${mode === value ? "is-active" : ""}`}
-                onClick={() => setMode(value)}
-              >
-                {value.toUpperCase()}
-              </button>
-            ))}
-          </div>
-
-          <div className="readout-row">
-            <span>ACTIVE SCENE</span><strong>{SCENE_LABELS[activeScene]}</strong>
-          </div>
-
-          <div className="typography-control">
-            <div className="control-heading">
-              <span>TYPOGRAPHY</span>
-              <b>{activeTypography.toUpperCase()}</b>
-            </div>
-            <div className="typography-grid" role="group" aria-label="Typography preset">
-              {TYPOGRAPHY_PRESETS.map(value => (
-                <button
-                  key={value}
-                  className={`typography-button ${typographyPreset === value ? "is-active" : ""}`}
-                  onClick={() => setTypographyPreset(value)}
-                  title={value === "auto" ? "Auto variation by scene/line · T" : `${value} typography`}
-                >
-                  {value.toUpperCase()}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="composition-control">
-            <div className="control-heading">
-              <span>COMPOSITION</span>
-              <b>{activeLayout.replaceAll("-", " ").toUpperCase()}</b>
-            </div>
-            <div className="composition-grid" role="group" aria-label="Typography composition">
-              {TYPOGRAPHY_LAYOUTS.map(value => (
-                <button
-                  key={value}
-                  className={`composition-button ${typographyLayout === value ? "is-active" : ""}`}
-                  onClick={() => setTypographyLayout(value)}
-                  title={value === "auto" ? "Auto word composition · L" : `${value} composition`}
-                >
-                  {value.replaceAll("-", " ").toUpperCase()}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="motion-control">
-            <div className="control-heading">
-              <span>COMPOSITION MOTION</span>
-              <b>{activeMotion.replaceAll("-", " ").toUpperCase()}</b>
-            </div>
-            <div className="motion-grid" role="group" aria-label="Composition motion grammar">
-              {COMPOSITION_MOTIONS.map(value => (
-                <button
-                  key={value}
-                  className={`motion-button ${compositionMotion === value ? "is-active" : ""}`}
-                  onClick={() => setCompositionMotion(value)}
-                  title={value === "auto" ? "Auto composition motion · G" : `${value} composition motion`}
-                >
-                  {value.replaceAll("-", " ").toUpperCase()}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="mood-control">
-            <div className="control-heading">
-              <span>LYRIC MOOD</span>
-              <b>{activeMood.toUpperCase()}</b>
-            </div>
-            <div className="mood-grid" role="group" aria-label="Lyric color mood">
-              {COLOR_MOODS.map(value => (
-                <button
-                  key={value}
-                  className={`mood-button ${colorMood === value ? "is-active" : ""}`}
-                  onClick={() => setColorMood(value)}
-                  title={value === "auto" ? "Auto lyric mood · E" : `${value} color direction`}
-                >
-                  {value.toUpperCase()}
-                </button>
-              ))}
-            </div>
-            <button
-              className={`rainbow-button ${colorFlow === "rainbow" ? "is-active" : ""}`}
-              onClick={() => setColorFlow(colorFlow === "rainbow" ? "static" : "rainbow")}
-              title="Slow spectrum drift · R"
-            >
-              <span>RAINBOW DRIFT</span>
-              <b>{colorFlow === "rainbow" ? "ON" : "OFF"}</b>
-            </button>
-          </div>
-
-          <div className="canvas-control">
-            <div className="control-heading">
-              <span>COLOR CANVAS</span>
-              <b>{activeCanvas.replaceAll("-", " ").toUpperCase()}</b>
-            </div>
-            <div className="canvas-grid" role="group" aria-label="Color canvas style">
-              {COLOR_CANVASES.map(value => (
-                <button
-                  key={value}
-                  className={`canvas-button ${colorCanvas === value ? "is-active" : ""}`}
-                  onClick={() => setColorCanvas(value)}
-                  title={value === "auto" ? "Auto canvas style · V" : `${value} canvas style`}
-                >
-                  {value.replaceAll("-", " ").toUpperCase()}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="harmony-control">
-            <div className="control-heading">
-              <span>COLOR HARMONY</span>
-              <b>{activeHarmony.replaceAll("-", " ").toUpperCase()}</b>
-            </div>
-            <div className="harmony-grid" role="group" aria-label="OKLCH color harmony">
-              {COLOR_HARMONIES.map(value => (
-                <button
-                  key={value}
-                  className={`harmony-button ${colorHarmony === value ? "is-active" : ""}`}
-                  onClick={() => setColorHarmony(value)}
-                  title={value === "auto" ? "Auto OKLCH harmony · C" : `${value} OKLCH harmony`}
-                >
-                  {value.replaceAll("-", " ").toUpperCase()}
-                </button>
-              ))}
-            </div>
-            {activePalette && (
-              <div className="palette-preview" aria-label="Active generated palette">
-                {([
-                  ["BG", activePalette.background],
-                  ["TEXT", activePalette.textPrimary],
-                  ["A", activePalette.accentA],
-                  ["B", activePalette.accentB],
-                  ["GLOW", activePalette.glow],
-                ] as const).map(([label, color]) => (
-                  <span key={label} title={`${label} · ${hexColorToCss(color)}`}>
-                    <i style={{ background: hexColorToCss(color) }} />
-                    <small>{label}</small>
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="background-control">
-            <div className="control-heading">
-              <span>BACKGROUND</span>
-              <b>{activeBackground.toUpperCase()}</b>
-            </div>
-            <div className="background-grid" role="group" aria-label="Background preset">
-              {BACKGROUND_PRESETS.map(value => (
-                <button
-                  key={value}
-                  className={`background-button ${backgroundPreset === value ? "is-active" : ""}`}
-                  onClick={() => setBackgroundPreset(value)}
-                  title={value === "auto" ? "Auto background variation · B" : `${value} background`}
-                >
-                  {value.toUpperCase()}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="audio-meter" aria-label="Audio reactive bands">
-            <div><span className="meter-track"><i ref={bassRef} /></span><b>BASS</b></div>
-            <div><span className="meter-track"><i ref={midRef} /></span><b>MID</b></div>
-            <div><span className="meter-track"><i ref={trebleRef} /></span><b>AIR</b></div>
-          </div>
-
-          <label className="control-row">
-            <span>INTENSITY <b>{Math.round(intensity * 100)}%</b></span>
-            <input
-              type="range"
-              min="20"
-              max="180"
-              value={Math.round(intensity * 100)}
-              step="1"
-              onChange={event => setIntensity(Number(event.target.value) / 100)}
-            />
-          </label>
-
-          <div className="sync-control">
-            <div className="control-heading"><span>LYRIC SYNC</span><b>{syncMs >= 0 ? "+" : ""}{syncMs} ms</b></div>
-            <input
-              type="range"
-              min="-1500"
-              max="1500"
-              value={syncMs}
-              step="10"
-              aria-label="Lyric sync offset"
-              onChange={event => setSyncMs(Number(event.target.value))}
-            />
-            <div className="sync-buttons">
-              <button className="micro-button" onClick={() => adjustSync(-50)}>−50</button>
-              <button className="micro-button" onClick={() => setSyncMs(0)}>RESET</button>
-              <button className="micro-button" onClick={() => adjustSync(50)}>+50</button>
-            </div>
-          </div>
-
-          <div className="quality-toggle" role="group" aria-label="Render quality">
-            {(["performance", "cinema"] as QualityMode[]).map(value => (
-              <button
-                key={value}
-                className={`quality-button ${quality === value ? "is-active" : ""}`}
-                onClick={() => setQuality(value)}
-              >
-                {value === "performance" ? "PERF" : "CINEMA"}
-              </button>
-            ))}
-          </div>
-
-          <div className="director-footnote">Scene AUTO directs the visual family. Typography, Composition, Motion, Background, Lyric Mood, Color Canvas and OKLCH Harmony can AUTO-direct. T/L/G/B/E/V/C cycle them; R toggles slow Rainbow Drift.</div>
+          <VisualDirector onPopout={() => void openDirectorWorkspace()} />
         </aside>
 
         <section className={`empty-state ${hasContent ? "is-dismissed" : ""}`}>
