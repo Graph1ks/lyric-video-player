@@ -7,8 +7,15 @@ import type {
   QualityMode,
   SceneMode,
   VisualPalette,
+  WorldColorContext,
+  WorldTextPolarity,
 } from "@graph1ks/emo-engine-core";
-import { hash01, seeded } from "@graph1ks/emo-engine-core";
+import {
+  createWorldColorContext,
+  hash01,
+  relativeLuminance,
+  seeded,
+} from "@graph1ks/emo-engine-core";
 import { WorldAudioReactivity } from "./WorldAudioReactivity.js";
 import { ProceduralLiquidFX } from "./ProceduralLiquidFX.js";
 import { PrismStageBeamsWorld } from "./PrismStageBeamsWorld.js";
@@ -87,6 +94,51 @@ const SPECIALIZED_WORLD_PRESETS = new Set<BackgroundPresetId>([
   "minimal-rainbow-waveform",
 ]);
 
+interface WorldReadabilityProfile {
+  centerSurface: number;
+  centerHighlight: number;
+  highlightRisk: number;
+  busyness: number;
+  chromaPressure: number;
+  energyLift: number;
+}
+
+const DEFAULT_WORLD_READABILITY: WorldReadabilityProfile = {
+  centerSurface: 0.10,
+  centerHighlight: 0.06,
+  highlightRisk: 0.30,
+  busyness: 0.42,
+  chromaPressure: 0.38,
+  energyLift: 0.08,
+};
+
+const WORLD_READABILITY_PROFILES: Partial<Record<BackgroundPresetId, WorldReadabilityProfile>> = {
+  minimal: { centerSurface: 0.04, centerHighlight: 0.01, highlightRisk: 0.08, busyness: 0.12, chromaPressure: 0.12, energyLift: 0.02 },
+  editorial: { centerSurface: 0.08, centerHighlight: 0.02, highlightRisk: 0.12, busyness: 0.28, chromaPressure: 0.24, energyLift: 0.03 },
+  print: { centerSurface: 0.10, centerHighlight: 0.03, highlightRisk: 0.18, busyness: 0.55, chromaPressure: 0.38, energyLift: 0.04 },
+  architecture: { centerSurface: 0.08, centerHighlight: 0.03, highlightRisk: 0.20, busyness: 0.38, chromaPressure: 0.30, energyLift: 0.05 },
+  aurora: { centerSurface: 0.12, centerHighlight: 0.08, highlightRisk: 0.35, busyness: 0.48, chromaPressure: 0.50, energyLift: 0.08 },
+  cinematic: { centerSurface: 0.12, centerHighlight: 0.07, highlightRisk: 0.32, busyness: 0.42, chromaPressure: 0.35, energyLift: 0.08 },
+  liquid: { centerSurface: 0.16, centerHighlight: 0.10, highlightRisk: 0.45, busyness: 0.55, chromaPressure: 0.55, energyLift: 0.10 },
+  spectrum: { centerSurface: 0.10, centerHighlight: 0.12, highlightRisk: 0.55, busyness: 0.78, chromaPressure: 0.65, energyLift: 0.12 },
+  sparks: { centerSurface: 0.07, centerHighlight: 0.13, highlightRisk: 0.62, busyness: 0.82, chromaPressure: 0.58, energyLift: 0.14 },
+  lyrics: { centerSurface: 0.12, centerHighlight: 0.06, highlightRisk: 0.30, busyness: 0.70, chromaPressure: 0.40, energyLift: 0.06 },
+  nebula: { centerSurface: 0.12, centerHighlight: 0.09, highlightRisk: 0.45, busyness: 0.62, chromaPressure: 0.58, energyLift: 0.10 },
+  grid: { centerSurface: 0.06, centerHighlight: 0.06, highlightRisk: 0.32, busyness: 0.55, chromaPressure: 0.45, energyLift: 0.07 },
+  starfield: { centerSurface: 0.04, centerHighlight: 0.07, highlightRisk: 0.38, busyness: 0.48, chromaPressure: 0.25, energyLift: 0.08 },
+  rays: { centerSurface: 0.10, centerHighlight: 0.16, highlightRisk: 0.68, busyness: 0.58, chromaPressure: 0.35, energyLift: 0.15 },
+  vortex: { centerSurface: 0.08, centerHighlight: 0.10, highlightRisk: 0.45, busyness: 0.65, chromaPressure: 0.50, energyLift: 0.10 },
+  "prism-stage-beams": { centerSurface: 0.08, centerHighlight: 0.14, highlightRisk: 0.64, busyness: 0.60, chromaPressure: 0.55, energyLift: 0.14 },
+  "laser-canopy-grid": { centerSurface: 0.07, centerHighlight: 0.17, highlightRisk: 0.72, busyness: 0.75, chromaPressure: 0.60, energyLift: 0.15 },
+  "disco-mirrorball-room": { centerSurface: 0.12, centerHighlight: 0.14, highlightRisk: 0.65, busyness: 0.72, chromaPressure: 0.65, energyLift: 0.14 },
+  "neon-energy-burst-tunnel": { centerSurface: 0.10, centerHighlight: 0.16, highlightRisk: 0.70, busyness: 0.80, chromaPressure: 0.72, energyLift: 0.15 },
+  "fractal-hex-spiral-mosaic": { centerSurface: 0.15, centerHighlight: 0.08, highlightRisk: 0.45, busyness: 0.85, chromaPressure: 0.70, energyLift: 0.10 },
+  "soft-hex-cell-field": { centerSurface: 0.18, centerHighlight: 0.05, highlightRisk: 0.30, busyness: 0.65, chromaPressure: 0.50, energyLift: 0.07 },
+  "particle-spiral-vortex": { centerSurface: 0.06, centerHighlight: 0.08, highlightRisk: 0.44, busyness: 0.76, chromaPressure: 0.55, energyLift: 0.09 },
+  "minimal-rainbow-waveform": { centerSurface: 0.05, centerHighlight: 0.08, highlightRisk: 0.40, busyness: 0.50, chromaPressure: 0.65, energyLift: 0.09 },
+};
+
+
 export class CinematicBackground {
   readonly container = new Container();
 
@@ -146,6 +198,9 @@ export class CinematicBackground {
   private impact = 0;
   private readonly legacyReactivity = new WorldAudioReactivity();
   private palette?: VisualPalette;
+  private lastWorldEnergy = 0;
+  private lastWorldTreble = 0;
+  private lastTransientEnvelope = 0;
 
   constructor() {
     this.container.addChild(
@@ -238,6 +293,73 @@ export class CinematicBackground {
 
   getResolvedPreset() {
     return this.resolvedPreset;
+  }
+
+
+  getWorldColorContext(previousPolarity?: WorldTextPolarity): WorldColorContext | undefined {
+    const palette = this.palette;
+    if (!palette) return undefined;
+
+    const profile = WORLD_READABILITY_PROFILES[this.resolvedPreset]
+      ?? DEFAULT_WORLD_READABILITY;
+    const backgroundLuminance = relativeLuminance(palette.background);
+    const surfaceLuminance = relativeLuminance(palette.surface);
+    const highlightLuminance = Math.max(
+      relativeLuminance(palette.accentA),
+      relativeLuminance(palette.accentB),
+      relativeLuminance(palette.glow),
+    );
+
+    const power = clamp((this.intensity * this.worldIntensity) / 1.5);
+    const detail = clamp(this.worldDetail / 3);
+    const energy = clamp(this.lastWorldEnergy);
+    const treble = clamp(this.lastWorldTreble);
+    const transient = clamp(this.lastTransientEnvelope);
+
+    const surfaceMix = clamp(
+      profile.centerSurface * (0.72 + detail * 0.28),
+      0,
+      0.42,
+    );
+    let titleSafeLuminance = backgroundLuminance
+      + (surfaceLuminance - backgroundLuminance) * surfaceMix;
+    const highlightMix = clamp(
+      profile.centerHighlight
+        * (0.58 + power * 0.42)
+        * (0.62 + energy * 0.30 + transient * 0.08),
+      0,
+      0.36,
+    );
+    titleSafeLuminance += Math.max(
+      0,
+      highlightLuminance - titleSafeLuminance,
+    ) * highlightMix;
+
+    const highlightRisk = clamp(
+      profile.highlightRisk * (0.62 + power * 0.38)
+      + energy * profile.energyLift
+      + transient * 0.08,
+    );
+    const busyness = clamp(
+      profile.busyness * (0.70 + detail * 0.30)
+      + energy * 0.05
+      + treble * 0.035,
+    );
+    const chromaPressure = clamp(
+      profile.chromaPressure * (0.72 + power * 0.28)
+      + energy * 0.035,
+    );
+
+    return createWorldColorContext({
+      palette,
+      representativeColor: palette.background,
+      representativeHue: palette.baseHue,
+      titleSafeLuminance,
+      highlightRisk,
+      chromaPressure,
+      busyness,
+      previousPolarity,
+    });
   }
 
   setLine(line: LineCue | undefined, index: number) {
@@ -443,6 +565,9 @@ export class CinematicBackground {
     const intensity = this.intensity * this.worldIntensity;
     const legacyFrame = this.legacyReactivity.update(time, audio);
     const legacyAudio = legacyFrame.bands;
+    this.lastWorldEnergy = legacyAudio.energy;
+    this.lastWorldTreble = legacyAudio.treble;
+    this.lastTransientEnvelope = legacyFrame.transientEnvelope;
     const energy = legacyAudio.energy * intensity;
     const transientEnvelope = legacyFrame.transientEnvelope * intensity;
     const layerAlpha = Math.min(1, this.worldIntensity);
