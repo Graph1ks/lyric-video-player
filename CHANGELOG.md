@@ -21,12 +21,16 @@ Git history remains the complete technical history. This file records meaningful
 - Generic `Clock` contract plus deterministic `FixedFrameClock` groundwork for future offline export.
 - Local and URL-backed AudioEngine loading.
 - Automated workspace boundary, path-security, deterministic timing and React store tests.
-- v0.3 E-MO-Engine realtime renderer foundation and cinematic single-pass GPU post-FX.\n- Versioned `emo.project/v1` project manifest with explicit nested audio/LRC/assets and reproducible player defaults.\n- Windows CI packaging gate that builds and uploads NSIS and portable x64 desktop artifacts.
+- v0.3 E-MO-Engine realtime renderer foundation and cinematic single-pass GPU post-FX.\n- Versioned `emo.project/v1` project manifest with explicit nested audio/LRC/assets and reproducible player defaults.
+- Hosted HTTP integration coverage for runtime/project APIs, LRC/media delivery and byte-range behavior.
+- Explicit Pixi RenderTexture scene compositor with separate sharp/post-FX and additive bloom presentation layers.\n- Windows CI packaging gate that builds and uploads NSIS and portable x64 desktop artifacts.
 
 ### Changed
 
 - React is now the selected application control plane while PixiJS remains the frame-critical renderer.
 - Hosted and Desktop modes now share one Node server/project-root implementation.\n- Manifest-backed projects now select media explicitly instead of relying on directory ordering and can apply visual/sync defaults on load.
+- Pixi automatic rendering is disabled for the engine path; each live frame is now evaluated, captured and presented explicitly from the audio/LRC update loop.
+- Virtual-camera rotation/zoom now pivots around viewport center.
 - Primary lyric entry and word-punch motion remains evaluated analytically from lyric timestamps so seek behavior does not depend on a second animation timeline.
 - GSAP remains excluded because the planned visual-editor direction could intersect its visual-animation-builder restriction.
 
@@ -34,4 +38,5 @@ Git history remains the complete technical history. This file records meaningful
 
 - Electron renderer runs with context isolation, no Node integration and sandboxing; privileged folder selection is exposed only through a narrow preload bridge.
 - Server project access is confined below the configured root and media is addressed through discovered project/asset IDs.\n- Manifest paths reject absolute paths, drive prefixes, dot/dot-dot traversal and null-byte values before filesystem resolution.
+- Media range handling now returns HTTP 416 for invalid or unsatisfiable byte ranges instead of clamping invalid starts.
 - Core runtime retains a zero-required-service path with no mandatory uploads, accounts or telemetry.

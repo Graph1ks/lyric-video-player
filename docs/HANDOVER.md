@@ -1,60 +1,70 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `0e8847d6eb431193f947e3ed4adb50ac0254abfd`  
-**Current phase/milestone:** v0.5 project/runtime acceptance
+**Merged baseline:** `7dc366a61fbe941b9b6973e8ee988fe856620ea3`  
+**Active candidate:** PR #9 — `feature/render-graph-v0.6`  
+**Current phase/milestone:** v0.6 compositor / render graph
 
 ## Current objective
 
-Exercise the merged project model through the real hosted/Desktop runtime path, finish React visual acceptance, and then retire the temporary legacy application before returning to deeper renderer/editor work.
+Land the first explicit GPU composition boundary, then build deterministic ping-pong feedback and dedicated post-processing passes on top of it.
 
 ## Current implementation state
 
-### Application/platform
+### Platform/runtime
 
-- React 19 / Vite 8 is the main application shell.
-- PixiJS remains outside React's frame-critical state path.
-- Node `EmoServer` serves the React build, project metadata and byte-range media.
-- Electron starts the same server on loopback with a sandboxed renderer and typed preload folder picker.
-- Windows packaging CI produces NSIS and portable x64 artifacts.
+- React 19 / Vite 8 application shell is merged.
+- Node `EmoServer` is shared by hosted and Electron loopback modes.
+- `emo.project/v1` is merged.
+- Hosted HTTP integration exercises the real compiled server, manifest project path and byte-range media semantics.
+- Electron Windows NSIS and portable x64 packaging is exercised in CI.
 
-### Project model
+### Renderer candidate
 
-`emo.project/v1` is merged and supports:
+PR #9 changes the renderer from direct scene-to-canvas rendering to:
 
-- explicit project display name;
-- explicit nested audio and Enhanced LRC paths;
-- optional auxiliary assets and preset files;
-- optional visual mode, intensity, render quality and lyric-sync defaults;
-- strict rejection of absolute, drive-prefixed, dot/dot-dot and null-byte paths;
-- manifest-aware project discovery;
-- React application of manifest defaults on project load.
+```text
+Audio/LRC clock evaluation
+        |
+        v
+Background + Typography + Camera
+        |
+        v
+Scene RenderTexture
+        |
+        +--> additive blurred bloom presentation
+        |
+        +--> sharp CinematicPostFX presentation
+                    |
+                    v
+                 Canvas
+```
 
-Convention-mode folders remain supported and require no manifest.
+The Pixi application ticker is disabled for this path. `EngineRenderer.update()` performs scene evaluation, scene capture and final canvas render in one explicit frame step.
+
+Camera transforms now pivot around viewport center. Backward-time/seek delta handling is also clamped safely.
 
 ## Important files / entry points
 
 | Path | Why it matters |
 |---|---|
-| `docs/PROJECT_FORMAT.md` | authoritative `emo.project/v1` schema |
-| `packages/app-contracts/src/index.ts` | shared manifest/project DTOs |
-| `packages/platform-node/src/index.ts` | validation, discovery and root confinement |
-| `packages/platform-web/src/index.ts` | hosted project/media client |
-| `apps/server/src/server.ts` | hosted/Desktop HTTP runtime |
-| `apps/web/src/App.tsx` | loads projects and applies manifest defaults |
-| `apps/desktop/src/main.ts` | Electron project-root selection |
-| `tests/workspace-boundaries.test.mjs` | engine/project/security regression tests |
-| `packages/renderer-pixi/src/render/EngineRenderer.ts` | frame-critical renderer |
+| `packages/renderer-pixi/src/render/SceneRenderGraph.ts` | RenderTexture capture + presentation layers |
+| `packages/renderer-pixi/src/render/EngineRenderer.ts` | explicit frame orchestration/manual Pixi render |
+| `packages/renderer-pixi/src/render/CameraRig.ts` | centered camera pivot and impulses |
+| `packages/renderer-pixi/src/render/CinematicPostFX.ts` | current sharp-layer custom GPU pass |
+| `packages/renderer-pixi/src/effects/typography/KineticLyrics.ts` | timestamp-derived lyric motion |
+| `apps/web/src/App.tsx` | audio-clock driven renderer update path |
+| `tests/server-integration.test.mjs` | hosted runtime end-to-end contract |
+| `docs/PROJECT_FORMAT.md` | current project schema |
 
 ## Known risks / pending acceptance
 
-- Manifest schema is intentionally small; scene timelines/effect graphs are not represented yet.
-- A malformed manifest fails discovery loudly instead of silently falling back to convention mode.
-- Electron artifacts are mechanically packaged but still need a human runtime/visual smoke test on Windows.
-- React HUD still needs owner visual acceptance.
-- Safari/M4A behavior remains real-device work.
-- The root legacy Vite app is still present as a temporary compatibility surface.
-- Current post-FX remains a single custom pass; ping-pong feedback/RenderTexture composition is not yet implemented.
+- The new scene RenderTexture/bloom path is type/build validated but still requires visual browser/Desktop acceptance.
+- No frame-feedback buffer exists yet.
+- Current bloom is a duplicated blurred presentation layer, not a thresholded multi-pass bloom.
+- Current CinematicPostFX is still one custom shader pass.
+- Electron artifacts are mechanically packaged but still need human runtime/visual smoke testing.
+- Root legacy UI remains until React acceptance.
 
 ## Verification
 
@@ -68,25 +78,24 @@ npm test
 python scripts/repo_audit.py
 ```
 
-Windows packaging gate:
+Renderer acceptance after merge should verify:
 
-```text
-npm install
-npm run build
-npm --workspace @graph1ks/emo-desktop run dist
-```
-
-The next automated acceptance layer should instantiate `EmoServer` against a temporary manifest project and verify runtime metadata, project discovery, lyric/media loading and HTTP range behavior.
+- no double-render/ticker drift;
+- seek backward/forward repeatedly;
+- camera punch remains centered;
+- Cinema/Performance resolution switches remain stable;
+- bloom does not make lyrics unreadable;
+- fullscreen and `Ctrl + Shift + H` still work.
 
 ## Next concrete work
 
-1. Add hosted-server integration coverage for manifest-backed projects and byte-range media.
-2. Smoke a real project in hosted and Electron modes.
-3. Complete owner visual/interaction acceptance of the React cutover.
-4. Retire the root legacy UI in its own cleanup PR.
-5. Resume multi-pass RenderTexture composition and selector-driven typography.
-6. Add project-owned scene/effect data only when the editor/render-graph model is ready.
+1. Merge PR #9 after green CI.
+2. Add a two-buffer feedback stage with explicit reset on project load/large seek.
+3. Add a displacement pass with scene/audio uniforms.
+4. Add velocity/directional smear as a separate quality-budgeted pass.
+5. Replace simple bloom with thresholded bloom only if profiling/visual gain justifies it.
+6. Resume selector-driven typography after the compositor is stable.
 
 ## Resume instruction
 
-Read `AGENTS.md`, `PROJECT.md`, `STATUS.md`, this file, `docs/PROJECT_FORMAT.md`, `docs/PLATFORM_ARCHITECTURE.md`, and `docs/DECISIONS.md`. Then inspect current main CI before changing runtime, project or renderer contracts.
+Read `AGENTS.md`, `PROJECT.md`, `STATUS.md`, this file, `docs/PLATFORM_ARCHITECTURE.md`, `docs/PROJECT_FORMAT.md`, and `docs/DECISIONS.md`. Then inspect PR #9/current main CI before changing render targets or clock ownership.

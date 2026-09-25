@@ -11,6 +11,8 @@ export class CameraRig {
   private zoomImpulse = 0;
   private rotationImpulse = 0;
   private previousTime = 0;
+  private centerX = 0;
+  private centerY = 0;
 
   constructor(private readonly target: Container) {}
 
@@ -20,6 +22,13 @@ export class CameraRig {
 
   setIntensity(value: number) {
     this.intensity = Math.max(0.2, Math.min(1.8, value));
+  }
+
+  setViewport(width: number, height: number) {
+    this.centerX = width * 0.5;
+    this.centerY = height * 0.5;
+    this.target.pivot.set(this.centerX, this.centerY);
+    this.target.position.set(this.centerX, this.centerY);
   }
 
   lineHit(index: number) {
@@ -40,7 +49,8 @@ export class CameraRig {
   }
 
   update(time: number, audio: AudioBands) {
-    const dt = this.previousTime ? Math.min(0.05, Math.max(1 / 240, time - this.previousTime)) : 1 / 60;
+    const rawDt = this.previousTime ? time - this.previousTime : 1 / 60;
+    const dt = Math.min(0.05, Math.max(1 / 240, Math.abs(rawDt)));
     this.previousTime = time;
     const decay = Math.pow(0.0007, dt);
     this.xImpulse *= decay;
@@ -56,7 +66,10 @@ export class CameraRig {
         ? Math.sin(time * 0.27) * 0.0032
         : Math.sin(time * 0.12) * 0.0021;
 
-    this.target.position.set(driftX + this.xImpulse, driftY + this.yImpulse);
+    this.target.position.set(
+      this.centerX + driftX + this.xImpulse,
+      this.centerY + driftY + this.yImpulse,
+    );
     this.target.rotation = baseRotation + this.rotationImpulse + (audio.transient - 0.08) * 0.0045 * this.intensity;
 
     const bassZoom = audio.bass * (this.mode === "vortex" ? 0.024 : 0.011) * this.intensity;
