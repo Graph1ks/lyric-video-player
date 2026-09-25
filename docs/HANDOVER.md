@@ -1,15 +1,43 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `aa2b9fd8a39249b02d68e0b40deb2de44178f8e2`  
-**Active candidate:** none  
-**Current phase/milestone:** v0.8 lyric-scene composition + color direction
+**Merged baseline:** `09460a4abd7a4eaa8bdd7020bce32ef6bbbf1f6a`  
+**Active candidate:** `feat/cinematic-sequence-director-v0.9` / PR #37  
+**Current phase/milestone:** cinematic sequence direction + temporal readability
 
 ## Current objective
 
-Use the merged Windows-safe dev launcher and Color Canvas baseline for real-track acceptance, then continue the remaining typography and scene-stack work.
+Establish cinematic continuity above the existing composition/motion/color stack: phrase-stable direction, adaptive motion budgets for fast lyrics, then persistent multi-cue typography for spiral/path/shape/hero scenes.
 
 ## Current implementation state
+
+## Active candidate — Cinematic sequence direction
+
+PR #37 changes the AUTO contract before adding more isolated effects.
+
+**Phrase direction**
+
+- SceneDirector groups adjacent lyric lines into deterministic phrases using timing gaps, punctuation, maximum phrase length and recurring lyric motifs.
+- AUTO resolves a curated typography preset + layout + composition-motion bundle per phrase.
+- The bundle remains stable through the phrase instead of cycling three independent axes each line.
+- Phrase positions expose Establish / Develop / Accent / Release roles.
+- Recurring motifs begin a new phrase and preserve hook routing.
+
+**Temporal readability**
+
+- `engine-core/kineticReadability.ts` computes line duration, words/s, chars/s and minimum word duration.
+- It resolves Expressive / Balanced / Rapid / Burst pressure tiers.
+- Higher pressure progressively reduces travel, rotation, scale excursion, float and echo density/alpha while increasing visibility floor.
+- Motion is never intentionally reduced to zero: rapid lyrics should still pulse/snap/stretch locally.
+
+**Structural finding**
+
+True spiral, shape-build and hero/background lyric scenes require words from previous cues to persist. Current `KineticLyrics.setLine()` rebuilds the line scene, so cross-line composition cannot be implemented correctly as another layout preset.
+
+The next architecture slice must derive a visible multi-cue lyric window from absolute LRC time and assign stable word IDs/roles. Pixi may cache display objects, but the rendered state must remain reconstructable from time after a seek.
+
+See `docs/CINEMATIC_TYPOGRAPHY_DIRECTION.md`.
+
 
 ### Existing merged engine
 
@@ -181,6 +209,9 @@ Directly spawning `npm.cmd` with `shell: false` is not a valid portable Windows 
 | Path | Why it matters |
 |---|---|
 | `docs/LYRIC_VISUALIZATION_ENGINE_PLAN.md` | authoritative visual-engine implementation order |
+| `docs/CINEMATIC_TYPOGRAPHY_DIRECTION.md` | research basis + sequence/readability/continuity contract |
+| `packages/engine-core/src/director.ts` | phrase-level cinematic direction and coherent AUTO bundles |
+| `packages/engine-core/src/kineticReadability.ts` | density analysis and adaptive motion budgets |
 | `packages/engine-core/src/typographyComposition.ts` | pure word composition planner |
 | `packages/engine-core/src/typographyMotionGrammar.ts` | pure timestamp-driven composition-motion evaluator |
 | `docs/COMPOSITION_MOTION_GRAMMAR.md` | motion grammar contract, transform ownership and tuning notes |
@@ -220,10 +251,11 @@ Windows packaging remains a separate required gate.
 
 ## Next concrete work
 
-1. Test AUTO canvas changes across real songs; confirm Paper/Poster genuinely use dark typography and light/chromatic fields.
-2. Resume Editorial / Print / Architecture / Aurora acceptance and dense mobile lyric testing.
-3. Add the next distinct world only after identifying a missing visual grammar.
-4. Complete remaining typography primitives and then stabilize scene-stack serialization.
+1. Finish PR #37 verification and real-track calibration for Phrase Direction + Rapid/Burst budgets.
+2. Implement a pure visible-window / stable-ID multi-cue typography model that is deterministic under seek.
+3. Render Spiral Depth and Hero / Echo Field on that model before adding further isolated worlds.
+4. Add Shape Build / Ribbon Path, then Elastic Tether and sequence-owned camera intent.
+5. Re-run color/world/mobile acceptance in the context of complete cinematic sequences.
 
 ## Resume instruction
 

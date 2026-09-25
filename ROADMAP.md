@@ -69,6 +69,26 @@
 - Aurora ribbon art-direction world — complete baseline
 - generic ambient particles suppressed for dedicated art worlds — complete baseline
 
+## Cross-cutting — Cinematic Sequence Direction — active
+
+- research-backed temporal direction contract — documented
+- phrase-level cinematic grouping — active candidate
+- coherent AUTO typography/layout/motion bundles — active candidate
+- Establish / Develop / Accent / Release shot roles — active candidate
+- cue-density readability pressure + adaptive motion budget — active candidate
+- fast passages remain kinetic while reducing travel/rotation/overshoot/clutter — active candidate
+- persistent multi-cue typography scene graph — next
+- Spiral Depth / rounded-rectangle spiral — next
+- Hero / Echo Field — next
+- Shape Build / circle / frame calligrams — planned
+- Ribbon / Path composition — planned
+- Elastic Tether / stretch-squeeze — planned
+- continuity-aware camera trajectory / eye-trace handoff — planned
+- section-level tension/release and shot-scale rhythm — planned
+- serializable sequence directives — planned
+
+See `docs/CINEMATIC_TYPOGRAPHY_DIRECTION.md`.
+
 ## Cross-cutting v0.8 — Composition + Color Direction — complete baseline
 - typography composition separated from glyph motion
 - deterministic composition AUTO routing
@@ -88,7 +108,7 @@
 - Color Canvas Night / Paper / Color Field / Poster — complete baseline
 - chapter-stable Color Canvas AUTO routing — complete baseline
 - local runtime-before-Vite dev orchestration — complete baseline
-- next: real-track color/world acceptance + remaining typography primitives
+- color/world acceptance remains required; cinematic sequence direction is the current higher-priority visual-engine track
 
 ## Milestone 0.7 — Scene project format
 - scene JSON

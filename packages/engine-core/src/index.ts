@@ -7,3 +7,4 @@ export * from "./typographySelectors.js";
 export * from "./typographyComposition.js";
 export * from "./colorHarmony.js";
 export * from "./typographyMotionGrammar.js";
+export * from "./kineticReadability.js";

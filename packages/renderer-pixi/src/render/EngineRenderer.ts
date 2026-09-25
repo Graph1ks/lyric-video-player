@@ -128,8 +128,22 @@ export class EngineRenderer {
 
   setVisualMode(mode: VisualMode) {
     this.director.setMode(mode);
-    if (mode !== "auto") this.applyMode(mode, true);
-    else if (this.lastLineIndex >= 0) this.applyMode(this.director.sceneFor(this.lastLineIndex).mode, true);
+    if (mode !== "auto") {
+      this.applyMode(mode, true);
+      if (this.lastLineIndex >= 0) {
+        this.lyrics.setCinematicDirection(this.director.sceneFor(this.lastLineIndex).typography);
+        this.emitTypographyPreset();
+        this.emitTypographyLayout();
+        this.emitCompositionMotion();
+      }
+    } else if (this.lastLineIndex >= 0) {
+      const directed = this.director.sceneFor(this.lastLineIndex);
+      this.applyMode(directed.mode, true);
+      this.lyrics.setCinematicDirection(directed.typography);
+      this.emitTypographyPreset();
+      this.emitTypographyLayout();
+      this.emitCompositionMotion();
+    }
   }
 
   setColorHarmony(harmony: ColorHarmonyMode) {
@@ -331,14 +345,14 @@ export class EngineRenderer {
 
     this.background.setLine(line, index);
 
-    if (index >= 0) {
-      const directed = this.director.sceneFor(index);
+    const directed = index >= 0 ? this.director.sceneFor(index) : undefined;
+    if (directed) {
       this.applyMode(directed.mode, true);
     }
 
     this.emitBackgroundPreset();
     this.refreshPalette();
-    this.lyrics.setLine(line, index);
+    this.lyrics.setLine(line, index, directed?.typography);
     this.emitTypographyPreset();
     this.emitTypographyLayout();
     this.emitCompositionMotion();

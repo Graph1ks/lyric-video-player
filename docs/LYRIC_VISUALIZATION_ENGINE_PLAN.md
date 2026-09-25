@@ -6,22 +6,25 @@
 
 ## Design principle
 
-E-MO's visual stack is split into four independent but coordinated layers:
+E-MO's visual stack is governed by a cinematic sequence layer above the existing independent render layers:
 
 ```text
-LYRIC VISUAL SCENE
+CINEMATIC SEQUENCE DIRECTOR
+│   phrase / shot / focus / trajectory / readability budget
 │
-├── 1. TYPOGRAPHY COMPOSITION
+└── LYRIC VISUAL SCENE
+    │
+    ├── 1. TYPOGRAPHY COMPOSITION
 │      word placement / hierarchy / orientation / frame usage
 │
-├── 2. TYPOGRAPHY MOTION
-│      glyph selectors / reveals / punches / waves / distortion
-│
-├── 3. VISUAL WORLD
-│      background / geometry / textures / particles / footage / 2.5D
-│
-└── 4. COLOR DIRECTOR
-       OKLCH harmony / semantic palette roles / contrast guarantees
+    ├── 2. TYPOGRAPHY MOTION
+    │      glyph selectors / reveals / punches / waves / distortion
+    │
+    ├── 3. VISUAL WORLD
+    │      background / geometry / textures / particles / footage / 2.5D
+    │
+    └── 4. COLOR DIRECTOR
+           OKLCH harmony / semantic palette roles / contrast guarantees
 ```
 
 The audio/LRC clock remains authoritative. All automatic layout, palette and motion decisions must be deterministic from project data, cue index, scene family and supplied playback time.
@@ -159,18 +162,33 @@ See `docs/ART_DIRECTION_WORLDS.md`.
 
 **Acceptance:** each world must be recognizably different with the color removed from consideration; readable lyric space must remain intentional rather than accidental.
 
-## Step 5 — Semantic Visual Director
+## Step 5 — Cinematic Sequence Director — active
 
-Use lyric structure rather than random cycling:
+The next priority is no longer another isolated effect family. It is temporal direction across multiple lyric cues.
 
-- repeated hook/refrain awareness;
-- word emphasis from timing/duration/repetition;
-- short-line takeover logic;
-- long-line editorial/grid logic;
-- section-level visual continuity;
-- contrast between verse / pre-chorus / chorus / bridge.
+Active baseline:
 
-No language-model dependency is required for the baseline; deterministic structural heuristics remain the default.
+- phrase segmentation from timing, punctuation and repeated motifs;
+- phrase-stable curated typography/layout/motion bundles;
+- Establish / Develop / Accent / Release shot roles;
+- kinetic readability pressure from cue density;
+- nonzero motion budgets that reduce travel/rotation/clutter during rapid passages.
+
+Next slices:
+
+- persistent multi-cue typography scene graph;
+- Spiral Depth / rounded-rectangle spiral;
+- Hero / Echo Field;
+- Shape Build / calligram paths;
+- Ribbon / Path composition;
+- Elastic Tether;
+- eye-trace / match-on-action continuity;
+- sequence-driven camera intent;
+- section-level tension/release and shot-scale rhythm.
+
+Repeated hook/refrain awareness, word emphasis and section contrast remain part of this director. No language-model dependency is required for the baseline; deterministic structural heuristics remain the default.
+
+See `docs/CINEMATIC_TYPOGRAPHY_DIRECTION.md` for the research basis, contracts and implementation order.
 
 ## Step 6 — Remaining Typography Primitives
 

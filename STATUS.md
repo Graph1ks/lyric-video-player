@@ -1,16 +1,23 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `aa2b9fd8a39249b02d68e0b40deb2de44178f8e2`  
-**Active candidate:** none  
-**Current phase/milestone:** v0.8 lyric-scene composition + color direction
+**Last known good merged baseline:** `09460a4abd7a4eaa8bdd7020bce32ef6bbbf1f6a`  
+**Active candidate:** `feat/cinematic-sequence-director-v0.9` / PR #37  
+**Current phase/milestone:** cinematic sequence direction + temporal readability
 
 ## Current objective
 
-Visually accept the merged Color Canvas variety and Step 4 worlds on real Enhanced LRC tracks, then continue the remaining typography primitives.
+Make lyric motion feel cinematically directed across phrases rather than like independent line effects, while preserving visible motion under very fast word timing. Establish the multi-cue architecture required for spiral/path/shape/hero typography scenes.
 
 ## Current state
 
+- Active candidate introduces phrase-level cinematic direction: AUTO typography preset, layout and composition motion are selected as coherent bundles and held across a phrase instead of independently cycling every line.
+- Phrases expose Establish / Develop / Accent / Release shot roles for the next sequence/camera layer.
+- Active candidate adds kinetic readability pressure from line duration, words/s, chars/s and shortest word duration.
+- Rapid/Burst timing reduces long travel, rotation, scale excursion, floating and echo clutter but deliberately keeps nonzero motion and stronger visibility floors.
+- Repeated lyric motifs create phrase boundaries so hook detection remains first-class rather than being swallowed by phrase grouping.
+- Current architectural blocker for Spiral Depth / Hero Echo / Shape Build is explicit: `KineticLyrics` still rebuilds the current lyric scene per line. The next slice is a deterministic persistent multi-cue typography scene graph.
+- Research/design contract is `docs/CINEMATIC_TYPOGRAPHY_DIRECTION.md`.
 - React/Vite web shell, shared Node runtime, Electron desktop foundation and `emo.project/v1` are merged.
 - Compositor baseline is merged: RenderTexture composition, deterministic feedback, displacement, velocity smear, threshold bloom and cinematic post-FX.
 - Selector-driven typography and the existing typography/background visual families are merged.
@@ -91,10 +98,11 @@ Visually accept the merged Color Canvas variety and Step 4 worlds on real Enhanc
 
 ## Next concrete action
 
-1. Visually verify AUTO moves through Color Field / Night / Paper / Poster without rapid flicker and keeps lyric contrast on real tracks.
-2. Continue real-track acceptance of Editorial / Print / Architecture / Aurora.
-3. Tune narrow/mobile composition combinations.
-4. Finish soft-3D/inflate, brush/stroke reveal and dissolve/smear exits, then stabilize scene-stack serialization.
+1. Get PR #37 phrase direction/readability CI green and visually calibrate rapid/burst behavior on real dense tracks.
+2. Implement the seek-safe persistent multi-cue typography scene graph.
+3. Build Spiral Depth and Hero / Echo Field as the first persistent sequence grammars.
+4. Add Shape Build / Ribbon Path, then Elastic Tether and continuity-aware camera direction.
+5. Continue Color Canvas / art-world acceptance inside the new cinematic sequence model rather than as an independent effect checklist.
 
 ## Do not redo
 
@@ -102,6 +110,9 @@ Visually accept the merged Color Canvas variety and Step 4 worlds on real Enhanc
 - Do not use HSL/random RGB for automatic scene color decisions where the OKLCH director applies.
 - Do not move frame-critical rendering/audio timing into React/Zustand/TanStack.
 - Do not introduce history-dependent random layout choices.
+- Do not implement cinematic continuity as a stateful tween history that cannot be reconstructed after seek.
+- Do not solve fast lyrics by making them static; reduce motion distance/complexity while preserving local kinetic emphasis.
+- Do not add another background/effect family before the multi-cue sequence foundation unless it closes a specific accepted visual grammar gap.
 - Do not restart Pixi's independent automatic ticker.
 - Do not add FFmpeg/video-export dependencies before a dedicated export/license milestone.
 
