@@ -213,6 +213,8 @@ export class CinematicBackground {
   setWorldDetail(value: number) {
     this.worldDetail = Math.max(0, Math.min(3, value));
     this.artDirection.setDetail(this.worldDetail);
+    this.prismStageBeams.setDetail(this.worldDetail);
+    this.laserCanopyGrid.setDetail(this.worldDetail);
     this.applyPresetVisibility();
     this.rebuildLyricBackdrop();
   }
