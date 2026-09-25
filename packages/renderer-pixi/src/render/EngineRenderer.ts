@@ -4,7 +4,9 @@ import {
   analyzeKineticReadability,
   clamp,
   createVisualPalette,
+  createWorldColorContext,
   evaluateCinematicCameraPlan,
+  resolveWorldTypographyTreatment,
   resolveManifestoPageScope,
   SceneDirector,
   DEFAULT_VISUAL_FX_RACK,
@@ -36,6 +38,7 @@ import type {
   VisualFxRack,
   VisualMode,
   VisualPalette,
+  WorldColorContext,
 } from "@graph1ks/emo-engine-core";
 import { CinematicBackground } from "../effects/backgrounds/CinematicBackground";
 import { KineticLyrics } from "../effects/typography/KineticLyrics";
@@ -97,6 +100,8 @@ export class EngineRenderer {
   private lastCompositionMotion?: CompositionMotionId;
   private lastBackgroundPreset?: BackgroundPresetId;
   private lastPaletteKey = "";
+  private currentPalette?: VisualPalette;
+  private worldColorContext?: WorldColorContext;
   private sceneTransition = 0;
   private previousTime = 0;
   private lastLyricTime = 0;
@@ -496,7 +501,9 @@ export class EngineRenderer {
   ) {
     if (!this.app.renderer) return;
 
-    const rawDt = this.previousTime ? time - this.previousTime : 1 / 60;
+    const hadPreviousTime = this.previousTime > 0;
+    const rawDt = hadPreviousTime ? time - this.previousTime : 1 / 60;
+    const discontinuity = !hadPreviousTime || rawDt < 0 || Math.abs(rawDt) > 0.25;
     const dt = Math.min(0.08, Math.max(1 / 240, Math.abs(rawDt)));
     this.previousTime = time;
     this.sceneTransition *= Math.pow(0.006, dt);
@@ -518,6 +525,7 @@ export class EngineRenderer {
     this.bloomThresholdFX.update(time, audio);
     this.postFX.update(time, audio);
     this.background.update(time, audio, spectrum);
+    this.updateWorldTypographyContext(dt, discontinuity);
     this.lyrics.update(lyricTime, audio);
     this.sequenceLyrics.update(lyricTime, audio);
     this.updateCinematicCamera(lyricTime);
@@ -620,6 +628,7 @@ export class EngineRenderer {
       allowedMoods: this.autoProfile?.moods,
       allowedCanvases: this.autoProfile?.canvases,
     });
+    this.currentPalette = palette;
     this.background.setPalette(palette, !dynamic);
     this.sequenceLyrics.setPalette(palette, !dynamic);
     this.lyrics.setPalette(palette, !dynamic);
@@ -641,6 +650,49 @@ export class EngineRenderer {
     if (key === this.lastPaletteKey) return;
     this.lastPaletteKey = key;
     for (const listener of this.paletteListeners) listener(palette);
+  }
+
+  private updateWorldTypographyContext(dt: number, discontinuity: boolean) {
+    const palette = this.currentPalette;
+    if (!palette) return;
+
+    const target = this.background.getWorldColorContext(
+      this.worldColorContext?.recommendedPolarity,
+    );
+    if (!target) return;
+
+    const previous = this.worldColorContext;
+    const mix = discontinuity || !previous
+      ? 1
+      : 1 - Math.exp(-dt / 0.22);
+    const lerpValue = (from: number, to: number) => from + (to - from) * mix;
+
+    // Smooth only analytical world metrics. Polarity is recomputed from the
+    // smoothed title-safe luminance and the previous polarity, which gives us
+    // stable hysteresis without inventing an independent animation clock.
+    const context = createWorldColorContext({
+      palette,
+      representativeColor: target.representativeColor,
+      representativeHue: target.representativeHue,
+      titleSafeLuminance: previous
+        ? lerpValue(previous.titleSafeLuminance, target.titleSafeLuminance)
+        : target.titleSafeLuminance,
+      highlightRisk: previous
+        ? lerpValue(previous.highlightRisk, target.highlightRisk)
+        : target.highlightRisk,
+      chromaPressure: previous
+        ? lerpValue(previous.chromaPressure, target.chromaPressure)
+        : target.chromaPressure,
+      busyness: previous
+        ? lerpValue(previous.busyness, target.busyness)
+        : target.busyness,
+      previousPolarity: previous?.recommendedPolarity,
+    });
+
+    this.worldColorContext = context;
+    const treatment = resolveWorldTypographyTreatment(palette, context);
+    this.lyrics.setWorldTypographyTreatment(treatment);
+    this.sequenceLyrics.setWorldTypographyTreatment(treatment);
   }
 
   private refreshTypographyPresentation() {
