@@ -1,11 +1,22 @@
 export type ProjectAssetKind = "audio" | "lyrics" | "manifest" | "image" | "video" | "preset" | "other";
 export type ProjectVisualMode = "auto" | "poster" | "neon" | "vortex";
 export type ProjectQualityMode = "performance" | "cinema";
+export type ProjectTypographyPreset =
+  | "auto"
+  | "impact"
+  | "cascade"
+  | "wave"
+  | "scatter"
+  | "elastic"
+  | "outline"
+  | "tunnel"
+  | "glitch";
 
 export interface EmoProjectDefaults {
   visualMode?: ProjectVisualMode;
   intensity?: number;
   quality?: ProjectQualityMode;
+  typographyPreset?: ProjectTypographyPreset;
   syncMs?: number;
 }
 

@@ -8,6 +8,7 @@ import type {
   ProjectAssetKind,
   ProjectDescriptor,
   ProjectQualityMode,
+  ProjectTypographyPreset,
   ProjectVisualMode,
 } from "@graph1ks/emo-app-contracts";
 
@@ -16,6 +17,17 @@ const IMAGE_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".webp", ".avif"]);
 const VIDEO_EXTENSIONS = new Set([".mp4", ".webm", ".mov"]);
 const VISUAL_MODES = new Set<ProjectVisualMode>(["auto", "poster", "neon", "vortex"]);
 const QUALITY_MODES = new Set<ProjectQualityMode>(["performance", "cinema"]);
+const TYPOGRAPHY_PRESETS = new Set<ProjectTypographyPreset>([
+  "auto",
+  "impact",
+  "cascade",
+  "wave",
+  "scatter",
+  "elastic",
+  "outline",
+  "tunnel",
+  "glitch",
+]);
 
 function extension(fileName: string) {
   const dot = fileName.lastIndexOf(".");
@@ -83,6 +95,16 @@ function parseDefaults(value: unknown): EmoProjectDefaults | undefined {
       throw new Error("E-MO manifest defaults.quality is invalid");
     }
     defaults.quality = input.quality as ProjectQualityMode;
+  }
+
+  if (input.typographyPreset !== undefined) {
+    if (
+      typeof input.typographyPreset !== "string"
+      || !TYPOGRAPHY_PRESETS.has(input.typographyPreset as ProjectTypographyPreset)
+    ) {
+      throw new Error("E-MO manifest defaults.typographyPreset is invalid");
+    }
+    defaults.typographyPreset = input.typographyPreset as ProjectTypographyPreset;
   }
 
   if (input.intensity !== undefined) {
