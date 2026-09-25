@@ -37,7 +37,7 @@
 - deterministic frame-feedback ping-pong buffer — complete baseline
 - scene-aware displacement pass — complete baseline
 - dedicated velocity-smear pass — complete baseline
-- thresholded multi-pass bloom — active candidate
+- thresholded multi-pass bloom — complete baseline
 - per-effect quality budgets — active
 
 ## Milestone 0.5 — Typography Engine
