@@ -147,7 +147,7 @@ The desktop renderer has no Node integration. Native directory selection is expo
 
 ## Near-term work
 
-1. complete the remaining visualization-engine families: sparks/trails, recursive typography backgrounds and dissolve exits
+1. complete the remaining typography families: soft-3D/inflate, brush/stroke reveal and dissolve/smear exits
 2. add scene-stack serialization and per-section visual directives
 3. visually tune typography/background preset combinations on real tracks
 4. retire the temporary root legacy UI after React acceptance
