@@ -151,7 +151,7 @@ test("legacy Vortex is a dedicated projected-depth world with one-way timestamp 
 });
 
 
-test("phase B legacy worlds are dedicated, isolated and keep geometry time-owned", async () => {
+test("phase B legacy worlds use authored fidelity systems and keep motion time-owned", async () => {
   const [background, rays, starfield, nebula, grid] = await Promise.all([
     source("packages/renderer-pixi/src/effects/backgrounds/CinematicBackground.ts"),
     source("packages/renderer-pixi/src/effects/backgrounds/LegacyRaysWorld.ts"),
@@ -177,23 +177,58 @@ test("phase B legacy worlds are dedicated, isolated and keep geometry time-owned
   }
   assert.match(background, /!artWorld && !specializedWorld/);
 
-  assert.match(rays, /Three nested passes emulate a volumetric falloff/);
-  assert.match(rays, /targetX = this\.w \* \(0\.5 \+ Math\.sin\(time/);
-  assert.doesNotMatch(rays, /targetX = [^\n]*audio\./);
-  assert.doesNotMatch(rays, /originX = [^\n]*audio\./);
+  // Rays: actual per-pixel participating media and broad cones, not Graphics lines.
+  assert.match(rays, /GlProgram\.from/);
+  assert.match(rays, /Participating-media haze/);
+  assert.match(rays, /Seven broad cones with soft shoulders/);
+  assert.match(rays, /float lightResponse = 0\.80 \+ uEnergy/);
+  assert.doesNotMatch(rays, /source\.[xy] = [^;]*audio\./);
+  assert.doesNotMatch(rays, /float width = [^;]*audio\./);
 
-  assert.match(starfield, /travels monotonically toward/);
-  assert.match(starfield, /depthProgress = fract\(seedZ \+ time \* speed\)/);
-  assert.doesNotMatch(starfield, /depthProgress = [^\n]*audio\./);
+  // Starfield: fixed optical axis and monotonically decreasing z-phase.
+  assert.match(starfield, /Camera flight is strictly one-way/);
+  assert.match(starfield, /const phase = fract\(star\.zSeed - time \* star\.speed\)/);
+  assert.match(starfield, /const previousPhase = fract\(star\.zSeed - \(time - trailSeconds\) \* star\.speed\)/);
+  assert.match(starfield, /const cx = this\.w \* 0\.5/);
+  assert.match(starfield, /const cy = this\.h \* 0\.5/);
+  assert.doesNotMatch(starfield, /perspective spokes/i);
+  assert.doesNotMatch(starfield, /const phase = [^;]*audio\./);
   assert.doesNotMatch(starfield, /const z = [^;]*audio\./);
 
-  assert.match(nebula, /footprints are deterministic functions of time/);
-  assert.match(nebula, /const orbit = time \*/);
-  assert.doesNotMatch(nebula, /const orbit = [^;]*audio\./);
-  assert.doesNotMatch(nebula, /const rx = [^;]*audio\./);
+  // Nebula: shader-domain gas density, domain warping and filament structure.
+  assert.match(nebula, /GlProgram\.from/);
+  assert.match(nebula, /float cloudField\(/);
+  assert.match(nebula, /vec2 warp = vec2/);
+  assert.match(nebula, /float ridged\(/);
+  assert.match(nebula, /Density-gradient lighting|density-gradient lighting/i);
+  assert.doesNotMatch(nebula, /\.ellipse\(/);
+  assert.doesNotMatch(nebula, /Math\.random\(/);
 
-  assert.match(grid, /Ground-plane rays establish perspective explicitly/);
-  assert.match(grid, /const scroll = fract\(time \*/);
-  assert.doesNotMatch(grid, /const scroll = [^;]*audio\./);
-  assert.doesNotMatch(grid, /const horizon = [^;]*audio\./);
+  // Grid: full-frame infinite perspective environment plus deterministic architecture/traffic.
+  assert.match(grid, /GlProgram\.from/);
+  assert.match(grid, /Infinite perspective floor/);
+  assert.match(grid, /Procedural side architecture/);
+  assert.match(grid, /float worldZ = inv \+ t \*/);
+  assert.match(grid, /Deterministic energy traffic/);
+  assert.doesNotMatch(grid, /Math\.random\(/);
+});
+
+test("global spatial post FX no longer turn raw audio into scene-scale motion", async () => {
+  const [post, displacement, smear] = await Promise.all([
+    source("packages/renderer-pixi/src/render/CinematicPostFX.ts"),
+    source("packages/renderer-pixi/src/render/ReactiveDisplacementFX.ts"),
+    source("packages/renderer-pixi/src/render/ReactiveVelocitySmearFX.ts"),
+  ]);
+
+  assert.match(post, /Spatial lens shape is autonomous/);
+  assert.doesNotMatch(post, /float barrel = \([^;]*uBass/);
+  assert.doesNotMatch(post, /float barrel = \([^;]*uTransient/);
+  assert.doesNotMatch(post, /vec2 glowOffset = [^;]*uBass/);
+
+  assert.doesNotMatch(displacement, /warp\.[xy] \+= [^;]*u(?:Bass|Mid|Transient)/);
+  assert.doesNotMatch(displacement, /float swirl = [^;]*u(?:Bass|Mid|Transient)/);
+  assert.doesNotMatch(displacement, /float ripple = [^;]*u(?:Bass|Mid|Transient)/);
+
+  assert.match(smear, /Trail sampling distance is autonomous/);
+  assert.doesNotMatch(smear, /float motion = \([^;]*u(?:Bass|Energy|Transient)/);
 });
