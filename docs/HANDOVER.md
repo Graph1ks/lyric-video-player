@@ -1,13 +1,13 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `db14f45bf1a682e2526d1d4b0764b8e051f871ab`  
-**Active candidate:** `feat/worlds-07-08-vortex-waveform-v2`  
-**Current phase/milestone:** WORLD_07 / WORLD_08 implementation
+**Merged baseline:** `32c3dce154ebbe8f5bf2634b29c9002393cb2af3`  
+**Active candidate:** none  
+**Current phase/milestone:** WORLD_05–08 visual acceptance
 
 ## Current objective
 
-Continue directly with WORLD_07 Particle Spiral Vortex and WORLD_08 Minimal Rainbow Waveform. WORLD_05/06 projected-3D rebuild is merged in PR #67; user feedback can arrive asynchronously.
+WORLD_05/06 projected-3D rebuild is merged in PR #67 and WORLD_07/08 are merged in PR #68. User feedback can arrive asynchronously; next implementation pair is WORLD_09/10.
 
 ## Merged baseline — Resource lifetime + physical-edge safety v0.11.2
 
@@ -230,7 +230,7 @@ The replacement uses mathematically correct pointy-top axial placement, narrow f
 
 The user's `Graph1ks/website` repo was inspected. Its Circuit Grid already demonstrates the correct architectural principle: own world coordinates, relief, projection and camera depth instead of simulating depth with a screen-space warp. E-MO WORLD_05/06 now adopt that standard.
 
-## Active candidate — WORLD_07 / WORLD_08
+## Merged baseline — WORLD_07 / WORLD_08
 
 ### WORLD_07 Particle Spiral Vortex
 
