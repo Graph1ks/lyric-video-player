@@ -1,6 +1,6 @@
 # Visualizer World Reference Set — 13 Worlds
 
-**Status:** active implementation set — WORLD_01–04 implemented; WORLD_03/04 candidate in progress  
+**Status:** active implementation set — WORLD_01–04 implemented; WORLD_03/04 merged in PR #63  
 **Reference origin:** user-supplied visual references. The reference images are intentionally **not committed** to this public repository because their redistribution/license status is unknown. A local reference ZIP uses the filenames below.
 
 The goal is not literal screenshot recreation. Each reference defines a **rendering identity, depth language, motion grammar, audio-reactive behavior and fidelity floor**.
@@ -31,8 +31,8 @@ Interpretation of controls:
 | --- | --- | --- | --- | --- | --- | --- |
 | 01 | Prism Stage Beams | `01_prism_stage_beams.png` | Central stage-light hub emitting thick volumetric rainbow/RGB shafts through haze; strong bloom and dark negative space. | shader beam density, haze/gobo complexity, fixture apertures | bass→beam width+bloom; energy→brightness; transient→flare surge | **Implemented — GPU shader v2** |
 | 02 | Laser Canopy Grid | `02_laser_canopy_grid.png` | Thin crisp red/cyan/green lasers from overhead rig to floor hit-points; geometric canopy, black room, minimal haze. | analytic ray count, emitter count, floor/detail density | bass→canopy spread/floor glow; treble→shimmer; transient→burst brightness | **Implemented — GPU shader v2** |
-| 03 | Disco Mirrorball Room | `03_disco_mirrorball_room.png` | Central mirrored disco ball inside an enclosed dark room with hundreds of colored square reflections on walls/floor/ceiling. | spherical facet density, reflection-grid density, room depth layers | bass→room pulse; highs→facet sparkle/twinkle; transient→ball flare | **Implemented — GPU shader candidate** |
-| 04 | Neon Energy Burst Tunnel | `04_neon_energy_burst_tunnel.png` | Explosive central neon warp tunnel with outward speed streaks and electric scribble lines in magenta/blue/gold. | radial streak density, tunnel ribs, electric filaments, ejecta | bass→rush speed/depth; highs→scribble detail; transient→burst spikes | **Implemented — GPU shader candidate** |
+| 03 | Disco Mirrorball Room | `03_disco_mirrorball_room.png` | Central mirrored disco ball inside an enclosed dark room with hundreds of colored square reflections on walls/floor/ceiling. | spherical facet density, reflection-grid density, room depth layers | bass→room pulse; highs→facet sparkle/twinkle; transient→ball flare | **Implemented — GPU shader** |
+| 04 | Neon Energy Burst Tunnel | `04_neon_energy_burst_tunnel.png` | Explosive central neon warp tunnel with outward speed streaks and electric scribble lines in magenta/blue/gold. | radial streak density, tunnel ribs, electric filaments, ejecta | bass→rush speed/depth; highs→scribble detail; transient→burst spikes | **Implemented — GPU shader** |
 | 05 | Fractal Hex Spiral Mosaic | `05_fractal_hex_spiral_mosaic.png` | Graphic cellular/hex tessellation recursively spiraling into multiple sinks; thick dark outlines and rainbow cells. | cell subdivision, spiral depth, secondary sinks | bass→field pulse; mids/highs→color ripple; transient→spiral accent | Planned |
 | 06 | Soft Hex Cell Field | `06_soft_hex_cell_field.png` | Large pastel hex cells over black gaps, soft bevel/shading, foreground/background depth. | cell count, depth layers, highlight facets | bass→breathing scale; highs→glints; transient→depth pop | Planned |
 | 07 | Particle Spiral Vortex | `07_particle_spiral_vortex.png` | Glowing circular particles forming several spiral arms and a clear inward vortex center on black. | particle count, arm count, depth layers | bass→particle size/pull; highs→sparkle; transient→burst density | Planned |
