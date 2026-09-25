@@ -30,8 +30,12 @@ import {
 
 let cueCounter = 0;
 
+export type UiLanguage = "en" | "de";
+
 export interface UiState {
   hudVisible: boolean;
+  uiLanguage: UiLanguage;
+  directorDetachedOpen: boolean;
   mode: VisualMode;
   intensity: number;
   quality: QualityMode;
@@ -63,10 +67,14 @@ export interface UiState {
   directorPlaybackSeconds: number;
   directorDurationSeconds: number;
   directorPlaying: boolean;
+  directorMuted: boolean;
+  directorVolume: number;
   directorAudioBands: { bass: number; mid: number; treble: number };
   directorCues: DirectorCueDraft[];
 
   setHudVisible(value: boolean): void;
+  setUiLanguage(value: UiLanguage): void;
+  setDirectorDetachedOpen(value: boolean): void;
   setMode(value: VisualMode): void;
   setIntensity(value: number): void;
   setQuality(value: QualityMode): void;
@@ -93,6 +101,8 @@ export interface UiState {
   setDirectorTrack(title: string, meta?: string): void;
   setDirectorPlayback(seconds: number, duration: number): void;
   setDirectorPlaying(value: boolean): void;
+  setDirectorMuted(value: boolean): void;
+  setDirectorVolume(value: number): void;
   setDirectorAudioBands(value: { bass: number; mid: number; treble: number }): void;
   addDirectorCue(at: number, label?: string): void;
   removeDirectorCue(id: string): void;
@@ -102,6 +112,8 @@ export interface UiState {
 
 export const useUiStore = create<UiState>((set, get) => ({
   hudVisible: true,
+  uiLanguage: "en",
+  directorDetachedOpen: false,
   mode: "auto",
   intensity: 1,
   quality: "cinema",
@@ -133,10 +145,14 @@ export const useUiStore = create<UiState>((set, get) => ({
   directorPlaybackSeconds: 0,
   directorDurationSeconds: 0,
   directorPlaying: false,
+  directorMuted: false,
+  directorVolume: 0.9,
   directorAudioBands: { bass: 0, mid: 0, treble: 0 },
   directorCues: [],
 
   setHudVisible: hudVisible => set({ hudVisible }),
+  setUiLanguage: uiLanguage => set({ uiLanguage }),
+  setDirectorDetachedOpen: directorDetachedOpen => set({ directorDetachedOpen }),
   setMode: mode => set({ mode }),
   setIntensity: intensity => set({ intensity }),
   setQuality: quality => set({ quality }),
@@ -174,6 +190,8 @@ export const useUiStore = create<UiState>((set, get) => ({
     directorDurationSeconds,
   }),
   setDirectorPlaying: directorPlaying => set({ directorPlaying }),
+  setDirectorMuted: directorMuted => set({ directorMuted }),
+  setDirectorVolume: directorVolume => set({ directorVolume: Math.max(0, Math.min(1, directorVolume)) }),
   setDirectorAudioBands: directorAudioBands => set({ directorAudioBands }),
 
   addDirectorCue: (at, label) => {
@@ -200,6 +218,7 @@ export const useUiStore = create<UiState>((set, get) => ({
 
 export type DirectorSharedState = Pick<
   UiState,
+  | "uiLanguage"
   | "mode"
   | "intensity"
   | "quality"
@@ -228,12 +247,15 @@ export type DirectorSharedState = Pick<
   | "directorPlaybackSeconds"
   | "directorDurationSeconds"
   | "directorPlaying"
+  | "directorMuted"
+  | "directorVolume"
   | "directorAudioBands"
   | "directorCues"
 >;
 
 export function directorSharedState(state: UiState): DirectorSharedState {
   return {
+    uiLanguage: state.uiLanguage,
     mode: state.mode,
     intensity: state.intensity,
     quality: state.quality,
@@ -262,6 +284,8 @@ export function directorSharedState(state: UiState): DirectorSharedState {
     directorPlaybackSeconds: state.directorPlaybackSeconds,
     directorDurationSeconds: state.directorDurationSeconds,
     directorPlaying: state.directorPlaying,
+    directorMuted: state.directorMuted,
+    directorVolume: state.directorVolume,
     directorAudioBands: state.directorAudioBands,
     directorCues: state.directorCues,
   };

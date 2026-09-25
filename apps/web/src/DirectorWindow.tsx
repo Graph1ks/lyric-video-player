@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { VisualDirector } from "./VisualDirector";
+import { sendDirectorCommand } from "./directorSync";
 import { formatDirectorTime, parseDirectorTime } from "./directorPlanning";
 import { useUiStore } from "./store";
 
@@ -12,6 +13,8 @@ export function DirectorWindow() {
   const title = useUiStore(state => state.directorTrackTitle);
   const meta = useUiStore(state => state.directorTrackMeta);
   const playing = useUiStore(state => state.directorPlaying);
+  const muted = useUiStore(state => state.directorMuted);
+  const volume = useUiStore(state => state.directorVolume);
   const playback = useUiStore(state => state.directorPlaybackSeconds);
   const duration = useUiStore(state => state.directorDurationSeconds);
   const cues = useUiStore(state => state.directorCues);
@@ -22,6 +25,13 @@ export function DirectorWindow() {
 
   useEffect(() => {
     document.title = "E-MO Visual Director";
+    sendDirectorCommand({ kind: "presence", open: true });
+    const close = () => sendDirectorCommand({ kind: "presence", open: false });
+    window.addEventListener("beforeunload", close);
+    return () => {
+      window.removeEventListener("beforeunload", close);
+      close();
+    };
   }, []);
 
   useEffect(() => {
@@ -57,16 +67,71 @@ export function DirectorWindow() {
           </div>
         </div>
 
-        <div className="director-window-track">
-          <span className={playing ? "is-live" : ""}><i /> {playing ? "LIVE" : "READY"}</span>
-          <div>
-            <b>{title}</b>
-            <small>{meta || "Waiting for main player"}</small>
+        <div className="director-window-track director-window-transport">
+          <button
+            className="director-transport-play"
+            onClick={() => sendDirectorCommand({ kind: "toggle-play" })}
+            aria-label={playing ? "Pause" : "Play"}
+          >
+            {playing ? "❚❚" : "▶"}
+          </button>
+          <button
+            className="director-transport-step"
+            onClick={() => sendDirectorCommand({ kind: "seek-relative", seconds: -5 })}
+            aria-label="Back 5 seconds"
+          >−5</button>
+          <div className="director-window-track__meta">
+            <span className={playing ? "is-live" : ""}><i /> {playing ? "LIVE" : "READY"}</span>
+            <div>
+              <b>{title}</b>
+              <small>{meta || "Waiting for main player"}</small>
+            </div>
           </div>
-          <time>{formatDirectorTime(playback)} / {formatDirectorTime(duration)}</time>
+          <div className="director-window-timeline">
+            <input
+              type="range"
+              min="0"
+              max={Math.max(0.001, duration)}
+              step="0.01"
+              value={Math.min(playback, Math.max(0.001, duration))}
+              aria-label="Playback position"
+              onChange={event => sendDirectorCommand({ kind: "seek", seconds: Number(event.target.value) })}
+            />
+            <time>{formatDirectorTime(playback)} / {formatDirectorTime(duration)}</time>
+          </div>
+          <button
+            className="director-transport-step"
+            onClick={() => sendDirectorCommand({ kind: "seek-relative", seconds: 5 })}
+            aria-label="Forward 5 seconds"
+          >+5</button>
+          <button
+            className={`director-transport-mute ${muted ? "is-active" : ""}`}
+            onClick={() => sendDirectorCommand({ kind: "toggle-mute" })}
+          >{muted ? "MUTED" : "VOL"}</button>
+          <input
+            className="director-transport-volume"
+            type="range"
+            min="0"
+            max="1"
+            step="0.01"
+            value={volume}
+            aria-label="Volume"
+            onChange={event => sendDirectorCommand({ kind: "set-volume", volume: Number(event.target.value) })}
+          />
         </div>
 
         <div className="director-window-actions">
+          <label className="director-window-file">AUDIO<input type="file" accept="audio/mpeg,audio/mp4,audio/x-m4a,audio/aac,.mp3,.m4a,.aac" onChange={event => {
+            const file = event.target.files?.[0];
+            if (file) sendDirectorCommand({ kind: "load-audio", file });
+            event.currentTarget.value = "";
+          }} /></label>
+          <label className="director-window-file">LRC<input type="file" accept=".lrc,text/plain" onChange={event => {
+            const file = event.target.files?.[0];
+            if (file) sendDirectorCommand({ kind: "load-lyrics", file });
+            event.currentTarget.value = "";
+          }} /></label>
+          <button onClick={() => sendDirectorCommand({ kind: "toggle-fullscreen" })}>PLAYER ⛶</button>
           <button className={view === "live" ? "is-active" : ""} onClick={() => setView("live")}>LIVE</button>
           <button className={view === "plan" ? "is-active" : ""} onClick={() => setView("plan")}>PLAN</button>
           <button onClick={() => window.close()} title="Close Director window">×</button>

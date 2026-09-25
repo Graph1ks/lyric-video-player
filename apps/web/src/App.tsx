@@ -26,6 +26,7 @@ import {
   TYPOGRAPHY_SEQUENCES,
 } from "./directorCatalog";
 import { VisualDirector } from "./VisualDirector";
+import { listenDirectorCommands } from "./directorSync";
 import { useUiStore } from "./store";
 
 const EMPTY_LYRICS: ParsedLyrics = { offsetMs: 0, lines: [], meta: {} };
@@ -63,6 +64,7 @@ export function App() {
   const colorFlow = useUiStore(state => state.colorFlow);
   const syncMs = useUiStore(state => state.syncMs);
   const projectDrawerOpen = useUiStore(state => state.projectDrawerOpen);
+  const directorDetachedOpen = useUiStore(state => state.directorDetachedOpen);
   const activeScene = useUiStore(state => state.activeScene);
   const setHudVisible = useUiStore(state => state.setHudVisible);
   const setMode = useUiStore(state => state.setMode);
@@ -89,6 +91,9 @@ export function App() {
   const setDirectorTrack = useUiStore(state => state.setDirectorTrack);
   const setDirectorPlayback = useUiStore(state => state.setDirectorPlayback);
   const setDirectorPlaying = useUiStore(state => state.setDirectorPlaying);
+  const setDirectorMuted = useUiStore(state => state.setDirectorMuted);
+  const setDirectorVolume = useUiStore(state => state.setDirectorVolume);
+  const setDirectorDetachedOpen = useUiStore(state => state.setDirectorDetachedOpen);
   const setDirectorAudioBands = useUiStore(state => state.setDirectorAudioBands);
 
   const [engineStatus, setEngineStatus] = useState("ENGINE READY");
@@ -196,10 +201,17 @@ export function App() {
       setDirectorPlaying(false);
       setEngineStatus("ENDED");
     };
+    const onVolumeChange = () => {
+      setMuted(audio.muted || audio.volume < 0.001);
+      setDirectorMuted(audio.muted || audio.volume < 0.001);
+      setDirectorVolume(audio.volume);
+    };
 
     audio.element.addEventListener("play", onPlay);
     audio.element.addEventListener("pause", onPause);
     audio.element.addEventListener("ended", onEnded);
+    audio.element.addEventListener("volumechange", onVolumeChange);
+    onVolumeChange();
 
     void renderer.init(stage).then(() => {
       if (disposed) return;
@@ -232,6 +244,7 @@ export function App() {
       audio.element.removeEventListener("play", onPlay);
       audio.element.removeEventListener("pause", onPause);
       audio.element.removeEventListener("ended", onEnded);
+      audio.element.removeEventListener("volumechange", onVolumeChange);
       rendererRef.current = null;
       clockRef.current = null;
       stage.replaceChildren();
@@ -397,6 +410,30 @@ export function App() {
     };
   }, []);
 
+  useEffect(() => listenDirectorCommands(command => {
+    if (command.kind === "toggle-play") {
+      void togglePlay();
+    } else if (command.kind === "seek") {
+      clockRef.current?.seek(command.seconds);
+    } else if (command.kind === "seek-relative") {
+      const clock = clockRef.current;
+      if (clock) clock.seek(clock.time + command.seconds);
+    } else if (command.kind === "toggle-mute") {
+      toggleMute();
+    } else if (command.kind === "set-volume") {
+      audioRef.current.setVolume(command.volume);
+    } else if (command.kind === "toggle-fullscreen") {
+      void toggleFullscreen();
+    } else if (command.kind === "load-audio") {
+      void loadAudioFile(command.file);
+    } else if (command.kind === "load-lyrics") {
+      void loadLyricsFile(command.file);
+    } else if (command.kind === "presence") {
+      setDirectorDetachedOpen(command.open);
+      if (command.open) setProjectDrawerOpen(false);
+    }
+  }), [setDirectorDetachedOpen, setProjectDrawerOpen]);
+
   const projectSummary = useMemo(() => {
     if (!runtimeQuery.data) return undefined;
     const label = projectsQuery.data?.rootLabel || runtimeQuery.data.rootLabel;
@@ -409,7 +446,9 @@ export function App() {
 
   function toggleMute() {
     const isMuted = audioRef.current.toggleMute();
-    setMuted(isMuted || audioRef.current.volume < 0.001);
+    const mutedNow = isMuted || audioRef.current.volume < 0.001;
+    setMuted(mutedNow);
+    setDirectorMuted(mutedNow);
   }
 
   async function toggleFullscreen() {
@@ -546,7 +585,7 @@ export function App() {
   return (
     <main
       ref={shellRef}
-      className={`shell ${hudVisible ? "" : "ui-hidden"}`}
+      className={`shell ${hudVisible ? "" : "ui-hidden"} ${directorDetachedOpen ? "operator-output" : ""}`}
       data-ui-visible={hudVisible}
       data-scene={activeScene}
     >
@@ -655,7 +694,10 @@ export function App() {
             <button className={`mini-button ${muted ? "is-muted" : ""}`} onClick={toggleMute} aria-label="Mute or unmute">{muted ? "MUTED" : "VOL"}</button>
             <input className="volume" type="range" min="0" max="100" defaultValue="90" aria-label="Volume" onChange={event => {
               audioRef.current.setVolume(Number(event.target.value) / 100);
-              setMuted(audioRef.current.muted || audioRef.current.volume < 0.001);
+              setDirectorVolume(audioRef.current.volume);
+              const mutedNow = audioRef.current.muted || audioRef.current.volume < 0.001;
+              setMuted(mutedNow);
+              setDirectorMuted(mutedNow);
             }} />
           </div>
 

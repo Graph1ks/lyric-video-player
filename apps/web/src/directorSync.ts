@@ -1,10 +1,22 @@
 import { directorSharedState, useUiStore, type DirectorSharedState } from "./store";
 
-const CHANNEL_NAME = "emo-director-control-v1";
+const STATE_CHANNEL_NAME = "emo-director-control-v1";
+const COMMAND_CHANNEL_NAME = "emo-director-command-v1";
 
 type SyncMessage =
   | { kind: "hello"; source: string }
   | { kind: "state"; source: string; payload: DirectorSharedState };
+
+export type DirectorCommand =
+  | { kind: "toggle-play" }
+  | { kind: "seek"; seconds: number }
+  | { kind: "seek-relative"; seconds: number }
+  | { kind: "toggle-mute" }
+  | { kind: "set-volume"; volume: number }
+  | { kind: "toggle-fullscreen" }
+  | { kind: "load-audio"; file: File }
+  | { kind: "load-lyrics"; file: File }
+  | { kind: "presence"; open: boolean };
 
 export function startDirectorSync() {
   if (typeof window === "undefined" || typeof BroadcastChannel === "undefined") {
@@ -12,7 +24,7 @@ export function startDirectorSync() {
   }
 
   const source = createSourceId();
-  const channel = new BroadcastChannel(CHANNEL_NAME);
+  const channel = new BroadcastChannel(STATE_CHANNEL_NAME);
   let applyingRemote = false;
   let lastSerialized = JSON.stringify(directorSharedState(useUiStore.getState()));
 
@@ -54,6 +66,20 @@ export function startDirectorSync() {
     unsubscribe();
     channel.close();
   };
+}
+
+export function sendDirectorCommand(command: DirectorCommand) {
+  if (typeof BroadcastChannel === "undefined") return;
+  const channel = new BroadcastChannel(COMMAND_CHANNEL_NAME);
+  channel.postMessage(command);
+  queueMicrotask(() => channel.close());
+}
+
+export function listenDirectorCommands(listener: (command: DirectorCommand) => void) {
+  if (typeof BroadcastChannel === "undefined") return () => {};
+  const channel = new BroadcastChannel(COMMAND_CHANNEL_NAME);
+  channel.onmessage = event => listener(event.data as DirectorCommand);
+  return () => channel.close();
 }
 
 function createSourceId() {
