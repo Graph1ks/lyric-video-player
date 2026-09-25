@@ -1,13 +1,13 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `4f6f5420a137839584cb622e3ef9c78c7fb5402a`  
-**Active candidate:** `feature/visual-acceptance-matrix-v0.8`  
+**Merged baseline:** `9b9cbedf33193bf156ae2dc33d0dff0a4383144a`  
+**Active candidate:** none  
 **Current phase/milestone:** v0.8 lyric-scene composition + color direction
 
 ## Current objective
 
-Add a repeatable composition/readability QA gate, then use it alongside real-track acceptance for the first Step 4 worlds.
+Use the merged composition/readability QA gate alongside real-track acceptance for the first Step 4 worlds.
 
 ## Current implementation state
 
@@ -126,7 +126,7 @@ All four worlds consume the shared `VisualPalette`, remain timestamp/audio-drive
 
 See `docs/ART_DIRECTION_WORLDS.md`.
 
-### Active visual-acceptance QA candidate
+### Merged visual-acceptance QA baseline
 
 The candidate adds `assessTypographyComposition()` in engine-core. It exposes transformed word bounds, attention-field overflow, collision pairs and maximum overlap ratio without depending on Pixi.
 
@@ -178,11 +178,10 @@ Windows packaging remains a separate required gate.
 
 ## Next concrete work
 
-1. Get `feature/visual-acceptance-matrix-v0.8` green and merge.
-2. Visually accept Editorial / Print / Architecture / Aurora on real Enhanced LRC tracks.
-3. Test dense lyrics at desktop + narrow/mobile sizes.
-4. Add the next distinct world only after identifying a missing visual grammar.
-5. Complete remaining typography primitives and then stabilize scene-stack serialization.
+1. Visually accept Editorial / Print / Architecture / Aurora on real Enhanced LRC tracks.
+2. Test dense lyrics at desktop + narrow/mobile sizes.
+3. Add the next distinct world only after identifying a missing visual grammar.
+4. Complete remaining typography primitives and then stabilize scene-stack serialization.
 
 ## Resume instruction
 

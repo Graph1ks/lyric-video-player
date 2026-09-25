@@ -1,13 +1,13 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `4f6f5420a137839584cb622e3ef9c78c7fb5402a`  
-**Active candidate:** `feature/visual-acceptance-matrix-v0.8`  
+**Last known good merged baseline:** `9b9cbedf33193bf156ae2dc33d0dff0a4383144a`  
+**Active candidate:** none  
 **Current phase/milestone:** v0.8 lyric-scene composition + color direction
 
 ## Current objective
 
-Turn readability acceptance into a repeatable engineering gate while visually accepting the merged Step 4 art-direction worlds.
+Use the merged visual-readability matrix for real-track acceptance and narrow/mobile tuning of the Step 4 art-direction worlds.
 
 ## Current state
 
@@ -67,6 +67,8 @@ Turn readability acceptance into a repeatable engineering gate while visually ac
 
 - Art Direction Worlds: Linux install/typecheck/build/tests/publication audit — passed.
 - Art Direction Worlds: Windows full build, NSIS packaging, portable x64 packaging and artifact upload — passed.
+- Visual Readability Matrix: Linux install/typecheck/build/tests/publication audit — passed.
+- Visual Readability Matrix: Windows full build, NSIS packaging, portable x64 packaging and artifact upload — passed.
 
 - v0.8 Composition + Palette: Linux install/typecheck/build/tests/publication audit — passed.
 - v0.8 Composition + Palette: Windows full build, NSIS packaging, portable x64 packaging and artifact upload — passed.
@@ -77,11 +79,10 @@ Turn readability acceptance into a repeatable engineering gate while visually ac
 
 ## Next concrete action
 
-1. Get the visual-readability matrix candidate green and merge it.
-2. Visually accept Editorial / Print / Architecture / Aurora on real Enhanced LRC tracks using `docs/VISUAL_ACCEPTANCE_MATRIX.md`.
-3. Tune composition/layout/grammar combinations on narrow/mobile viewports.
-4. Add only genuinely distinct next worlds after the first four pass visual acceptance.
-5. Finish remaining typography primitives and scene-stack serialization.
+1. Visually accept Editorial / Print / Architecture / Aurora on real Enhanced LRC tracks using `docs/VISUAL_ACCEPTANCE_MATRIX.md`.
+2. Tune composition/layout/grammar combinations on narrow/mobile viewports.
+3. Add only genuinely distinct next worlds after the first four pass visual acceptance.
+4. Finish remaining typography primitives and scene-stack serialization.
 
 ## Do not redo
 
