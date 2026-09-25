@@ -11,6 +11,7 @@ import type {
   WorldTextPolarity,
 } from "@graph1ks/emo-engine-core";
 import {
+  clamp,
   createWorldColorContext,
   hash01,
   relativeLuminance,
