@@ -1,13 +1,13 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `ce612363c52bf4067927cabc5d6d37ad1f883c12`  
-**Active candidate:** `feature/readability-color-director-v0.8`  
+**Merged baseline:** `df04c773b08c19b80e4f1b823ba60acc817b0b69`  
+**Active candidate:** none  
 **Current phase/milestone:** v0.8 lyric-scene composition + color direction
 
 ## Current objective
 
-Land the readability/color stabilization layer before continuing Step 4 visual-world expansion.
+Continue Step 4 visual-world expansion on top of the merged readability/color stabilization layer.
 
 ## Current implementation state
 
@@ -87,7 +87,7 @@ React exposes **Composition Motion** and keyboard `G`; `M` remains mute. `emo.pr
 
 See `docs/COMPOSITION_MOTION_GRAMMAR.md` for the runtime contract and known tuning risks.
 
-### Active readability/color candidate
+### Merged readability/color baseline
 
 The candidate changes two foundational contracts before adding more visual worlds.
 
@@ -150,9 +150,9 @@ Windows packaging remains a separate required gate.
 
 ## Next concrete work
 
-1. Validate the readability/color candidate on Linux + Windows and merge.
+1. Build genuinely distinct Step 4 visual worlds (editorial blocks, print/halftone, mesh/gradient, geometric architecture, volumetric light) on the palette-role contract.
 2. Visually test dense Enhanced LRC lines at desktop + narrow/mobile sizes.
-3. Migrate specialist background shaders to full palette-role uniforms / build Step 4 visual worlds.
+3. Migrate specialist shader colors to palette-role uniforms.
 4. Complete remaining typography primitives.
 5. Stabilize scene-stack serialization before timeline/editor work.
 

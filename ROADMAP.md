@@ -75,11 +75,11 @@
 - React controls + project defaults
 - composition-level motion grammar — complete baseline
 - Handoff / Conveyor / Anchor Build / Collapse / Takeover / Flip / Camera Handoff / Portal / Panel — complete baseline
-- central lyric attention field + collision-safe placement — active candidate
-- LTR row-order constraints + edge-only vertical accents — active candidate
-- lyric mood color presets — active candidate
-- low-chroma dark background roles / brown-background fix — active candidate
-- deterministic Rainbow Drift — active candidate
+- central lyric attention field + collision-safe placement — complete baseline
+- LTR row-order constraints + edge-only vertical accents — complete baseline
+- lyric mood color presets — complete baseline
+- low-chroma dark background roles / brown-background fix — complete baseline
+- deterministic Rainbow Drift — complete baseline
 - next after merge: distinct art-direction worlds
 
 ## Milestone 0.7 — Scene project format

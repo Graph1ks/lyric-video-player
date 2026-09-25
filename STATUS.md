@@ -1,13 +1,13 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `ce612363c52bf4067927cabc5d6d37ad1f883c12`  
-**Active candidate:** `feature/readability-color-director-v0.8`  
+**Last known good merged baseline:** `df04c773b08c19b80e4f1b823ba60acc817b0b69`  
+**Active candidate:** none  
 **Current phase/milestone:** v0.8 lyric-scene composition + color direction
 
 ## Current objective
 
-Stabilize readability and color direction before deeper Step 4 visual-world expansion: central attention field, collision-safe LTR composition, emotion palettes and deterministic Rainbow Drift.
+Continue Step 4 visual-world expansion on top of the merged readability, composition-motion and color-direction contracts.
 
 ## Current state
 
@@ -47,7 +47,7 @@ Stabilize readability and color direction before deeper Step 4 visual-world expa
 - Grammar evaluation is pure/timestamp-driven from Enhanced LRC time and produces whole-stage + per-word transforms.
 - `camera-handoff` currently moves the typography stage only; global background/camera motion remains owned by CameraRig.
 - Motion AUTO is deterministic from scene family + cue index.
-- Active readability/color candidate adds a **central lyric attention field** inside title-safe space and deterministic collision resolution.
+- v0.8 now includes a merged **central lyric attention field** inside title-safe space and deterministic collision resolution.
 - LTR AUTO layouts now preserve readable row order; vertical words are limited to logical edge accents instead of arbitrary mid-sequence rotations.
 - Split Stage no longer alternates consecutive cues left/right across the frame.
 - Color Director adds lyric-oriented mood presets: Tender, Heartbreak, Longing, Euphoria, Rage, Dream, Tension and Calm.
@@ -60,11 +60,13 @@ Stabilize readability and color direction before deeper Step 4 visual-world expa
 - v0.8 Composition + Palette: Windows full build, NSIS packaging, portable x64 packaging and artifact upload — passed.
 - Composition Motion: Linux install/typecheck/build/tests/publication audit — passed.
 - Composition Motion: Windows full build, NSIS packaging, portable x64 packaging and artifact upload — passed.
+- Readability + Mood Color Direction: Linux install/typecheck/build/tests/publication audit — passed.
+- Readability + Mood Color Direction: Windows full build, NSIS packaging, portable x64 packaging and artifact upload — passed.
 
 ## Next concrete action
 
-1. Get the readability/color candidate green on Linux + Windows and visually tune on real tracks.
-2. Expand Step 4 art-direction worlds using the palette-role contract rather than hard-coded scene colors.
+1. Expand Step 4 art-direction worlds using the palette-role contract rather than hard-coded scene colors.
+2. Visually tune composition/layout/grammar combinations on real Enhanced LRC tracks and narrow/mobile viewports.
 3. Finish remaining typography primitives.
 4. Stabilize serializable scene-stack directives before editor work.
 

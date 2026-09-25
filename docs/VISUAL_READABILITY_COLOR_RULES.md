@@ -1,6 +1,6 @@
 # Visual Readability + Color Direction Rules
 
-**Status:** active baseline for v0.8  
+**Status:** merged baseline for v0.8  
 **Last updated:** 2026-09-25
 
 This document converts external research and motion-design practice into explicit E-MO engine rules. Source-derived observations and E-MO product decisions are separated below.
