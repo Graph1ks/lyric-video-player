@@ -783,6 +783,22 @@ kbd { min-width: 19px; height: 19px; display: inline-grid; place-items: center; 
 .director-miniature[data-preview="world-grid"] { background:linear-gradient(rgba(132,255,242,.09) 1px,transparent 1px),linear-gradient(90deg,rgba(132,255,242,.09) 1px,transparent 1px),#090b10; background-size:10px 10px; }
 .director-miniature[data-preview="world-starfield"] { background-image:radial-gradient(circle,#fff 0 1px,transparent 1px),radial-gradient(circle,#fff 0 .7px,transparent 1px); background-position:4px 7px,15px 3px; background-size:17px 19px,23px 29px; background-color:#05070d; }
 .director-miniature[data-preview="world-rays"] { background:conic-gradient(from 250deg at 50% 80%,transparent 0 18deg,rgba(255,255,255,.12) 19deg 24deg,transparent 25deg 42deg,rgba(132,255,242,.12) 43deg 49deg,transparent 50deg); }
+.director-miniature[data-preview="world-prism-stage-beams"] {
+  background:
+    conic-gradient(from 245deg at 50% 62%, transparent 0 8deg, rgba(64,118,255,.42) 9deg 15deg, transparent 16deg 24deg, rgba(85,240,255,.36) 25deg 31deg, transparent 32deg 40deg, rgba(255,227,112,.38) 41deg 47deg, transparent 48deg 57deg, rgba(255,90,90,.38) 58deg 64deg, transparent 65deg 75deg, rgba(70,255,160,.34) 76deg 82deg, transparent 83deg 93deg, rgba(255,88,206,.38) 94deg 101deg, transparent 102deg),
+    radial-gradient(circle at 50% 62%, rgba(255,255,255,.95) 0 5%, rgba(110,135,255,.35) 6% 12%, transparent 26%),
+    #04050b;
+}
+.director-miniature[data-preview="world-laser-canopy-grid"] {
+  background:
+    linear-gradient(64deg, transparent 48%, rgba(255,65,91,.65) 49% 50%, transparent 51%),
+    linear-gradient(76deg, transparent 48%, rgba(75,242,255,.58) 49% 50%, transparent 51%),
+    linear-gradient(104deg, transparent 48%, rgba(255,65,91,.62) 49% 50%, transparent 51%),
+    linear-gradient(116deg, transparent 48%, rgba(72,255,190,.56) 49% 50%, transparent 51%),
+    radial-gradient(circle at 32% 86%, rgba(255,70,90,.7) 0 2%, transparent 3%),
+    radial-gradient(circle at 62% 88%, rgba(74,240,255,.72) 0 2%, transparent 3%),
+    #030508;
+}
 .director-miniature[data-preview="world-vortex"] { background:repeating-radial-gradient(ellipse at 60% 45%,transparent 0 5px,rgba(255,255,255,.08) 6px 7px),#08070c; }
 .director-miniature[data-preview="world-liquid"] { background:radial-gradient(ellipse at 35% 30%,#1b685d,transparent 36%),radial-gradient(ellipse at 65% 70%,#512a67,transparent 40%),#07080d; }
 .director-miniature[data-preview="world-spectrum"] { background:linear-gradient(135deg,#10212b,#09090d); }
