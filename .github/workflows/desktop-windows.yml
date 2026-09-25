@@ -1,0 +1,56 @@
+name: desktop-windows
+
+on:
+  pull_request:
+    paths:
+      - "apps/desktop/**"
+      - "apps/server/**"
+      - "apps/web/**"
+      - "packages/**"
+      - "package.json"
+      - ".github/workflows/desktop-windows.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package-windows:
+    name: package-windows
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Node 22
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build E-MO
+        run: npm run build
+
+      - name: Package Windows installer and portable app
+        run: npm --workspace @graph1ks/emo-desktop run dist
+
+      - name: List packaged artifacts
+        shell: pwsh
+        run: Get-ChildItem -Path release -Recurse | Select-Object FullName, Length
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: E-MO-Engine-Windows
+          path: |
+            release/*.exe
+            release/*.yml
+            release/*.blockmap
+          if-no-files-found: error
+          retention-days: 7
