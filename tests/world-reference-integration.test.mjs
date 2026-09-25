@@ -69,7 +69,7 @@ test("Disco Mirrorball Room uses analytic sphere facets and layered projected re
   assert.match(mirrorball, /roomReflectionLayer/);
   assert.match(mirrorball, /reflectionColor/);
   assert.match(mirrorball, /fresnel/);
-  assert.match(mirrorball, /specular/i);
+  assert.match(mirrorball, /pow\(max\(dot\(reflected, l1\), 0\.0\), 56\.0\)/);
   assert.doesNotMatch(mirrorball, /new Sprite/);
 });
 
