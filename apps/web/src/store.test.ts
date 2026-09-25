@@ -138,9 +138,10 @@ describe("Operator + presentation state", () => {
     expect(state.colorMood).toBe("auto");
     expect(state.colorCanvas).toBe("auto");
     expect(state.intensity).toBe(preset?.intensity);
+    expect(state.fxRack).toEqual(preset?.fx);
   });
 
-  it("keeps at least one allowed choice in every editable preset pool", () => {
+  it("allows an AUTO pool to be emptied to mean unrestricted ANY", () => {
     useUiStore.getState().activatePerformancePreset("calm-slow");
     const before = useUiStore.getState().performancePresets.find(item => item.id === "calm-slow");
     expect(before?.auto.scenes?.length).toBeGreaterThan(0);
@@ -153,8 +154,23 @@ describe("Operator + presentation state", () => {
     useUiStore.getState().togglePerformancePresetPool("calm-slow", "scenes", only);
 
     const after = useUiStore.getState().performancePresets.find(item => item.id === "calm-slow");
-    expect(after?.auto.scenes).toHaveLength(1);
+    expect(after?.auto.scenes).toHaveLength(0);
 
     useUiStore.getState().resetPerformancePreset("calm-slow");
+  });
+
+  it("lets a preset switch hidden renderer effects fully off", () => {
+    useUiStore.getState().activatePerformancePreset("rage-fast");
+    useUiStore.getState().setPerformancePresetFx("rage-fast", "displacement", 0);
+    useUiStore.getState().setPerformancePresetFx("rage-fast", "impactPulse", 0);
+
+    const state = useUiStore.getState();
+    const preset = state.performancePresets.find(item => item.id === "rage-fast");
+    expect(preset?.fx.displacement).toBe(0);
+    expect(preset?.fx.impactPulse).toBe(0);
+    expect(state.fxRack.displacement).toBe(0);
+    expect(state.fxRack.impactPulse).toBe(0);
+
+    useUiStore.getState().resetPerformancePreset("rage-fast");
   });
 });

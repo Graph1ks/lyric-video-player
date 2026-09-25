@@ -56,6 +56,7 @@ export function App() {
   const t = (en: string, de: string) => copy(uiLanguage, en, de);
   const mode = useUiStore(state => state.mode);
   const intensity = useUiStore(state => state.intensity);
+  const fxRack = useUiStore(state => state.fxRack);
   const quality = useUiStore(state => state.quality);
   const typographyPreset = useUiStore(state => state.typographyPreset);
   const typographySequence = useUiStore(state => state.typographySequence);
@@ -196,17 +197,23 @@ export function App() {
       if (timeRef.current) timeRef.current.textContent = `${fmt(time)} / ${fmt(clock.duration)}`;
     });
 
+    const syncPlaybackTelemetry = () => {
+      setDirectorPlayback(clock.time, clock.duration);
+    };
     const onPlay = () => {
+      syncPlaybackTelemetry();
       setPlaying(true);
       setDirectorPlaying(true);
       setEngineStatus("PLAYING LIVE");
     };
     const onPause = () => {
+      syncPlaybackTelemetry();
       setPlaying(false);
       setDirectorPlaying(false);
       setEngineStatus(audio.hasSource ? "PAUSED" : "ENGINE READY");
     };
     const onEnded = () => {
+      syncPlaybackTelemetry();
       setPlaying(false);
       setDirectorPlaying(false);
       setEngineStatus("ENDED");
@@ -217,11 +224,22 @@ export function App() {
       setDirectorVolume(audio.volume);
     };
 
+    const playbackEvents: Array<keyof HTMLMediaElementEventMap> = [
+      "timeupdate",
+      "durationchange",
+      "loadedmetadata",
+      "seeking",
+      "seeked",
+      "ratechange",
+    ];
     audio.element.addEventListener("play", onPlay);
     audio.element.addEventListener("pause", onPause);
     audio.element.addEventListener("ended", onEnded);
     audio.element.addEventListener("volumechange", onVolumeChange);
+    playbackEvents.forEach(event => audio.element.addEventListener(event, syncPlaybackTelemetry));
+    const playbackTimer = window.setInterval(syncPlaybackTelemetry, 125);
     onVolumeChange();
+    syncPlaybackTelemetry();
 
     void renderer.init(stage).then(() => {
       if (disposed) return;
@@ -230,6 +248,7 @@ export function App() {
         item => item.id === initialState.activePerformancePresetId,
       );
       renderer.setAutoProfile(initialProfile?.auto);
+      renderer.setFxRack(initialState.fxRack);
       renderer.setVisualMode(initialState.mode);
       renderer.setTypographyPreset(useUiStore.getState().typographyPreset);
       renderer.setTypographySequence(useUiStore.getState().typographySequence);
@@ -260,6 +279,8 @@ export function App() {
       audio.element.removeEventListener("pause", onPause);
       audio.element.removeEventListener("ended", onEnded);
       audio.element.removeEventListener("volumechange", onVolumeChange);
+      playbackEvents.forEach(event => audio.element.removeEventListener(event, syncPlaybackTelemetry));
+      window.clearInterval(playbackTimer);
       rendererRef.current = null;
       clockRef.current = null;
       stage.replaceChildren();
@@ -277,6 +298,16 @@ export function App() {
   useEffect(() => {
     rendererRef.current?.setVisualMode(mode);
   }, [mode]);
+
+  useEffect(() => {
+    rendererRef.current?.setFxRack(fxRack);
+    const shell = shellRef.current;
+    if (!shell) return;
+    shell.style.setProperty("--screen-bloom-level", String(fxRack.screenBloom));
+    shell.style.setProperty("--screen-scanline-level", String(fxRack.scanlines));
+    shell.style.setProperty("--screen-grain-level", String(fxRack.grain));
+    shell.style.setProperty("--screen-vignette-level", String(fxRack.vignette));
+  }, [fxRack]);
 
   useEffect(() => {
     rendererRef.current?.setTypographyPreset(typographyPreset);
@@ -627,32 +658,40 @@ export function App() {
       </div>
 
       <div className="ui-layer">
-        <header className="topbar glass-panel">
-          <div className="brand-lockup">
+        <header className="player-command-bar">
+          <div className="player-brand">
             <div className="brand-mark">E</div>
             <div>
-              <div className="brand">E-MO-ENGINE</div>
-              <div className="brand-sub">EXTENSIVE MOTION ENGINE FOR ENHANCED LRC · v0.8 ALPHA</div>
+              <div className="brand">E-MO</div>
+              <div className="brand-sub">{t("LYRIC PERFORMANCE ENGINE", "LYRIC-PERFORMANCE-ENGINE")}</div>
             </div>
           </div>
-          <div className="top-actions">
+
+          <div className="player-session-status">
+            <span className={playing ? "is-live" : ""}><i /> {engineStatus}</span>
+            <div>
+              <strong>{trackTitle}</strong>
+              <small>{trackMeta}</small>
+            </div>
+          </div>
+
+          <div className="player-command-actions">
             {projectSummary && <span className="runtime-badge">{projectSummary}</span>}
             {runtimeQuery.isSuccess && (
-              <button className="project-button" onClick={() => setProjectDrawerOpen(!projectDrawerOpen)}>
+              <button onClick={() => setProjectDrawerOpen(!projectDrawerOpen)}>
                 {t("PROJECTS", "PROJEKTE")}
               </button>
             )}
             {canChooseDirectory && (
-              <button className="project-button" onClick={() => void chooseProjectRoot()}>
-                {t("OPEN FOLDER", "ORDNER ÖFFNEN")}
+              <button onClick={() => void chooseProjectRoot()}>
+                {t("FOLDER", "ORDNER")}
               </button>
             )}
-            <button className="project-button director-launch-button" onClick={() => void openDirectorWorkspace()}>
-              {t("DIRECTOR", "DIRECTOR")} <span>↗</span>
+            <button className="is-primary" onClick={() => void openDirectorWorkspace()}>
+              {t("DIRECTOR", "DIRECTOR")} ↗
             </button>
-            <div className="status-pill"><span className="status-dot" /><span>{engineStatus}</span></div>
-            <button className="icon-button" onClick={() => void toggleFullscreen()} title={t("Fullscreen · F", "Vollbild · F")} aria-label={t("Toggle fullscreen", "Vollbild umschalten")}>⛶</button>
-            <button className="icon-button hud-button" onClick={() => setHudVisible(false)} title={t("Hide UI · Ctrl+Shift+H", "UI ausblenden · Ctrl+Shift+H")} aria-label={t("Hide interface", "Oberfläche ausblenden")}>HUD</button>
+            <button onClick={() => void toggleFullscreen()} title={t("Fullscreen · F", "Vollbild · F")}>⛶</button>
+            <button className="hud-button" onClick={() => setHudVisible(false)} title={t("Hide UI · Ctrl+Shift+H", "UI ausblenden · Ctrl+Shift+H")}>HUD</button>
           </div>
         </header>
 
@@ -713,32 +752,31 @@ export function App() {
           <div className="drop-hint">{t("or drop both files anywhere", "oder beide Dateien irgendwo hineinziehen")}</div>
         </section>
 
-        <footer className="transport glass-panel">
-          <div className="transport-left">
-            <button className={`play-button ${playing ? "is-playing" : ""}`} onClick={() => void togglePlay()} aria-label={t("Play or pause", "Abspielen oder pausieren")}>
-              <span>{playing ? "❚❚" : "▶"}</span>
-            </button>
-            <button className={`mini-button ${muted ? "is-muted" : ""}`} onClick={toggleMute} aria-label={t("Mute or unmute", "Stummschalten ein/aus")}>{muted ? t("MUTED", "STUMM") : t("VOL", "LAUT")}</button>
-            <input className="volume" type="range" min="0" max="100" defaultValue="90" aria-label={t("Volume", "Lautstärke")} onChange={event => {
-              audioRef.current.setVolume(Number(event.target.value) / 100);
-              setDirectorVolume(audioRef.current.volume);
-              const mutedNow = audioRef.current.muted || audioRef.current.volume < 0.001;
-              setMuted(mutedNow);
-              setDirectorMuted(mutedNow);
-            }} />
+        <footer className="player-transport-console">
+          <div className="player-counter-block">
+            <span>{t("PLAYHEAD", "PLAYHEAD")}</span>
+            <div ref={timeRef} className="player-main-time">00:00.000 / 00:00.000</div>
           </div>
 
-          <div className="timeline-wrap">
-            <div className="track-meta">
-              <div className="track-text">
+          <div className="player-transport-controls">
+            <button className="player-skip" onClick={() => clockRef.current?.seek((clockRef.current?.time ?? 0) - 5)}>−5</button>
+            <button className={`player-master-play ${playing ? "is-playing" : ""}`} onClick={() => void togglePlay()} aria-label={t("Play or pause", "Abspielen oder pausieren")}>
+              {playing ? "❚❚" : "▶"}
+            </button>
+            <button className="player-skip" onClick={() => clockRef.current?.seek((clockRef.current?.time ?? 0) + 5)}>+5</button>
+          </div>
+
+          <div className="player-timeline-console">
+            <div className="player-track-readout">
+              <div>
                 <strong>{trackTitle}</strong>
                 <span>{trackMeta}</span>
               </div>
-              <div ref={timeRef} className="time">00:00.000 / 00:00.000</div>
+              <span>{playing ? t("PLAYING", "LÄUFT") : t("READY", "BEREIT")}</span>
             </div>
             <input
               ref={seekRef}
-              className="seek"
+              className="player-seek"
               type="range"
               min="0"
               max="1000"
@@ -753,16 +791,23 @@ export function App() {
             />
           </div>
 
-          <div className="transport-right">
-            <label className="compact-file">AUDIO<input type="file" accept="audio/mpeg,audio/mp4,audio/x-m4a,audio/aac,.mp3,.m4a,.aac" onChange={event => {
+          <div className="player-monitor-controls">
+            <button className={muted ? "is-active" : ""} onClick={toggleMute}>{muted ? t("MUTED", "STUMM") : t("MON", "MON")}</button>
+            <input className="player-volume" type="range" min="0" max="100" defaultValue="90" aria-label={t("Volume", "Lautstärke")} onChange={event => {
+              audioRef.current.setVolume(Number(event.target.value) / 100);
+              setDirectorVolume(audioRef.current.volume);
+              const mutedNow = audioRef.current.muted || audioRef.current.volume < 0.001;
+              setMuted(mutedNow);
+              setDirectorMuted(mutedNow);
+            }} />
+            <label className="player-file-button">AUDIO<input type="file" accept="audio/mpeg,audio/mp4,audio/x-m4a,audio/aac,.mp3,.m4a,.aac" onChange={event => {
               const file = event.target.files?.[0];
               if (file) void loadAudioFile(file);
             }} /></label>
-            <label className="compact-file">LRC<input type="file" accept=".lrc,text/plain" onChange={event => {
+            <label className="player-file-button">LRC<input type="file" accept=".lrc,text/plain" onChange={event => {
               const file = event.target.files?.[0];
               if (file) void loadLyricsFile(file);
             }} /></label>
-            <div className="shortcut-hint"><kbd>CTRL</kbd><kbd>SHIFT</kbd><kbd>H</kbd><span>HUD</span></div>
           </div>
         </footer>
       </div>

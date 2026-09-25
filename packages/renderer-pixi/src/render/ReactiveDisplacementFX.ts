@@ -96,6 +96,7 @@ export class ReactiveDisplacementFX {
   readonly filter: Filter;
 
   private intensity = 1;
+  private mix = 1;
   private quality: QualityMode = "cinema";
   private mode: SceneMode = "neon";
 
@@ -130,6 +131,10 @@ export class ReactiveDisplacementFX {
     this.intensity = Math.max(0.2, Math.min(1.8, value));
   }
 
+  setMix(value: number) {
+    this.mix = Math.max(0, Math.min(3, value));
+  }
+
   setQuality(quality: QualityMode) {
     this.quality = quality;
     this.write("uQuality", quality === "cinema" ? 1 : 0);
@@ -137,7 +142,7 @@ export class ReactiveDisplacementFX {
 
   update(time: number, audio: AudioBands) {
     this.write("uTime", time);
-    this.write("uAmount", this.intensity * (this.quality === "cinema" ? 1 : 0.62));
+    this.write("uAmount", this.intensity * this.mix * (this.quality === "cinema" ? 1 : 0.62));
     this.write("uBass", audio.bass);
     this.write("uMid", audio.mid);
     this.write("uTransient", audio.transient);

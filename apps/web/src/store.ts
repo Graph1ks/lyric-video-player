@@ -21,6 +21,8 @@ import type {
   ResolvedTypographySequence,
   VisualMode,
   VisualPalette,
+  VisualFxRack,
+  VisualFxRackKey,
 } from "@graph1ks/emo-engine-core";
 import {
   sortDirectorCues,
@@ -36,6 +38,7 @@ import {
   loadPerformancePresets,
   savePerformancePresets,
   type PerformancePresetDefinition,
+  setPresetFxValue,
   type PerformancePresetPoolKey,
 } from "./performancePresets";
 
@@ -49,6 +52,7 @@ export interface UiState {
   directorDetachedOpen: boolean;
   mode: VisualMode;
   intensity: number;
+  fxRack: VisualFxRack;
   quality: QualityMode;
   typographyPreset: TypographyPreset;
   typographySequence: TypographySequenceMode;
@@ -102,6 +106,7 @@ export interface UiState {
   setDirectorDetachedOpen(value: boolean): void;
   setMode(value: VisualMode): void;
   setIntensity(value: number): void;
+  setFxRackValue(key: VisualFxRackKey, value: number): void;
   setQuality(value: QualityMode): void;
   setTypographyPreset(value: TypographyPreset): void;
   setTypographySequence(value: TypographySequenceMode): void;
@@ -122,6 +127,7 @@ export interface UiState {
   setPerformancePresetLabel(id: string, label: string): void;
   setPerformancePresetIntensity(id: string, value: number): void;
   setPerformancePresetColorFlow(id: string, value: ColorFlowMode): void;
+  setPerformancePresetFx(id: string, key: VisualFxRackKey, value: number): void;
   togglePerformancePresetPool(id: string, key: PerformancePresetPoolKey, value: string): void;
 
   setActiveScene(value: SceneMode): void;
@@ -162,6 +168,21 @@ export const useUiStore = create<UiState>((set, get) => ({
   directorDetachedOpen: false,
   mode: "auto",
   intensity: 1,
+  fxRack: {
+    cameraMotion: 0.75,
+    impactPulse: 0.65,
+    displacement: 0.55,
+    smear: 0.45,
+    bloom: 0.7,
+    feedback: 0.35,
+    postFx: 0.55,
+    worldIntensity: 1,
+    worldDetail: 1,
+    screenBloom: 0.55,
+    scanlines: 0.35,
+    grain: 0.35,
+    vignette: 0.55,
+  },
   quality: "cinema",
   typographyPreset: "auto",
   typographySequence: "auto",
@@ -215,6 +236,9 @@ export const useUiStore = create<UiState>((set, get) => ({
   setDirectorDetachedOpen: directorDetachedOpen => set({ directorDetachedOpen }),
   setMode: mode => set({ mode }),
   setIntensity: intensity => set({ intensity }),
+  setFxRackValue: (key, value) => set(state => ({
+    fxRack: { ...state.fxRack, [key]: Math.max(0, Math.min(3, value)) },
+  })),
   setQuality: quality => set({ quality }),
   setTypographyPreset: typographyPreset => set({ typographyPreset }),
   setTypographySequence: typographySequence => set({ typographySequence }),
@@ -248,6 +272,7 @@ export const useUiStore = create<UiState>((set, get) => ({
       colorCanvas: "auto",
       colorFlow: preset.colorFlow,
       intensity: preset.intensity,
+      fxRack: { ...preset.fx },
     });
   },
   createPerformancePreset: () => {
@@ -274,6 +299,7 @@ export const useUiStore = create<UiState>((set, get) => ({
       colorCanvas: "auto",
       colorFlow: created.colorFlow,
       intensity: created.intensity,
+      fxRack: { ...created.fx },
     });
   },
   deletePerformancePreset: id => {
@@ -295,7 +321,7 @@ export const useUiStore = create<UiState>((set, get) => ({
     const active = state.activePerformancePresetId === id;
     set({
       performancePresets,
-      ...(active ? { intensity: builtin.intensity, colorFlow: builtin.colorFlow } : {}),
+      ...(active ? { intensity: builtin.intensity, colorFlow: builtin.colorFlow, fxRack: { ...builtin.fx } } : {}),
     });
   },
   setPerformancePresetLabel: (id, label) => {
@@ -330,6 +356,18 @@ export const useUiStore = create<UiState>((set, get) => ({
       ...(state.activePerformancePresetId === id ? { colorFlow } : {}),
     });
   },
+  setPerformancePresetFx: (id, key, value) => {
+    const state = get();
+    const performancePresets = state.performancePresets.map(item =>
+      item.id === id ? setPresetFxValue(item, key, value) : item
+    );
+    savePerformancePresets(performancePresets);
+    const updated = performancePresets.find(item => item.id === id);
+    set({
+      performancePresets,
+      ...(state.activePerformancePresetId === id && updated ? { fxRack: { ...updated.fx } } : {}),
+    });
+  },
   togglePerformancePresetPool: (id, key, value) => {
     const state = get();
     const performancePresets = state.performancePresets.map(item => {
@@ -337,7 +375,6 @@ export const useUiStore = create<UiState>((set, get) => ({
       const auto = { ...item.auto };
       const current = [...(((auto as Record<string, string[] | undefined>)[key]) ?? [])];
       const exists = current.includes(value);
-      if (exists && current.length <= 1) return item;
       (auto as Record<string, string[]>)[key] = exists
         ? current.filter(candidate => candidate !== value)
         : [...current, value];
@@ -419,6 +456,7 @@ export type DirectorSharedState = Pick<
   | "uiLanguage"
   | "mode"
   | "intensity"
+  | "fxRack"
   | "quality"
   | "typographyPreset"
   | "typographySequence"
@@ -469,6 +507,7 @@ export function directorSharedState(state: UiState): DirectorSharedState {
     uiLanguage: state.uiLanguage,
     mode: state.mode,
     intensity: state.intensity,
+    fxRack: state.fxRack,
     quality: state.quality,
     typographyPreset: state.typographyPreset,
     typographySequence: state.typographySequence,
@@ -520,6 +559,7 @@ function controlSnapshot(state: UiState): DirectorControlSnapshot {
     activePerformancePresetId: state.activePerformancePresetId,
     mode: state.mode,
     intensity: state.intensity,
+    fxRack: { ...state.fxRack },
     quality: state.quality,
     typographyPreset: state.typographyPreset,
     typographySequence: state.typographySequence,

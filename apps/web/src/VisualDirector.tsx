@@ -4,6 +4,8 @@ import {
   SCENE_LABELS,
   hexColorToCss,
   type QualityMode,
+  type VisualFxRack,
+  type VisualFxRackKey,
 } from "@graph1ks/emo-engine-core";
 import {
   BACKGROUND_CATALOG,
@@ -22,7 +24,7 @@ import { LOWER_THIRD_PRESETS, type LowerThirdPresetInfo } from "./lowerThirds";
 import { isBuiltinPerformancePreset, type PerformancePresetPoolKey } from "./performancePresets";
 import { useUiStore } from "./store";
 
-type DirectorSection = "presets" | "scene" | "type" | "motion" | "world" | "color" | "titles" | "system";
+type DirectorSection = "presets" | "scene" | "type" | "motion" | "world" | "fx" | "color" | "titles" | "system";
 
 export function VisualDirector({
   variant = "dock",
@@ -42,6 +44,7 @@ export function VisualDirector({
     { id: "type", label: t("Type", "Typo"), hint: t("Words", "Wörter") },
     { id: "motion", label: t("Motion", "Motion"), hint: t("Movement", "Bewegung") },
     { id: "world", label: t("World", "Welt"), hint: t("Background", "Hintergrund") },
+    { id: "fx", label: "FX", hint: t("Rack", "Rack") },
     { id: "color", label: t("Color", "Farbe"), hint: t("Palette", "Palette") },
     { id: "titles", label: t("Titles", "Titel"), hint: "Lower Thirds" },
     { id: "system", label: t("System", "System"), hint: t("Output", "Ausgabe") },
@@ -256,6 +259,32 @@ export function VisualDirector({
                   )}
                   resolved={state.activeBackground.replaceAll("-", " ").toUpperCase()}
                 />
+                <div className="director-world-power">
+                  <ControlSlider
+                    label={t("World power", "World-Power")}
+                    value={Math.round(state.fxRack.worldIntensity * 100)}
+                    suffix="%"
+                    min={0}
+                    max={300}
+                    step={1}
+                    onChange={value => state.setFxRackValue("worldIntensity", value / 100)}
+                  />
+                  <ControlSlider
+                    label={t("World detail", "World-Detail")}
+                    value={Math.round(state.fxRack.worldDetail * 100)}
+                    suffix="%"
+                    min={0}
+                    max={300}
+                    step={1}
+                    onChange={value => state.setFxRackValue("worldDetail", value / 100)}
+                  />
+                </div>
+                <DirectorNote>
+                  {t(
+                    "World Power is intentionally wide: 0% is effectively absent, 100% is normal, 300% is an obvious showpiece. Detail changes density/structure independently.",
+                    "World-Power ist absichtlich extrem weit: 0% ist praktisch aus, 100% normal, 300% ein deutliches Showpiece. Detail steuert Dichte/Struktur separat.",
+                  )}
+                </DirectorNote>
                 <CardGrid>
                   {BACKGROUND_CATALOG.map(item => (
                     <EffectCard
@@ -268,6 +297,13 @@ export function VisualDirector({
                   ))}
                 </CardGrid>
               </>
+            )}
+
+            {section === "fx" && (
+              <FxRackDirector
+                rack={state.fxRack}
+                onChange={(key, value) => state.setFxRackValue(key, value)}
+              />
             )}
 
             {section === "color" && (
@@ -520,7 +556,7 @@ function PerformancePresetDirector() {
               <b>{preset.label}</b>
             </span>
             <p>{preset.description}</p>
-            <em>{Math.round(preset.intensity * 100)}% · {preset.colorFlow === "rainbow" ? "RAINBOW" : "STATIC"}</em>
+            <em>{Math.round(preset.intensity * 100)}% · WORLD {Math.round(preset.fx.worldIntensity * 100)}% · {preset.colorFlow === "rainbow" ? "RAINBOW" : "STATIC"}</em>
           </button>
         ))}
       </div>
@@ -583,7 +619,7 @@ function PerformancePresetDirector() {
                 <div className="performance-preset-pool" key={group.key}>
                   <div>
                     <b>{group.label}</b>
-                    <small>{selected.length} {t("allowed", "erlaubt")}</small>
+                    <small>{selected.length ? `${selected.length} ${t("allowed", "erlaubt")}` : t("ANY · unrestricted", "ANY · unbegrenzt")}</small>
                   </div>
                   <div className="performance-preset-chips">
                     {group.items.map(item => {
@@ -604,15 +640,126 @@ function PerformancePresetDirector() {
             })}
           </div>
 
+          <SectionHeading
+            eyebrow="FX RACK"
+            title={t("Preset effect amounts", "Preset-Effektstärken")}
+            description={t(
+              "Effects are independent. Set any effect to 0% to switch it off for this preset. You do not have to use every effect.",
+              "Effekte sind unabhängig. Setze jeden beliebigen Effekt auf 0%, um ihn für dieses Preset abzuschalten. Du musst nicht alle Effekte verwenden.",
+            )}
+            compact
+          />
+          <FxRackControls
+            rack={active.fx}
+            onChange={(key, value) => state.setPerformancePresetFx(active.id, key, value)}
+            includeWorld
+          />
+
           <DirectorNote>
             {t(
-              "At least one choice per pool is always kept. Manual Director overrides still work; returning that axis to AUTO hands it back to the active preset.",
-              "Pro Pool bleibt immer mindestens eine Auswahl erhalten. Manuelle Director-Overrides funktionieren weiter; sobald eine Achse wieder auf AUTO steht, übernimmt das aktive Preset.",
+              "Pool rule: selected chips restrict AUTO. Clear a whole row to leave that axis unrestricted (ANY). FX amounts are different: 0% means OFF. Manual Director overrides still win.",
+              "Pool-Regel: ausgewählte Chips begrenzen AUTO. Leere eine ganze Zeile, um diese Achse unbegrenzt zu lassen (ANY). Bei FX gilt anders: 0% bedeutet AUS. Manuelle Director-Overrides gewinnen weiterhin.",
             )}
           </DirectorNote>
         </div>
       )}
     </>
+  );
+}
+
+function FxRackDirector({
+  rack,
+  onChange,
+}: {
+  rack: VisualFxRack;
+  onChange: (key: VisualFxRackKey, value: number) => void;
+}) {
+  const language = useUiStore(state => state.uiLanguage);
+  const t = (en: string, german: string) => copy(language, en, german);
+
+  return (
+    <>
+      <SectionHeading
+        eyebrow="FX RACK"
+        title={t("Everything that moves or distorts the frame.", "Alles, was den Frame bewegt oder verzerrt.")}
+        description={t(
+          "These were previously hidden renderer behaviors. Every major camera, pulse, distortion, feedback and screen-finish effect is now independently controllable.",
+          "Diese Renderer-Verhalten waren bisher versteckt. Kamera, Pulse, Verzerrung, Feedback und Screen-Finish sind jetzt unabhängig steuerbar.",
+        )}
+        resolved={t("0% OFF · 100% NORMAL · 300% EXTREME", "0% AUS · 100% NORMAL · 300% EXTREM")}
+      />
+      <FxRackControls rack={rack} onChange={onChange} />
+      <DirectorNote>
+        {t(
+          "The global Intensity control still scales the authored animation layer. The FX Rack controls the renderer/compositor layers separately, so a preset can stay kinetic while distortion is completely off.",
+          "Global Intensity skaliert weiterhin die animierte Grundregie. Das FX Rack steuert Renderer-/Compositor-Ebenen separat, damit ein Preset kinetisch bleiben kann, während Verzerrung komplett aus ist.",
+        )}
+      </DirectorNote>
+    </>
+  );
+}
+
+const FX_GROUPS: Array<{
+  title: string;
+  keys: VisualFxRackKey[];
+}> = [
+  { title: "MOTION / IMPACT", keys: ["cameraMotion", "impactPulse"] },
+  { title: "COMPOSITOR", keys: ["displacement", "smear", "bloom", "feedback", "postFx"] },
+  { title: "SCREEN FINISH", keys: ["screenBloom", "scanlines", "grain", "vignette"] },
+];
+
+const FX_LABELS: Record<VisualFxRackKey, [string, string]> = {
+  cameraMotion: ["Camera Motion", "Kamera-Motion"],
+  impactPulse: ["Impact / Pulse", "Impact / Pulse"],
+  displacement: ["Displacement", "Displacement"],
+  smear: ["Velocity Smear", "Velocity Smear"],
+  bloom: ["Bloom", "Bloom"],
+  feedback: ["Temporal Feedback", "Temporal Feedback"],
+  postFx: ["Lens / Chroma / Warp", "Lens / Chroma / Warp"],
+  worldIntensity: ["World Power", "World-Power"],
+  worldDetail: ["World Detail", "World-Detail"],
+  screenBloom: ["Screen Bloom", "Screen-Bloom"],
+  scanlines: ["Scanlines", "Scanlines"],
+  grain: ["Film Grain", "Film-Grain"],
+  vignette: ["Vignette", "Vignette"],
+};
+
+function FxRackControls({
+  rack,
+  onChange,
+  includeWorld = false,
+}: {
+  rack: VisualFxRack;
+  onChange: (key: VisualFxRackKey, value: number) => void;
+  includeWorld?: boolean;
+}) {
+  const language = useUiStore(state => state.uiLanguage);
+  const groups = includeWorld
+    ? [{ title: "WORLD", keys: ["worldIntensity", "worldDetail"] as VisualFxRackKey[] }, ...FX_GROUPS]
+    : FX_GROUPS;
+
+  return (
+    <div className="director-fx-rack">
+      {groups.map(group => (
+        <section className="director-fx-group" key={group.title}>
+          <header><b>{group.title}</b></header>
+          <div>
+            {group.keys.map(key => (
+              <ControlSlider
+                key={key}
+                label={FX_LABELS[key][language === "de" ? 1 : 0]}
+                value={Math.round(rack[key] * 100)}
+                suffix="%"
+                min={0}
+                max={300}
+                step={1}
+                onChange={value => onChange(key, value / 100)}
+              />
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
   );
 }
 

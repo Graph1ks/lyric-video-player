@@ -10,6 +10,7 @@ import type {
   TypographyPreset,
   TypographySequenceMode,
   VisualMode,
+  VisualFxRack,
 } from "@graph1ks/emo-engine-core";
 import type { LowerThirdMode, LowerThirdPreset } from "./lowerThirds";
 
@@ -17,6 +18,7 @@ export interface DirectorControlSnapshot {
   activePerformancePresetId: string | null;
   mode: VisualMode;
   intensity: number;
+  fxRack: VisualFxRack;
   quality: QualityMode;
   typographyPreset: TypographyPreset;
   typographySequence: TypographySequenceMode;

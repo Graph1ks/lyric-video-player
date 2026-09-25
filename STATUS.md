@@ -1,15 +1,25 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `f359c94c24b7d0d9fe30fbe833c9e618af97c953`  
-**Active candidate:** none  
-**Current phase/milestone:** v0.12 Director Performance Preset visual acceptance
+**Last known good merged baseline:** `fd13259b8608e779ac868180ad0e4095c9fd70f9`  
+**Active candidate:** `feat/pro-control-surface-fx-rack` / PR #57  
+**Current phase/milestone:** v0.13 professional control surface + explicit FX ownership
 
 ## Current objective
 
-Visually accept merged PR #55: verify that curated emotion/pace Performance Presets produce deliberately narrower AUTO vocabularies, preset editing updates live, Lower Third scheduling behaves correctly, and the repaired detached Director transport remains ergonomic.
+Fix the remaining operator failures exposed after PR #55: frozen detached-Director playback telemetry, Lower Third schedules starved by that telemetry, hidden renderer effects outside preset control, insufficient preset differentiation, and background worlds with too little dynamic range.
 
 ## Current state
+
+- PR #57 rebuilds the web-player and detached-Director chrome as one restrained production-console design system with persistent transport and large playhead counters.
+- Director playback telemetry is decoupled from the main Pixi RAF: media events plus a 125 ms heartbeat sample the authoritative HTML audio clock; the visible detached playhead interpolates locally.
+- This removes the same stale-time dependency that prevented Scheduled Lower Third windows from firing while the main player was background-throttled.
+- A new engine-core `VisualFxRack` exposes camera motion, impact/pulse, displacement, velocity smear, bloom, temporal feedback, cinematic post FX, World Power/Detail and DOM screen bloom/scanlines/grain/vignette.
+- FX use an explicit 0–300% range: 0% is OFF, 100% authored normal, 300% intentionally extreme.
+- Performance Preset AUTO pools may be emptied: an empty row means ANY/unrestricted rather than an invalid preset. Presets therefore do not need to constrain or activate every family.
+- Built-in emotion/pace presets were re-authored with much smaller vocabularies and explicit FX racks; Calm/Tender deliberately disable distortion families while Rage/Tension push selected distortion/world layers strongly.
+- World Power/Detail now drive art-world alpha, audio response, particle/blob density, recursive lyrics, sparks, spectrum resolution and geometric detail instead of only slightly scaling a shared intensity.
+- Design/research contract: `docs/PRO_CONTROL_SURFACE_FX_RACK.md`.
 
 - Phrase-level cinematic direction + adaptive readability pressure are merged in `c58be3e`.
 - The pure multi-cue typography window + Spiral Depth/Hero-Echo planners are merged in `7d9c657`.
@@ -168,11 +178,12 @@ Visually accept merged PR #55: verify that curated emotion/pace Performance Pres
 
 ## Next concrete action
 
-1. Visually exercise each merged curated preset and edit its allowed pools live; confirm unrestricted AUTO remains the compatibility fallback.
-2. Verify Lower Third Scheduled/Always/Off + manual/outro triggers against real playback duration.
-3. Verify detached Director player controls at common desktop widths and the main HUD button border.
-4. Continue a longer memory acceptance run; the reported memory behavior is improved after PR #53, while the physical-edge artifact has been visually accepted as fixed.
-5. Then return to Shape Fill/Manifesto visual acceptance and the remaining cinematic sequencing work.
+1. Finish PR #57 CI and fix any validation/Windows packaging regressions.
+2. Visually verify the detached Director counter/timeline against a real playing track with the main player backgrounded.
+3. Verify Lower Third Scheduled start + optional pre-outro trigger against real playback duration.
+4. Sweep every FX Rack control from 0 → 100 → 300% and confirm independent ownership/no hidden residual pulse or distortion.
+5. Compare Calm/Tender vs Rage/Tension and sweep World Power/Detail to confirm the intended subtle → extreme range.
+6. Then continue the longer memory acceptance run and Shape Fill/Manifesto visual acceptance.
 
 ### Previous visual-acceptance queue
 

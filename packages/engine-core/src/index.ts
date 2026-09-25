@@ -15,3 +15,4 @@ export * from "./typographySpatial.js";
 export * from "./elasticTether.js";
 export * from "./cinematicCamera.js";
 export * from "./visualAutoProfile.js";
+export * from "./visualFxRack.js";
