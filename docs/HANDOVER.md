@@ -1,9 +1,9 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `739a5d150e70ee8fcf5c59037e273e2823060a0d`  
-**Active candidate:** `docs/legacy-world-rehabilitation-handover`  
-**Current phase/milestone:** legacy world/background rehabilitation planning
+**Merged baseline:** `bfd0d95f5e44eecd06663c40027143dcbd9ba261`  
+**Active candidate:** none  
+**Current phase/milestone:** legacy world/background rehabilitation
 
 ## Current objective
 
