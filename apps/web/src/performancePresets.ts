@@ -334,15 +334,32 @@ export function loadPerformancePresets() {
   if (typeof localStorage === "undefined") return defaults;
 
   try {
-    const raw = localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem(LEGACY_STORAGE_KEY);
+    const currentRaw = localStorage.getItem(STORAGE_KEY);
+    const legacyRaw = localStorage.getItem(LEGACY_STORAGE_KEY);
+    const raw = currentRaw ?? legacyRaw;
     if (!raw) return defaults;
+
     const stored = JSON.parse(raw) as Array<Partial<PerformancePresetDefinition> & { id?: string }>;
+    const builtinIds = new Set(defaults.map(item => item.id));
+
+    // v1 did not own the renderer FX rack and its built-in pools were the broad
+    // presets this migration replaces. Keep user-created presets, but do not
+    // let old built-in overrides re-expand the new curated v2 defaults.
+    if (!currentRaw && legacyRaw) {
+      const migratedCustom = stored
+        .filter(item => item.id && !builtinIds.has(item.id))
+        .map(item => sanitizeCustomPerformancePreset(item))
+        .filter((item): item is PerformancePresetDefinition => Boolean(item));
+      const migrated = [...defaults, ...migratedCustom];
+      savePerformancePresets(migrated);
+      return migrated;
+    }
+
     const byId = new Map(stored.filter(item => item.id).map(item => [item.id!, item]));
     const merged = defaults.map(item => {
       const override = byId.get(item.id);
       return override ? sanitizePerformancePreset(override, item) : item;
     });
-    const builtinIds = new Set(defaults.map(item => item.id));
     const custom = stored
       .filter(item => item.id && !builtinIds.has(item.id))
       .map(item => sanitizeCustomPerformancePreset(item))
