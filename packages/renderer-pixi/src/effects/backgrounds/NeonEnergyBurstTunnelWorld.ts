@@ -128,7 +128,7 @@ void main(void) {
         - uTime * (2.4 + uBass * 1.8 + power * 0.28)
         + tunnelNoise * 1.5;
     float ribWave = abs(fract(ribPhase) - 0.5);
-    float ribs = 1.0 - smoothstep(0.40, 0.49, ribWave);
+    float ribs = 1.0 - smoothstep(0.045, 0.13, ribWave);
     float ribGate = smoothstep(0.10, 0.34, radius) * (1.0 - smoothstep(1.1, 1.75, radius));
     vec3 ribColor = burstColor(angle / TAU + tunnelNoise * 0.22 + uTime * 0.012);
     color += ribColor * ribs * ribGate * (0.035 + uEnergy * 0.075 + power * 0.024) * quality;
@@ -140,7 +140,7 @@ void main(void) {
     float spokeId = floor(spokeCoord);
     float spokeLocal = abs(fract(spokeCoord) - 0.5);
     float spokeSeed = hash11(spokeId * 1.371 + 2.9);
-    float spokeMask = smoothstep(0.48, 0.02 + spokeSeed * 0.10, spokeLocal);
+    float spokeMask = 1.0 - smoothstep(0.02 + spokeSeed * 0.10, 0.48, spokeLocal);
 
     float travel = fract(
         radius * (1.7 + spokeSeed * 2.1)
@@ -167,7 +167,7 @@ void main(void) {
     float fineId = floor(fineCoord);
     float fineLocal = abs(fract(fineCoord) - 0.5);
     float fineSeed = hash11(fineId * 4.13 + 9.2);
-    float fine = smoothstep(0.49, 0.18, fineLocal)
+    float fine = (1.0 - smoothstep(0.18, 0.49, fineLocal))
         * smoothstep(0.88, 0.985, fineSeed)
         * radialFade
         * (0.4 + 0.6 * noise2(vec2(radius * 12.0 - uTime * 2.2, fineSeed * 20.0)));
@@ -213,7 +213,7 @@ void main(void) {
     float arcId = floor(arcCoord);
     float arcSeed = hash11(arcId * 8.37 + floor(radius * 9.0) * 3.1);
     float arcLocal = abs(fract(arcCoord) - 0.5);
-    float arc = smoothstep(0.47, 0.20, arcLocal)
+    float arc = (1.0 - smoothstep(0.20, 0.47, arcLocal))
         * smoothstep(0.78, 0.98, arcSeed)
         * smoothstep(0.20, 0.42, radius)
         * (1.0 - smoothstep(0.72, 1.18, radius));
