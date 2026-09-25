@@ -13,7 +13,7 @@ This audit is the implementation companion to `WORLD_BACKGROUND_REHABILITATION_P
 | `grid` | shared Geometry + particles | one-way flow / mechanical | generic particles dilute perspective identity | dedicated perspective grid/mesh with time-owned scroll |
 | `starfield` | shared particles + streaks | one-way flow | global transient push/scale modified all stars | keep z travel time-owned; audio only brightness/specular accents |
 | `rays` | shared beams/rings/particles | mechanical / burst accents | transient expansion and audio-scaled beam geometry | dedicated shafts; slow targeting plus event-only flare |
-| `vortex` | shared particles/rings/geometry | one-way flow | raw energy changed radius ("breathing") | continuous funnel/spiral depth with no retract phase |
+| `vortex` | dedicated `LegacyVortexWorld` | one-way flow | raw energy previously changed shared-particle radius ("breathing") | projected helical ribbons + one-way tracers; audio affects light only |
 | `liquid` | ProceduralLiquidFX | mechanical / continuous deformation | absolute-time speed multiplied by energy; field frequency changed with bass | fixed phase rate; audio only bounded material/warp/highlight response |
 | `spectrum` | shared spectrum Graphics | rhythmic deformation | extra whole-band amplitude multiplies the already musical spectrum | keep spectrum authoritative; smooth envelope only for staging/light |
 | `sparks` | shared spark Graphics | burst / impact event | transient continuously scaled all spark length/alpha | event envelope controls emission/accent; trajectory/lifetime stay autonomous |
@@ -35,4 +35,4 @@ This audit is the implementation companion to `WORLD_BACKGROUND_REHABILITATION_P
 
 ## Next implementation slice
 
-Create dedicated `vortex`, `rays`, `starfield`, `nebula` and `grid` renderers in that order, preserving preset IDs while removing dependence on the generic shared layer stack.
+`vortex` is now isolated in `LegacyVortexWorld`. Continue with dedicated `rays`, `starfield`, `nebula` and `grid` renderers in that order, preserving preset IDs while removing dependence on the generic shared layer stack.

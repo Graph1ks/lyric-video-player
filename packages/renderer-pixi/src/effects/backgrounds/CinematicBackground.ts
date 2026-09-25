@@ -20,6 +20,7 @@ import { FractalHexSpiralMosaicWorld } from "./FractalHexSpiralMosaicWorld.js";
 import { SoftHexCellFieldWorld } from "./SoftHexCellFieldWorld.js";
 import { ParticleSpiralVortexWorld } from "./ParticleSpiralVortexWorld.js";
 import { MinimalRainbowWaveformWorld } from "./MinimalRainbowWaveformWorld.js";
+import { LegacyVortexWorld } from "./LegacyVortexWorld.js";
 
 const EMPTY_SPECTRUM = new Float32Array(0);
 
@@ -56,6 +57,7 @@ const ART_DIRECTION_PRESETS = new Set<BackgroundPresetId>([
 ]);
 
 const SPECIALIZED_WORLD_PRESETS = new Set<BackgroundPresetId>([
+  "vortex",
   "prism-stage-beams",
   "laser-canopy-grid",
   "disco-mirrorball-room",
@@ -79,6 +81,7 @@ export class CinematicBackground {
   private softHexCellField = new SoftHexCellFieldWorld();
   private particleSpiralVortex = new ParticleSpiralVortexWorld();
   private minimalRainbowWaveform = new MinimalRainbowWaveformWorld();
+  private legacyVortex = new LegacyVortexWorld();
   private liquidSurface = new Graphics();
   private liquidFX = new ProceduralLiquidFX();
   private geometry = new Graphics();
@@ -125,6 +128,7 @@ export class CinematicBackground {
       this.softHexCellField.container,
       this.particleSpiralVortex.container,
       this.minimalRainbowWaveform.container,
+      this.legacyVortex.container,
       this.liquidSurface,
       this.lyricBackdropLayer,
       this.blobLayer,
@@ -216,6 +220,7 @@ export class CinematicBackground {
   setPalette(palette: VisualPalette, refreshStatic = true) {
     this.palette = palette;
     this.artDirection.setPalette(palette);
+    this.legacyVortex.setPalette(palette);
     this.applyModePalette();
     if (refreshStatic) this.rebuildLyricBackdrop();
   }
@@ -246,6 +251,7 @@ export class CinematicBackground {
     this.softHexCellField.setDetail(this.worldDetail);
     this.particleSpiralVortex.setDetail(this.worldDetail);
     this.minimalRainbowWaveform.setDetail(this.worldDetail);
+    this.legacyVortex.setDetail(this.worldDetail);
     this.applyPresetVisibility();
     this.rebuildLyricBackdrop();
   }
@@ -270,6 +276,8 @@ export class CinematicBackground {
     this.particleSpiralVortex.setDetail(this.worldDetail);
     this.minimalRainbowWaveform.setIntensity(power);
     this.minimalRainbowWaveform.setDetail(this.worldDetail);
+    this.legacyVortex.setIntensity(power);
+    this.legacyVortex.setDetail(this.worldDetail);
     this.liquidFX.setIntensity(power);
   }
 
@@ -284,6 +292,7 @@ export class CinematicBackground {
     this.softHexCellField.setQuality(value);
     this.particleSpiralVortex.setQuality(value);
     this.minimalRainbowWaveform.setQuality(value);
+    this.legacyVortex.setQuality(value);
     this.liquidFX.setQuality(value);
     this.applyPresetVisibility();
   }
@@ -300,6 +309,7 @@ export class CinematicBackground {
     this.softHexCellField.resize(w, h);
     this.particleSpiralVortex.resize(w, h);
     this.minimalRainbowWaveform.resize(w, h);
+    this.legacyVortex.resize(w, h);
     this.redrawBase();
     this.redrawLiquidSurface();
     this.liquidFX.resize(w, h);
@@ -335,6 +345,7 @@ export class CinematicBackground {
     this.softHexCellField.update(time, audio);
     this.particleSpiralVortex.update(time, audio);
     this.minimalRainbowWaveform.update(time, audio, spectrum);
+    this.legacyVortex.update(time, legacyAudio);
     if (this.liquidSurface.visible) this.liquidFX.update(time, legacyAudio);
     this.updateGeometry(time, legacyAudio);
     this.updateLyricBackdrop(time, legacyAudio);
@@ -387,6 +398,7 @@ export class CinematicBackground {
     this.softHexCellField.container.visible = this.resolvedPreset === "soft-hex-cell-field";
     this.particleSpiralVortex.container.visible = this.resolvedPreset === "particle-spiral-vortex";
     this.minimalRainbowWaveform.container.visible = this.resolvedPreset === "minimal-rainbow-waveform";
+    this.legacyVortex.container.visible = this.resolvedPreset === "vortex";
     this.artDirection.setLineIndex(this.lineIndex);
     this.liquidSurface.visible = this.resolvedPreset === "liquid";
     this.lyricBackdropLayer.visible = this.resolvedPreset === "lyrics";

@@ -127,3 +127,25 @@ test("legacy shared geometry consumes smoothed/event audio instead of raw global
   assert.doesNotMatch(liquid, /float speed = [^;]*uEnergy/);
   assert.doesNotMatch(liquid, /fbm\(warped \* \([^\n]*uBass/);
 });
+
+
+test("legacy Vortex is a dedicated projected-depth world with one-way timestamp travel", async () => {
+  const [background, vortex] = await Promise.all([
+    source("packages/renderer-pixi/src/effects/backgrounds/CinematicBackground.ts"),
+    source("packages/renderer-pixi/src/effects/backgrounds/LegacyVortexWorld.ts"),
+  ]);
+
+  assert.match(background, /"vortex",[\s\S]*"prism-stage-beams"/);
+  assert.match(background, /legacyVortex\.container\.visible = this\.resolvedPreset === "vortex"/);
+  assert.match(background, /legacyVortex\.update\(time, legacyAudio\)/);
+  assert.match(vortex, /Helical ribbons are the identity layer/);
+  assert.match(vortex, /One-way tracer flow/);
+  assert.match(vortex, /const t = fract\(seed \+ time \* travelSpeed\)/);
+  assert.match(vortex, /const z = 0\.12 \+ eased \* 7\.15/);
+  assert.match(vortex, /project\(/);
+  assert.match(vortex, /palette\?\.accentA/);
+  assert.match(vortex, /palette\?\.accentB/);
+  assert.doesNotMatch(vortex, /time \* \([^\n]*audio\./);
+  assert.doesNotMatch(vortex, /radius = [^;]*audio\./);
+  assert.doesNotMatch(vortex, /angle = [^;]*audio\./);
+});
