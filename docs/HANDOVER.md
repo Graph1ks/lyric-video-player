@@ -1,13 +1,13 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `9b9cbedf33193bf156ae2dc33d0dff0a4383144a`  
-**Active candidate:** `fix/dev-runtime-color-variety-v0.8`  
-**Current phase/milestone:** v0.8 lyric-scene composition + color direction
+**Merged baseline:** `b17be7bbee7839fd842cf8a29b07fc4dd77c1b69`  
+**Active candidate:** none  
+**Current phase/milestone:** v0.8 visual acceptance + color/world tuning
 
 ## Current objective
 
-Land the dev-runtime startup fix and Color Canvas polarity layer, then resume real-track acceptance of the Step 4 worlds.
+Visually accept the merged Color Canvas polarity layer and Step 4 worlds on real tracks, then continue dense/narrow composition tuning.
 
 ## Current implementation state
 
@@ -105,7 +105,7 @@ The candidate changes two foundational contracts before adding more visual world
 
 - emotion-named creative presets: Tender, Heartbreak, Longing, Euphoria, Rage, Dream, Tension, Calm;
 - harmony remains independent from mood;
-- active candidate adds a third independent axis: **Color Canvas**;
+- merged Color Canvas direction adds a third independent axis: **Color Canvas**;
 - `night`: near-neutral dark field + light tinted type;
 - `paper`: light softly tinted field + dark colored type;
 - `color-field`: deep chromatic field + light tinted type;
@@ -141,7 +141,7 @@ This does **not** replace real visual acceptance. It catches geometric regressio
 
 Manual acceptance is documented in `docs/VISUAL_ACCEPTANCE_MATRIX.md`.
 
-### Active local-development fix
+### Merged local-development fix
 
 The React app always probes `/api/runtime`. Vite proxies that to `127.0.0.1:3040`.
 
@@ -206,13 +206,18 @@ python scripts/repo_audit.py
 
 Windows packaging remains a separate required gate.
 
+Latest merged slice verification:
+
+- PR #31 Linux validation — passed;
+- PR #31 Windows package/portable build + artifact upload — passed;
+- merged-main validation for `b17be7b` — passed.
+
 ## Next concrete work
 
-1. Get the active dev-runtime + Color Canvas candidate through Linux + Windows CI.
-2. Test AUTO canvas changes across real songs; confirm Paper/Poster genuinely use dark typography and light/chromatic fields.
-3. Resume Editorial / Print / Architecture / Aurora acceptance and dense mobile lyric testing.
-4. Add the next distinct world only after identifying a missing visual grammar.
-5. Complete remaining typography primitives and then stabilize scene-stack serialization.
+1. Test AUTO canvas changes across real songs; confirm Paper/Poster genuinely use dark typography and light/chromatic fields.
+2. Resume Editorial / Print / Architecture / Aurora acceptance and dense mobile lyric testing.
+3. Add the next distinct world only after identifying a missing visual grammar.
+4. Complete remaining typography primitives and then stabilize scene-stack serialization.
 
 ## Resume instruction
 

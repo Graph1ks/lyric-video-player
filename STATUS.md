@@ -1,13 +1,13 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `9b9cbedf33193bf156ae2dc33d0dff0a4383144a`  
-**Active candidate:** `fix/dev-runtime-color-variety-v0.8`  
-**Current phase/milestone:** v0.8 lyric-scene composition + color direction
+**Last known good merged baseline:** `b17be7bbee7839fd842cf8a29b07fc4dd77c1b69`  
+**Active candidate:** none  
+**Current phase/milestone:** v0.8 visual acceptance + color/world tuning
 
 ## Current objective
 
-Remove the remaining local-dev startup race and broaden color polarity so AUTO no longer collapses into white type on near-black backgrounds.
+Visually accept the merged Color Canvas AUTO behavior and Step 4 art-direction worlds on real tracks, then tune dense/narrow compositions.
 
 ## Current state
 
@@ -53,7 +53,7 @@ Remove the remaining local-dev startup race and broaden color polarity so AUTO n
 - Color Director adds lyric-oriented mood presets: Tender, Heartbreak, Longing, Euphoria, Rage, Dream, Tension and Calm.
 - Dark background roles are now deliberately near-neutral/low-chroma to prevent persistent muddy brown fields.
 - Optional Rainbow Drift rotates hue slowly from explicit lyric time.
-- Active candidate adds independent **Color Canvas** styles: Night, Paper, Color Field and Poster.
+- Merged Color Canvas direction adds independent **Night, Paper, Color Field and Poster** styles.
 - Color Canvas AUTO changes only in stable three-line chapters, giving obvious dark/light/chromatic variation without flickering every cue.
 - Paper/Poster use dark colored typography on light/chromatic fields; Night/Color Field use light tinted typography with the same contrast contract.
 - Rainbow Drift becomes canvas-aware: Night stays restrained while Paper/Color Field/Poster can shift the coherent background field itself.
@@ -75,6 +75,9 @@ Remove the remaining local-dev startup race and broaden color polarity so AUTO n
 - Art Direction Worlds: Windows full build, NSIS packaging, portable x64 packaging and artifact upload — passed.
 - Visual Readability Matrix: Linux install/typecheck/build/tests/publication audit — passed.
 - Visual Readability Matrix: Windows full build, NSIS packaging, portable x64 packaging and artifact upload — passed.
+- Dev Runtime + Color Canvas (PR #31): Linux install/typecheck/build/tests/publication audit — passed.
+- Dev Runtime + Color Canvas (PR #31): Windows full build, NSIS packaging, portable x64 packaging and artifact upload — passed.
+- Dev Runtime + Color Canvas merged-main validation (`b17be7b`) — passed.
 
 - v0.8 Composition + Palette: Linux install/typecheck/build/tests/publication audit — passed.
 - v0.8 Composition + Palette: Windows full build, NSIS packaging, portable x64 packaging and artifact upload — passed.
@@ -85,10 +88,10 @@ Remove the remaining local-dev startup race and broaden color polarity so AUTO n
 
 ## Next concrete action
 
-1. Get the dev-runtime + Color Canvas candidate green on Linux and Windows.
-2. Visually verify AUTO moves through Color Field / Night / Paper / Poster without rapid flicker and keeps lyric contrast.
-3. Continue real-track acceptance of Editorial / Print / Architecture / Aurora.
-4. Tune narrow/mobile composition combinations, then finish remaining typography primitives and scene-stack serialization.
+1. Visually verify AUTO moves through Color Field / Night / Paper / Poster without rapid flicker and keeps lyric contrast.
+2. Continue real-track acceptance of Editorial / Print / Architecture / Aurora.
+3. Tune narrow/mobile composition combinations.
+4. Finish remaining typography primitives and scene-stack serialization.
 
 ## Do not redo
 
