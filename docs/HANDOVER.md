@@ -2,12 +2,12 @@
 
 **Last updated:** 2026-09-25  
 **Merged baseline:** `0370659e5807c290414959cd32a44f15068054a8`  
-**Active candidate:** none  
+**Active candidate:** `feat/director-workspace-v0.10` / PR #44  
 **Current phase/milestone:** cinematic sequence direction + temporal readability
 
 ## Current objective
 
-Visually accept the merged Elastic Tether and sequence-owned camera baseline, then continue with section-level tension/release and shot-size sequencing.
+Land the Visual Director UX redesign and synchronized second-screen workspace without splitting control ownership or prematurely inventing a second persistence format for planned effects.
 
 ## Current implementation state
 
@@ -275,6 +275,37 @@ Directly spawning `npm.cmd` with `shell: false` is not a valid portable Windows 
 - Shape Build deliberately follows focus less and stays wider so its calligram framing is not destroyed;
 - Hero/Spiral/Ribbon can follow the active eye-trace more strongly.
 
+## Active candidate — Visual Director workspace
+
+PR #44 changes the control plane, not the renderer contract.
+
+**Docket UI**
+
+- the previous homogeneous text-button matrix is replaced by semantic preview cards;
+- navigation is task-oriented: Scene / Type / Motion / World / Color / System;
+- cards include name + behavior description + category-specific miniature preview;
+- AUTO request and resolved LIVE effect are distinct states;
+- the current resolved Scene/Type/Layout/Motion/World stack remains visible above the controls;
+- audio meter, intensity, sync, quality and keyboard shortcuts remain available.
+
+**Second screen**
+
+- the same `VisualDirector` component is used in the player dock and Director window;
+- browser popout loads `?director=1`;
+- Electron adds `DesktopBridge.openDirectorWindow()` and owns a reusable native BrowserWindow;
+- the Director window never creates a Pixi renderer or audio engine;
+- `directorSync.ts` uses BroadcastChannel to synchronize the two Zustand instances;
+- resolved renderer state, playback and low-rate audio telemetry flow back from the main player.
+
+**Planning foundation**
+
+- detached Director has LIVE / PLAN workspaces;
+- PLAN captures complete Director snapshots at timestamps and can APPLY them live for auditioning;
+- planner drafts are session-only;
+- automatic cue execution, project persistence and playlist-per-song plans are deferred to the authoritative scene/project serialization milestone.
+
+See `docs/VISUAL_DIRECTOR_WORKSPACE.md`.
+
 ## Important files / entry points
 
 | Path | Why it matters |
@@ -322,11 +353,11 @@ Windows packaging remains a separate required gate.
 
 ## Next concrete work
 
-1. Run real-track acceptance across dense lyrics, mobile and the four persistent grammars.
-2. Extend visual acceptance around gaze continuity, tether readability and shot-size rhythm.
-3. Add section-level tension/release sequencing.
-4. Decide whether mesh/RenderTexture tether deformation is necessary after visual review.
-5. Stabilize serialized sequence directives after visual acceptance.
+1. Verify PR #44 Linux/Windows CI and desktop packaging.
+2. Visually review docked + detached Director at common desktop sizes and multi-monitor use.
+3. Resume cinematic real-track acceptance.
+4. Add section-level tension/release sequencing.
+5. Integrate PLAN persistence/execution with serialized sequence directives; playlist support should reference the same per-song plan contract.
 
 ## Resume instruction
 
