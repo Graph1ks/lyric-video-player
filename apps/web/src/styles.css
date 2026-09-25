@@ -80,17 +80,20 @@ button { color: inherit; }
 .scene-tab.is-active { background: rgba(255,255,255,.13); color: #fff; box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
 .readout-row { margin: 13px 1px 11px; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 8px; letter-spacing: .12em; color: rgba(255,255,255,.42); }
 .readout-row strong { color: white; font-size: 9px; letter-spacing: .04em; }
-.typography-control, .composition-control, .motion-control, .mood-control, .harmony-control, .background-control { margin: 0 1px 12px; display: grid; gap: 7px; }
-.typography-grid, .composition-grid, .motion-grid, .mood-grid, .harmony-grid, .background-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
-.typography-button, .composition-button, .motion-button, .mood-button, .harmony-button, .background-button {
+.typography-control, .composition-control, .motion-control, .tone-control, .mood-control, .harmony-control, .background-control { margin: 0 1px 12px; display: grid; gap: 7px; }
+.typography-grid, .composition-grid, .motion-grid, .tone-grid, .mood-grid, .harmony-grid, .background-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+.typography-button, .composition-button, .motion-button, .tone-button, .mood-button, .harmony-button, .background-button {
   appearance: none; height: 24px; padding: 0 5px; border-radius: 7px;
   border: 1px solid rgba(255,255,255,.075); background: rgba(255,255,255,.035);
   color: rgba(255,255,255,.42); font-size: 6.8px; font-weight: 900; letter-spacing: .055em;
   cursor: pointer; transition: background .14s ease, border-color .14s ease, color .14s ease, transform .14s ease;
 }
-.typography-button:hover, .composition-button:hover, .motion-button:hover, .mood-button:hover, .harmony-button:hover, .background-button:hover { background: rgba(255,255,255,.09); border-color: rgba(255,255,255,.15); color: rgba(255,255,255,.76); }
-.typography-button:active, .composition-button:active, .motion-button:active, .mood-button:active, .harmony-button:active, .background-button:active { transform: scale(.97); }
-.typography-button.is-active, .composition-button.is-active, .motion-button.is-active, .mood-button.is-active, .harmony-button.is-active, .background-button.is-active { background: rgba(132,255,242,.12); border-color: rgba(132,255,242,.22); color: #dffffb; box-shadow: inset 0 0 0 1px rgba(132,255,242,.06); }
+.typography-button:hover, .composition-button:hover, .motion-button:hover, .tone-button:hover, .mood-button:hover, .harmony-button:hover, .background-button:hover { background: rgba(255,255,255,.09); border-color: rgba(255,255,255,.15); color: rgba(255,255,255,.76); }
+.typography-button:active, .composition-button:active, .motion-button:active, .tone-button:active, .mood-button:active, .harmony-button:active, .background-button:active { transform: scale(.97); }
+.typography-button.is-active, .composition-button.is-active, .motion-button.is-active, .tone-button.is-active, .mood-button.is-active, .harmony-button.is-active, .background-button.is-active { background: rgba(132,255,242,.12); border-color: rgba(132,255,242,.22); color: #dffffb; box-shadow: inset 0 0 0 1px rgba(132,255,242,.06); }
+.tone-grid { grid-template-columns: repeat(4, 1fr); }
+.tone-button { height: 28px; }
+
 .rainbow-button {
   appearance: none; min-height: 30px; padding: 0 9px; border-radius: 9px;
   border: 1px solid rgba(255,255,255,.08);
@@ -231,6 +234,13 @@ kbd { min-width: 19px; height: 19px; display: inline-grid; place-items: center; 
     linear-gradient(to bottom, rgba(0,0,0,.28), transparent 13%, transparent 84%, rgba(0,0,0,.4)),
     radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,.2) 68%, rgba(0,0,0,.72) 112%);
 }
+.shell[data-tone="light"] .screen-fx__vignette {
+  background: linear-gradient(to bottom, rgba(35,28,32,.12), transparent 13%, transparent 84%, rgba(35,28,32,.16)), radial-gradient(ellipse at center, transparent 46%, rgba(35,28,32,.05) 72%, rgba(35,28,32,.18) 116%);
+}
+.shell[data-tone="light"] .screen-fx__scanlines { opacity: calc(.018 + var(--energy) * .012); mix-blend-mode: multiply; }
+.shell[data-tone="light"] .screen-fx__grain { opacity: calc(.02 + var(--transient) * .02); mix-blend-mode: multiply; }
+.shell[data-tone="color"] .screen-fx__vignette { background: linear-gradient(to bottom, rgba(0,0,0,.16), transparent 14%, transparent 84%, rgba(0,0,0,.24)), radial-gradient(ellipse at center, transparent 44%, rgba(0,0,0,.12) 74%, rgba(0,0,0,.42) 116%); }
+
 @keyframes emoe-grain {
   0% { transform: translate3d(-2%, -1%, 0) rotate(.01deg); }
   25% { transform: translate3d(2%, 1%, 0); }

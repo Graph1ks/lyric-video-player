@@ -11,7 +11,7 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "dev": "npm --workspace @graph1ks/emo-web run dev",
+    "dev": "node scripts/dev.mjs",
     "dev:legacy": "vite",
     "build:packages": "tsc -b packages/engine-core packages/app-contracts packages/audio-web packages/platform-node packages/platform-web packages/renderer-pixi apps/server",
     "typecheck:packages": "tsc -b packages/engine-core packages/app-contracts packages/audio-web packages/platform-node packages/platform-web packages/renderer-pixi apps/server --pretty false",
@@ -26,7 +26,9 @@
     "server:build-run": "npm run build && node apps/server/dist/index.js",
     "desktop:start": "npm run build && npm --workspace @graph1ks/emo-desktop start",
     "desktop:dist": "npm run build && npm --workspace @graph1ks/emo-desktop dist",
-    "preview": "npm --workspace @graph1ks/emo-web exec vite preview"
+    "preview": "npm --workspace @graph1ks/emo-web exec vite preview",
+    "dev:web": "npm --workspace @graph1ks/emo-web run dev",
+    "dev:server": "npm run build:packages && node apps/server/dist/index.js"
   },
   "dependencies": {
     "@graph1ks/emo-audio-web": "0.5.0",

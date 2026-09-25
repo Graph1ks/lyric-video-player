@@ -1,5 +1,7 @@
 import { clamp } from "./math.js";
 import type {
+  CanvasToneId,
+  CanvasToneMode,
   ColorHarmonyId,
   ColorHarmonyMode,
   ColorMoodId,
@@ -16,6 +18,7 @@ export interface OklchColor {
 export interface VisualPalette {
   resolvedHarmony: ColorHarmonyId;
   resolvedMood: ColorMoodId;
+  resolvedTone: CanvasToneId;
   baseHue: number;
   accentAHue: number;
   accentBHue: number;
@@ -34,6 +37,7 @@ export interface VisualPalette {
 export interface VisualPaletteInput {
   harmony: ColorHarmonyMode;
   mood?: ColorMoodMode;
+  tone?: CanvasToneMode;
   scene: SceneMode;
   lineIndex: number;
   baseHue?: number;
@@ -61,6 +65,12 @@ export const COLOR_MOOD_LABELS: Record<ColorMoodId, string> = {
   calm: "Calm",
 };
 
+export const CANVAS_TONE_LABELS: Record<CanvasToneId, string> = {
+  dark: "Dark",
+  light: "Light",
+  color: "Color",
+};
+
 const MOOD_PROFILES: Record<ColorMoodId, MoodProfile> = {
   tender: { hue: 342, backgroundL: 0.073, backgroundC: 0.010, surfaceL: 0.15, surfaceC: 0.026, accentL: 0.78, accentC: 0.17 },
   heartbreak: { hue: 258, backgroundL: 0.067, backgroundC: 0.012, surfaceL: 0.14, surfaceC: 0.030, accentL: 0.73, accentC: 0.16 },
@@ -82,6 +92,12 @@ const AUTO_MOODS: Record<SceneMode, ColorMoodId[]> = {
   poster: ["rage", "heartbreak", "tension", "longing"],
   neon: ["dream", "euphoria", "calm", "tender"],
   vortex: ["tension", "rage", "dream", "longing"],
+};
+
+const AUTO_TONES: Record<SceneMode, CanvasToneId[]> = {
+  poster: ["light", "color", "dark", "color"],
+  neon: ["dark", "color", "light", "dark"],
+  vortex: ["dark", "color", "dark", "light"],
 };
 
 function normalizeHue(value: number) {
@@ -170,14 +186,18 @@ function foregroundForContrast(
   chroma: number,
   minimum: number,
 ) {
-  let lightness = desiredL;
-  let color = oklchToHex({ l: lightness, c: chroma, h: hue });
-  while (contrastRatio(color, background) < minimum && lightness < 0.995) {
-    lightness = Math.min(0.995, lightness + 0.025);
-    color = oklchToHex({ l: lightness, c: chroma * 0.9, h: hue });
-    chroma *= 0.9;
+  const direction = relativeLuminance(background) > 0.42 ? -1 : 1;
+  let lightness = clamp(desiredL);
+  let currentChroma = chroma;
+  for (let attempt = 0; attempt < 40; attempt++) {
+    const color = oklchToHex({ l: lightness, c: currentChroma, h: hue });
+    if (contrastRatio(color, background) >= minimum) return color;
+    const next = clamp(lightness + direction * 0.025);
+    currentChroma *= 0.9;
+    if (Math.abs(next - lightness) < 0.0001) break;
+    lightness = next;
   }
-  return color;
+  return direction > 0 ? 0xffffff : 0x08090c;
 }
 
 export function resolveColorHarmony(
@@ -202,6 +222,17 @@ export function resolveColorMood(
   return options[safeLine % options.length];
 }
 
+export function resolveCanvasTone(
+  tone: CanvasToneMode = "dark",
+  scene: SceneMode,
+  lineIndex: number,
+): CanvasToneId {
+  if (tone !== "auto") return tone;
+  const options = AUTO_TONES[scene];
+  const safeLine = Math.max(0, lineIndex);
+  return options[Math.floor(safeLine / 3) % options.length];
+}
+
 function harmonyHues(baseHue: number, harmony: ColorHarmonyId) {
   if (harmony === "analogous") return [baseHue - 32, baseHue + 32] as const;
   if (harmony === "complement") return [baseHue + 180, baseHue + 8] as const;
@@ -214,6 +245,7 @@ function harmonyHues(baseHue: number, harmony: ColorHarmonyId) {
 export function createVisualPalette(input: VisualPaletteInput): VisualPalette {
   const resolvedHarmony = resolveColorHarmony(input.harmony, input.scene, input.lineIndex);
   const resolvedMood = resolveColorMood(input.mood, input.scene, input.lineIndex);
+  const resolvedTone = resolveCanvasTone(input.tone, input.scene, input.lineIndex);
   const profile = MOOD_PROFILES[resolvedMood];
   const cueDrift = input.mood && input.mood !== "auto"
     ? ((Math.max(0, input.lineIndex) % 3) - 1) * 2
@@ -223,19 +255,24 @@ export function createVisualPalette(input: VisualPaletteInput): VisualPalette {
   const accentAHue = normalizeHue(rawA);
   const accentBHue = normalizeHue(rawB);
 
-  // Readability rule: color lives primarily in accents/surfaces, not in the
-  // darkest field. This deliberately prevents low-light red/orange palettes
-  // from collapsing into muddy brown backgrounds.
-  const background = oklchToHex({
-    l: profile.backgroundL,
-    c: Math.min(profile.backgroundC, resolvedHarmony === "monochrome" ? 0.010 : 0.014),
-    h: baseHue,
-  });
-  const surface = oklchToHex({
-    l: profile.surfaceL,
-    c: Math.min(profile.surfaceC, 0.035),
-    h: baseHue,
-  });
+  const backgroundLightness = resolvedTone === "light"
+    ? 0.93
+    : resolvedTone === "color"
+      ? 0.38
+      : profile.backgroundL;
+  const backgroundChroma = resolvedTone === "light"
+    ? resolvedHarmony === "monochrome" ? 0.010 : 0.022
+    : resolvedTone === "color"
+      ? resolvedHarmony === "monochrome" ? 0.050 : Math.min(0.14, Math.max(0.09, profile.accentC * 0.62))
+      : Math.min(profile.backgroundC, resolvedHarmony === "monochrome" ? 0.010 : 0.014);
+  const surfaceLightness = resolvedTone === "light" ? 0.82 : resolvedTone === "color" ? 0.24 : profile.surfaceL;
+  const surfaceChroma = resolvedTone === "light"
+    ? Math.min(0.038, Math.max(0.016, profile.surfaceC))
+    : resolvedTone === "color"
+      ? Math.min(0.11, Math.max(0.055, profile.accentC * 0.5))
+      : Math.min(profile.surfaceC, 0.035);
+  const background = oklchToHex({ l: backgroundLightness, c: backgroundChroma, h: baseHue });
+  const surface = oklchToHex({ l: surfaceLightness, c: surfaceChroma, h: baseHue });
 
   const accentA = oklchToHex({
     l: resolvedHarmony === "monochrome" ? Math.max(0.68, profile.accentL - 0.03) : profile.accentL,
@@ -253,13 +290,15 @@ export function createVisualPalette(input: VisualPaletteInput): VisualPalette {
     h: accentAHue,
   });
 
-  const textPrimary = foregroundForContrast(background, baseHue, 0.965, 0.012, 7);
-  const textSecondary = foregroundForContrast(background, baseHue, 0.80, 0.022, 4.5);
-  const muted = foregroundForContrast(background, baseHue, 0.59, 0.020, 3);
+  const lightCanvas = resolvedTone === "light";
+  const textPrimary = foregroundForContrast(background, baseHue, lightCanvas ? 0.13 : 0.965, 0.012, 7);
+  const textSecondary = foregroundForContrast(background, baseHue, lightCanvas ? 0.30 : 0.80, 0.022, 4.5);
+  const muted = foregroundForContrast(background, baseHue, lightCanvas ? 0.44 : 0.59, 0.020, 3);
 
   return {
     resolvedHarmony,
     resolvedMood,
+    resolvedTone,
     baseHue,
     accentAHue,
     accentBHue,

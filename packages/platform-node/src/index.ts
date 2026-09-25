@@ -8,6 +8,7 @@ import type {
   ProjectAssetKind,
   ProjectDescriptor,
   ProjectBackgroundPreset,
+  ProjectCanvasTone,
   ProjectColorFlow,
   ProjectColorHarmony,
   ProjectColorMood,
@@ -67,6 +68,7 @@ const COLOR_MOODS = new Set<ProjectColorMood>([
   "calm",
 ]);
 const COLOR_FLOWS = new Set<ProjectColorFlow>(["static", "rainbow"]);
+const CANVAS_TONES = new Set<ProjectCanvasTone>(["auto", "dark", "light", "color"]);
 const COLOR_HARMONIES = new Set<ProjectColorHarmony>([
   "auto",
   "split-complement",
@@ -231,6 +233,13 @@ function parseDefaults(value: unknown): EmoProjectDefaults | undefined {
       throw new Error("E-MO manifest defaults.colorFlow is invalid");
     }
     defaults.colorFlow = input.colorFlow as ProjectColorFlow;
+  }
+
+  if (input.canvasTone !== undefined) {
+    if (typeof input.canvasTone !== "string" || !CANVAS_TONES.has(input.canvasTone as ProjectCanvasTone)) {
+      throw new Error("E-MO manifest defaults.canvasTone is invalid");
+    }
+    defaults.canvasTone = input.canvasTone as ProjectCanvasTone;
   }
 
   if (input.intensity !== undefined) {

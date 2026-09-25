@@ -9,6 +9,7 @@ import {
   hexColorToCss,
   type BackgroundPreset,
   type BackgroundPresetId,
+  type CanvasToneMode,
   type ColorHarmonyId,
   type ColorHarmonyMode,
   type ColorMoodId,
@@ -84,6 +85,8 @@ const COLOR_MOODS: ColorMoodMode[] = [
   "calm",
 ];
 
+const CANVAS_TONES: CanvasToneMode[] = ["auto", "dark", "light", "color"];
+
 const COLOR_HARMONIES: ColorHarmonyMode[] = [
   "auto",
   "split-complement",
@@ -144,6 +147,7 @@ export function App() {
   const colorHarmony = useUiStore(state => state.colorHarmony);
   const colorMood = useUiStore(state => state.colorMood);
   const colorFlow = useUiStore(state => state.colorFlow);
+  const canvasTone = useUiStore(state => state.canvasTone);
   const syncMs = useUiStore(state => state.syncMs);
   const projectDrawerOpen = useUiStore(state => state.projectDrawerOpen);
   const setHudVisible = useUiStore(state => state.setHudVisible);
@@ -157,6 +161,7 @@ export function App() {
   const setColorHarmony = useUiStore(state => state.setColorHarmony);
   const setColorMood = useUiStore(state => state.setColorMood);
   const setColorFlow = useUiStore(state => state.setColorFlow);
+  const setCanvasTone = useUiStore(state => state.setCanvasTone);
   const setSyncMs = useUiStore(state => state.setSyncMs);
   const setProjectDrawerOpen = useUiStore(state => state.setProjectDrawerOpen);
 
@@ -279,6 +284,7 @@ export function App() {
       renderer.setColorHarmony(useUiStore.getState().colorHarmony);
       renderer.setColorMood(useUiStore.getState().colorMood);
       renderer.setColorFlow(useUiStore.getState().colorFlow);
+      renderer.setCanvasTone(useUiStore.getState().canvasTone);
       renderer.setIntensity(useUiStore.getState().intensity);
       renderer.setQuality(useUiStore.getState().quality);
       clock.start();
@@ -338,6 +344,10 @@ export function App() {
   useEffect(() => {
     rendererRef.current?.setColorFlow(colorFlow);
   }, [colorFlow]);
+
+  useEffect(() => {
+    rendererRef.current?.setCanvasTone(canvasTone);
+  }, [canvasTone]);
 
   useEffect(() => {
     rendererRef.current?.setIntensity(intensity);
@@ -406,13 +416,17 @@ export function App() {
       } else if (event.code === "KeyR") {
         const current = useUiStore.getState().colorFlow;
         setColorFlow(current === "rainbow" ? "static" : "rainbow");
+      } else if (event.code === "KeyK") {
+        const current = useUiStore.getState().canvasTone;
+        const index = CANVAS_TONES.indexOf(current);
+        setCanvasTone(CANVAS_TONES[(index + 1) % CANVAS_TONES.length]);
       } else if (event.code === "Comma") adjustSync(-50);
       else if (event.code === "Period") adjustSync(50);
     };
 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [setBackgroundPreset, setColorFlow, setColorHarmony, setColorMood, setCompositionMotion, setHudVisible, setMode, setSyncMs, setTypographyLayout, setTypographyPreset]);
+  }, [setBackgroundPreset, setCanvasTone, setColorFlow, setColorHarmony, setColorMood, setCompositionMotion, setHudVisible, setMode, setSyncMs, setTypographyLayout, setTypographyPreset]);
 
   useEffect(() => {
     const onDragEnter = (event: DragEvent) => {
@@ -548,6 +562,7 @@ export function App() {
       if (defaults?.colorHarmony !== undefined) setColorHarmony(defaults.colorHarmony);
       if (defaults?.colorMood !== undefined) setColorMood(defaults.colorMood);
       if (defaults?.colorFlow !== undefined) setColorFlow(defaults.colorFlow);
+      if (defaults?.canvasTone !== undefined) setCanvasTone(defaults.canvasTone);
       if (defaults?.syncMs !== undefined) {
         syncRef.current = defaults.syncMs;
         setSyncMs(defaults.syncMs);
@@ -579,6 +594,7 @@ export function App() {
       className={`shell ${hudVisible ? "" : "ui-hidden"}`}
       data-ui-visible={hudVisible}
       data-scene={activeScene}
+      data-tone={activePalette?.resolvedTone ?? "dark"}
     >
       <div ref={stageRef} id="stage" aria-label="Realtime lyric rendering stage" />
       <div className="screen-fx" aria-hidden="true">
@@ -728,6 +744,20 @@ export function App() {
             </div>
           </div>
 
+          <div className="tone-control">
+            <div className="control-heading">
+              <span>CANVAS TONE</span>
+              <b>{(activePalette?.resolvedTone ?? "dark").toUpperCase()}</b>
+            </div>
+            <div className="tone-grid" role="group" aria-label="Canvas luminance tone">
+              {CANVAS_TONES.map(value => (
+                <button key={value} className={`tone-button ${canvasTone === value ? "is-active" : ""}`} onClick={() => setCanvasTone(value)} title={value === "auto" ? "Auto canvas tone in stable cue blocks · K" : `${value} canvas tone`}>
+                  {value.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="mood-control">
             <div className="control-heading">
               <span>LYRIC MOOD</span>
@@ -857,7 +887,7 @@ export function App() {
             ))}
           </div>
 
-          <div className="director-footnote">Scene AUTO directs the visual family. Typography, Composition, Motion, Background, Lyric Mood and OKLCH Harmony can AUTO-direct per line. T/L/G/B/E/C cycle them; R toggles slow Rainbow Drift.</div>
+          <div className="director-footnote">Scene AUTO directs the visual family. Typography, Composition, Motion, Background, Canvas Tone, Lyric Mood and OKLCH Harmony can AUTO-direct deterministically. T/L/G/B/K/E/C cycle them; R toggles slow Rainbow Drift.</div>
         </aside>
 
         <section className={`empty-state ${hasContent ? "is-dismissed" : ""}`}>

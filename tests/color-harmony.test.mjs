@@ -5,6 +5,8 @@ import {
   contrastRatio,
   createVisualPalette,
   oklchToHex,
+  relativeLuminance,
+  resolveCanvasTone,
   resolveColorHarmony,
 } from "../packages/engine-core/dist/index.js";
 
@@ -93,4 +95,30 @@ test("rainbow hue drift moves accents gradually while preserving contrast", () =
   assert.ok(Math.abs(a.baseHue - b.baseHue) <= 3);
   assert.ok(b.primaryContrast >= 7);
   assert.ok(b.secondaryContrast >= 4.5);
+});
+
+
+test("canvas tones create distinct luminance regimes while preserving lyric contrast", () => {
+  const common = { harmony: "triad", mood: "euphoria", scene: "neon", lineIndex: 4 };
+  const dark = createVisualPalette({ ...common, tone: "dark" });
+  const light = createVisualPalette({ ...common, tone: "light" });
+  const color = createVisualPalette({ ...common, tone: "color" });
+  assert.equal(dark.resolvedTone, "dark");
+  assert.equal(light.resolvedTone, "light");
+  assert.equal(color.resolvedTone, "color");
+  assert.ok(relativeLuminance(dark.background) < 0.03);
+  assert.ok(relativeLuminance(light.background) > 0.55);
+  assert.ok(relativeLuminance(color.background) > relativeLuminance(dark.background) + 0.025);
+  assert.ok(relativeLuminance(light.textPrimary) < relativeLuminance(light.background));
+  for (const palette of [dark, light, color]) {
+    assert.ok(palette.primaryContrast >= 7);
+    assert.ok(palette.secondaryContrast >= 4.5);
+  }
+});
+
+test("AUTO canvas tone is deterministic and changes in stable three-cue blocks", () => {
+  assert.equal(resolveCanvasTone("auto", "poster", 0), "light");
+  assert.equal(resolveCanvasTone("auto", "poster", 2), "light");
+  assert.equal(resolveCanvasTone("auto", "poster", 3), "color");
+  assert.equal(resolveCanvasTone("auto", "poster", 3), resolveCanvasTone("auto", "poster", 3));
 });

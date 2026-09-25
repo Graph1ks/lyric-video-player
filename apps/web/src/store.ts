@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { BackgroundPreset, ColorFlowMode, ColorHarmonyMode, ColorMoodMode, CompositionMotionPreset, QualityMode, TypographyLayoutPreset, TypographyPreset, VisualMode } from "@graph1ks/emo-engine-core";
+import type { BackgroundPreset, CanvasToneMode, ColorFlowMode, ColorHarmonyMode, ColorMoodMode, CompositionMotionPreset, QualityMode, TypographyLayoutPreset, TypographyPreset, VisualMode } from "@graph1ks/emo-engine-core";
 
 interface UiState {
   hudVisible: boolean;
@@ -13,6 +13,7 @@ interface UiState {
   colorHarmony: ColorHarmonyMode;
   colorMood: ColorMoodMode;
   colorFlow: ColorFlowMode;
+  canvasTone: CanvasToneMode;
   syncMs: number;
   projectDrawerOpen: boolean;
   setHudVisible(value: boolean): void;
@@ -26,6 +27,7 @@ interface UiState {
   setColorHarmony(value: ColorHarmonyMode): void;
   setColorMood(value: ColorMoodMode): void;
   setColorFlow(value: ColorFlowMode): void;
+  setCanvasTone(value: CanvasToneMode): void;
   setSyncMs(value: number): void;
   setProjectDrawerOpen(value: boolean): void;
 }
@@ -42,7 +44,7 @@ export const useUiStore = create<UiState>(set => ({
   colorHarmony: "auto",
   colorMood: "auto",
   colorFlow: "static",
-  syncMs: 0,
+  canvasTone: "auto",  syncMs: 0,
   projectDrawerOpen: false,
   setHudVisible: hudVisible => set({ hudVisible }),
   setMode: mode => set({ mode }),
@@ -55,6 +57,6 @@ export const useUiStore = create<UiState>(set => ({
   setColorHarmony: colorHarmony => set({ colorHarmony }),
   setColorMood: colorMood => set({ colorMood }),
   setColorFlow: colorFlow => set({ colorFlow }),
-  setSyncMs: syncMs => set({ syncMs }),
+  setCanvasTone: canvasTone => set({ canvasTone }),  setSyncMs: syncMs => set({ syncMs }),
   setProjectDrawerOpen: projectDrawerOpen => set({ projectDrawerOpen })
 }));

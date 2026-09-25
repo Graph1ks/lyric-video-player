@@ -28,6 +28,7 @@ test("EmoServer serves manifest projects, SPA shell and byte ranges end-to-end",
     lyrics: "lyrics/track.lrc",
     defaults: {
       visualMode: "poster",
+      canvasTone: "light",
       intensity: 1.3,
       quality: "cinema",
       syncMs: -40,
@@ -58,6 +59,7 @@ test("EmoServer serves manifest projects, SPA shell and byte ranges end-to-end",
     assert.equal(project.name, "HTTP Manifest Song");
     assert.equal(project.manifest.schema, "emo.project/v1");
     assert.equal(project.manifest.defaults.visualMode, "poster");
+    assert.equal(project.manifest.defaults.canvasTone, "light");
     assert.equal(project.manifest.defaults.intensity, 1.3);
     assert.equal(project.manifest.defaults.syncMs, -40);
     assert.ok(project.audio?.id);

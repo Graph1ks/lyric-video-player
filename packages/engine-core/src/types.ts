@@ -92,6 +92,8 @@ export type ColorMoodId =
   | "calm";
 export type ColorMoodMode = "auto" | ColorMoodId;
 export type ColorFlowMode = "static" | "rainbow";
+export type CanvasToneId = "dark" | "light" | "color";
+export type CanvasToneMode = "auto" | CanvasToneId;
 
 export interface VisualSettings {
   mode: VisualMode;
@@ -104,6 +106,7 @@ export interface VisualSettings {
   colorHarmony?: ColorHarmonyMode;
   colorMood?: ColorMoodMode;
   colorFlow?: ColorFlowMode;
+  canvasTone?: CanvasToneMode;
 }
 
 export interface AudioBands {
