@@ -28,6 +28,16 @@ import {
   type DirectorCueDraft,
 } from "./directorPlanning";
 import type { LowerThirdMode, LowerThirdPreset } from "./lowerThirds";
+import {
+  builtinPerformancePreset,
+  createCustomPerformancePreset,
+  defaultPerformancePresets,
+  isBuiltinPerformancePreset,
+  loadPerformancePresets,
+  savePerformancePresets,
+  type PerformancePresetDefinition,
+  type PerformancePresetPoolKey,
+} from "./performancePresets";
 
 let cueCounter = 0;
 
@@ -52,6 +62,9 @@ export interface UiState {
   syncMs: number;
   projectDrawerOpen: boolean;
 
+  performancePresets: PerformancePresetDefinition[];
+  activePerformancePresetId: string | null;
+
   activeScene: SceneMode;
   activeTypography: TypographyPresetId;
   activeSequence: ResolvedTypographySequence;
@@ -72,6 +85,10 @@ export interface UiState {
   lowerThirdTitleOverride: string;
   lowerThirdArtistImage: string;
   lowerThirdPreviewUntil: number;
+  lowerThirdStartSeconds: number;
+  lowerThirdDurationSeconds: number;
+  lowerThirdOutroEnabled: boolean;
+  lowerThirdOutroLeadSeconds: number;
   directorPlaybackSeconds: number;
   directorDurationSeconds: number;
   directorPlaying: boolean;
@@ -98,6 +115,15 @@ export interface UiState {
   setSyncMs(value: number): void;
   setProjectDrawerOpen(value: boolean): void;
 
+  activatePerformancePreset(id: string | null): void;
+  createPerformancePreset(): void;
+  deletePerformancePreset(id: string): void;
+  resetPerformancePreset(id: string): void;
+  setPerformancePresetLabel(id: string, label: string): void;
+  setPerformancePresetIntensity(id: string, value: number): void;
+  setPerformancePresetColorFlow(id: string, value: ColorFlowMode): void;
+  togglePerformancePresetPool(id: string, key: PerformancePresetPoolKey, value: string): void;
+
   setActiveScene(value: SceneMode): void;
   setActiveTypography(value: TypographyPresetId): void;
   setActiveSequence(value: ResolvedTypographySequence): void;
@@ -112,7 +138,11 @@ export interface UiState {
   setLowerThirdArtistOverride(value: string): void;
   setLowerThirdTitleOverride(value: string): void;
   setLowerThirdArtistImage(value: string): void;
-  previewLowerThird(): void;
+  setLowerThirdStartSeconds(value: number): void;
+  setLowerThirdDurationSeconds(value: number): void;
+  setLowerThirdOutroEnabled(value: boolean): void;
+  setLowerThirdOutroLeadSeconds(value: number): void;
+  triggerLowerThird(): void;
   setDirectorPlayback(seconds: number, duration: number): void;
   setDirectorPlaying(value: boolean): void;
   setDirectorMuted(value: boolean): void;
@@ -123,6 +153,8 @@ export interface UiState {
   clearDirectorCues(): void;
   applyDirectorCue(id: string): void;
 }
+
+const initialPerformancePresets = loadPerformancePresets();
 
 export const useUiStore = create<UiState>((set, get) => ({
   hudVisible: true,
@@ -143,6 +175,9 @@ export const useUiStore = create<UiState>((set, get) => ({
   syncMs: 0,
   projectDrawerOpen: false,
 
+  performancePresets: initialPerformancePresets,
+  activePerformancePresetId: null,
+
   activeScene: "neon",
   activeTypography: "elastic",
   activeSequence: "off",
@@ -157,12 +192,16 @@ export const useUiStore = create<UiState>((set, get) => ({
   directorTrackTitle: "NO TRACK LOADED",
   directorTrackMeta: "Load an audio file + Enhanced LRC",
   directorArtist: "",
-  lowerThirdMode: "intro",
+  lowerThirdMode: "scheduled",
   lowerThirdPreset: "auto",
   lowerThirdArtistOverride: "",
   lowerThirdTitleOverride: "",
   lowerThirdArtistImage: "",
   lowerThirdPreviewUntil: 0,
+  lowerThirdStartSeconds: 10,
+  lowerThirdDurationSeconds: 8,
+  lowerThirdOutroEnabled: false,
+  lowerThirdOutroLeadSeconds: 10,
   directorPlaybackSeconds: 0,
   directorDurationSeconds: 0,
   directorPlaying: false,
@@ -189,6 +228,125 @@ export const useUiStore = create<UiState>((set, get) => ({
   setSyncMs: syncMs => set({ syncMs }),
   setProjectDrawerOpen: projectDrawerOpen => set({ projectDrawerOpen }),
 
+  activatePerformancePreset: id => {
+    if (!id) {
+      set({ activePerformancePresetId: null });
+      return;
+    }
+    const preset = get().performancePresets.find(item => item.id === id);
+    if (!preset) return;
+    set({
+      activePerformancePresetId: id,
+      mode: "auto",
+      typographyPreset: "auto",
+      typographySequence: "auto",
+      typographyLayout: "auto",
+      compositionMotion: "auto",
+      backgroundPreset: "auto",
+      colorHarmony: "auto",
+      colorMood: "auto",
+      colorCanvas: "auto",
+      colorFlow: preset.colorFlow,
+      intensity: preset.intensity,
+    });
+  },
+  createPerformancePreset: () => {
+    const state = get();
+    const source = state.performancePresets.find(item => item.id === state.activePerformancePresetId)
+      ?? state.performancePresets[0]
+      ?? defaultPerformancePresets()[0];
+    if (!source) return;
+    const customCount = state.performancePresets.filter(item => !isBuiltinPerformancePreset(item.id)).length;
+    const created = createCustomPerformancePreset(source, customCount + 1);
+    const performancePresets = [...state.performancePresets, created];
+    savePerformancePresets(performancePresets);
+    set({
+      performancePresets,
+      activePerformancePresetId: created.id,
+      mode: "auto",
+      typographyPreset: "auto",
+      typographySequence: "auto",
+      typographyLayout: "auto",
+      compositionMotion: "auto",
+      backgroundPreset: "auto",
+      colorHarmony: "auto",
+      colorMood: "auto",
+      colorCanvas: "auto",
+      colorFlow: created.colorFlow,
+      intensity: created.intensity,
+    });
+  },
+  deletePerformancePreset: id => {
+    if (isBuiltinPerformancePreset(id)) return;
+    const state = get();
+    const performancePresets = state.performancePresets.filter(item => item.id !== id);
+    savePerformancePresets(performancePresets);
+    set({
+      performancePresets,
+      activePerformancePresetId: state.activePerformancePresetId === id ? null : state.activePerformancePresetId,
+    });
+  },
+  resetPerformancePreset: id => {
+    const builtin = builtinPerformancePreset(id);
+    if (!builtin) return;
+    const state = get();
+    const performancePresets = state.performancePresets.map(item => item.id === id ? builtin : item);
+    savePerformancePresets(performancePresets);
+    const active = state.activePerformancePresetId === id;
+    set({
+      performancePresets,
+      ...(active ? { intensity: builtin.intensity, colorFlow: builtin.colorFlow } : {}),
+    });
+  },
+  setPerformancePresetLabel: (id, label) => {
+    const state = get();
+    if (isBuiltinPerformancePreset(id)) return;
+    const performancePresets = state.performancePresets.map(item =>
+      item.id === id ? { ...item, label: label.slice(0, 80) } : item
+    );
+    savePerformancePresets(performancePresets);
+    set({ performancePresets });
+  },
+  setPerformancePresetIntensity: (id, value) => {
+    const state = get();
+    const intensity = Math.max(0.2, Math.min(1.8, value));
+    const performancePresets = state.performancePresets.map(item =>
+      item.id === id ? { ...item, intensity } : item
+    );
+    savePerformancePresets(performancePresets);
+    set({
+      performancePresets,
+      ...(state.activePerformancePresetId === id ? { intensity } : {}),
+    });
+  },
+  setPerformancePresetColorFlow: (id, colorFlow) => {
+    const state = get();
+    const performancePresets = state.performancePresets.map(item =>
+      item.id === id ? { ...item, colorFlow } : item
+    );
+    savePerformancePresets(performancePresets);
+    set({
+      performancePresets,
+      ...(state.activePerformancePresetId === id ? { colorFlow } : {}),
+    });
+  },
+  togglePerformancePresetPool: (id, key, value) => {
+    const state = get();
+    const performancePresets = state.performancePresets.map(item => {
+      if (item.id !== id) return item;
+      const auto = { ...item.auto };
+      const current = [...(((auto as Record<string, string[] | undefined>)[key]) ?? [])];
+      const exists = current.includes(value);
+      if (exists && current.length <= 1) return item;
+      (auto as Record<string, string[]>)[key] = exists
+        ? current.filter(candidate => candidate !== value)
+        : [...current, value];
+      return { ...item, auto };
+    });
+    savePerformancePresets(performancePresets);
+    set({ performancePresets });
+  },
+
   setActiveScene: activeScene => set({ activeScene }),
   setActiveTypography: activeTypography => set({ activeTypography }),
   setActiveSequence: activeSequence => set({ activeSequence }),
@@ -212,7 +370,19 @@ export const useUiStore = create<UiState>((set, get) => ({
   setLowerThirdArtistOverride: lowerThirdArtistOverride => set({ lowerThirdArtistOverride }),
   setLowerThirdTitleOverride: lowerThirdTitleOverride => set({ lowerThirdTitleOverride }),
   setLowerThirdArtistImage: lowerThirdArtistImage => set({ lowerThirdArtistImage }),
-  previewLowerThird: () => set({ lowerThirdPreviewUntil: Date.now() + 7000 }),
+  setLowerThirdStartSeconds: lowerThirdStartSeconds => set({
+    lowerThirdStartSeconds: Math.max(0, Math.min(600, lowerThirdStartSeconds)),
+  }),
+  setLowerThirdDurationSeconds: lowerThirdDurationSeconds => set({
+    lowerThirdDurationSeconds: Math.max(1, Math.min(60, lowerThirdDurationSeconds)),
+  }),
+  setLowerThirdOutroEnabled: lowerThirdOutroEnabled => set({ lowerThirdOutroEnabled }),
+  setLowerThirdOutroLeadSeconds: lowerThirdOutroLeadSeconds => set({
+    lowerThirdOutroLeadSeconds: Math.max(0, Math.min(120, lowerThirdOutroLeadSeconds)),
+  }),
+  triggerLowerThird: () => set({
+    lowerThirdPreviewUntil: Date.now() + get().lowerThirdDurationSeconds * 1000,
+  }),
   setDirectorPlayback: (directorPlaybackSeconds, directorDurationSeconds) => set({
     directorPlaybackSeconds,
     directorDurationSeconds,
@@ -260,6 +430,8 @@ export type DirectorSharedState = Pick<
   | "colorCanvas"
   | "colorFlow"
   | "syncMs"
+  | "performancePresets"
+  | "activePerformancePresetId"
   | "activeScene"
   | "activeTypography"
   | "activeSequence"
@@ -279,6 +451,10 @@ export type DirectorSharedState = Pick<
   | "lowerThirdTitleOverride"
   | "lowerThirdArtistImage"
   | "lowerThirdPreviewUntil"
+  | "lowerThirdStartSeconds"
+  | "lowerThirdDurationSeconds"
+  | "lowerThirdOutroEnabled"
+  | "lowerThirdOutroLeadSeconds"
   | "directorPlaybackSeconds"
   | "directorDurationSeconds"
   | "directorPlaying"
@@ -304,6 +480,8 @@ export function directorSharedState(state: UiState): DirectorSharedState {
     colorCanvas: state.colorCanvas,
     colorFlow: state.colorFlow,
     syncMs: state.syncMs,
+    performancePresets: state.performancePresets,
+    activePerformancePresetId: state.activePerformancePresetId,
     activeScene: state.activeScene,
     activeTypography: state.activeTypography,
     activeSequence: state.activeSequence,
@@ -323,6 +501,10 @@ export function directorSharedState(state: UiState): DirectorSharedState {
     lowerThirdTitleOverride: state.lowerThirdTitleOverride,
     lowerThirdArtistImage: state.lowerThirdArtistImage,
     lowerThirdPreviewUntil: state.lowerThirdPreviewUntil,
+    lowerThirdStartSeconds: state.lowerThirdStartSeconds,
+    lowerThirdDurationSeconds: state.lowerThirdDurationSeconds,
+    lowerThirdOutroEnabled: state.lowerThirdOutroEnabled,
+    lowerThirdOutroLeadSeconds: state.lowerThirdOutroLeadSeconds,
     directorPlaybackSeconds: state.directorPlaybackSeconds,
     directorDurationSeconds: state.directorDurationSeconds,
     directorPlaying: state.directorPlaying,
@@ -335,6 +517,7 @@ export function directorSharedState(state: UiState): DirectorSharedState {
 
 function controlSnapshot(state: UiState): DirectorControlSnapshot {
   return {
+    activePerformancePresetId: state.activePerformancePresetId,
     mode: state.mode,
     intensity: state.intensity,
     quality: state.quality,
@@ -350,6 +533,10 @@ function controlSnapshot(state: UiState): DirectorControlSnapshot {
     syncMs: state.syncMs,
     lowerThirdMode: state.lowerThirdMode,
     lowerThirdPreset: state.lowerThirdPreset,
+    lowerThirdStartSeconds: state.lowerThirdStartSeconds,
+    lowerThirdDurationSeconds: state.lowerThirdDurationSeconds,
+    lowerThirdOutroEnabled: state.lowerThirdOutroEnabled,
+    lowerThirdOutroLeadSeconds: state.lowerThirdOutroLeadSeconds,
     lowerThirdArtistOverride: state.lowerThirdArtistOverride,
     lowerThirdTitleOverride: state.lowerThirdTitleOverride,
     lowerThirdArtistImage: state.lowerThirdArtistImage,

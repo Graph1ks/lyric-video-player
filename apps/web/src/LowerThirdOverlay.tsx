@@ -9,7 +9,12 @@ export function LowerThirdOverlay() {
   const titleOverride = useUiStore(state => state.lowerThirdTitleOverride);
   const artistImage = useUiStore(state => state.lowerThirdArtistImage);
   const previewUntil = useUiStore(state => state.lowerThirdPreviewUntil);
+  const startSeconds = useUiStore(state => state.lowerThirdStartSeconds);
+  const visibleSeconds = useUiStore(state => state.lowerThirdDurationSeconds);
+  const outroEnabled = useUiStore(state => state.lowerThirdOutroEnabled);
+  const outroLeadSeconds = useUiStore(state => state.lowerThirdOutroLeadSeconds);
   const playback = useUiStore(state => state.directorPlaybackSeconds);
+  const duration = useUiStore(state => state.directorDurationSeconds);
   const artist = useUiStore(state => state.directorArtist);
   const title = useUiStore(state => state.directorTrackTitle);
   const [now, setNow] = useState(() => Date.now());
@@ -20,7 +25,17 @@ export function LowerThirdOverlay() {
     return () => window.clearInterval(timer);
   }, [previewUntil]);
 
-  const scheduled = shouldShowLowerThird(mode, playback, previewUntil, now);
+  const scheduled = shouldShowLowerThird({
+    mode,
+    playbackSeconds: playback,
+    trackDurationSeconds: duration,
+    manualUntil: previewUntil,
+    startSeconds,
+    visibleSeconds,
+    outroEnabled,
+    outroLeadSeconds,
+    now,
+  });
   const previewing = previewUntil > now;
   const hasTrackIdentity = Boolean(
     titleOverride.trim()

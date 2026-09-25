@@ -14,6 +14,7 @@ import type {
 import type { LowerThirdMode, LowerThirdPreset } from "./lowerThirds";
 
 export interface DirectorControlSnapshot {
+  activePerformancePresetId: string | null;
   mode: VisualMode;
   intensity: number;
   quality: QualityMode;
@@ -29,6 +30,10 @@ export interface DirectorControlSnapshot {
   syncMs: number;
   lowerThirdMode: LowerThirdMode;
   lowerThirdPreset: LowerThirdPreset;
+  lowerThirdStartSeconds: number;
+  lowerThirdDurationSeconds: number;
+  lowerThirdOutroEnabled: boolean;
+  lowerThirdOutroLeadSeconds: number;
   lowerThirdArtistOverride: string;
   lowerThirdTitleOverride: string;
   lowerThirdArtistImage: string;

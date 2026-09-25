@@ -67,6 +67,8 @@ export function App() {
   const colorCanvas = useUiStore(state => state.colorCanvas);
   const colorFlow = useUiStore(state => state.colorFlow);
   const syncMs = useUiStore(state => state.syncMs);
+  const performancePresets = useUiStore(state => state.performancePresets);
+  const activePerformancePresetId = useUiStore(state => state.activePerformancePresetId);
   const projectDrawerOpen = useUiStore(state => state.projectDrawerOpen);
   const directorDetachedOpen = useUiStore(state => state.directorDetachedOpen);
   const activeScene = useUiStore(state => state.activeScene);
@@ -124,6 +126,10 @@ export function App() {
   const runtimeMode = runtimeQuery.data?.capabilities.mode;
   const projects = projectsQuery.data?.projects ?? [];
   const canChooseDirectory = runtimeQuery.data?.capabilities.canChooseDirectory && Boolean(window.emoDesktop);
+  const activePerformancePreset = useMemo(
+    () => performancePresets.find(item => item.id === activePerformancePresetId),
+    [activePerformancePresetId, performancePresets],
+  );
 
   useEffect(() => {
     const stage = stageRef.current;
@@ -219,7 +225,12 @@ export function App() {
 
     void renderer.init(stage).then(() => {
       if (disposed) return;
-      renderer.setVisualMode(useUiStore.getState().mode);
+      const initialState = useUiStore.getState();
+      const initialProfile = initialState.performancePresets.find(
+        item => item.id === initialState.activePerformancePresetId,
+      );
+      renderer.setAutoProfile(initialProfile?.auto);
+      renderer.setVisualMode(initialState.mode);
       renderer.setTypographyPreset(useUiStore.getState().typographyPreset);
       renderer.setTypographySequence(useUiStore.getState().typographySequence);
       renderer.setTypographyLayout(useUiStore.getState().typographyLayout);
@@ -258,6 +269,10 @@ export function App() {
   useEffect(() => {
     syncRef.current = syncMs;
   }, [syncMs]);
+
+  useEffect(() => {
+    rendererRef.current?.setAutoProfile(activePerformancePreset?.auto);
+  }, [activePerformancePreset]);
 
   useEffect(() => {
     rendererRef.current?.setVisualMode(mode);
@@ -637,7 +652,7 @@ export function App() {
             </button>
             <div className="status-pill"><span className="status-dot" /><span>{engineStatus}</span></div>
             <button className="icon-button" onClick={() => void toggleFullscreen()} title={t("Fullscreen · F", "Vollbild · F")} aria-label={t("Toggle fullscreen", "Vollbild umschalten")}>⛶</button>
-            <button className="icon-button" onClick={() => setHudVisible(false)} title={t("Hide UI · Ctrl+Shift+H", "UI ausblenden · Ctrl+Shift+H")} aria-label={t("Hide interface", "Oberfläche ausblenden")}>HUD</button>
+            <button className="icon-button hud-button" onClick={() => setHudVisible(false)} title={t("Hide UI · Ctrl+Shift+H", "UI ausblenden · Ctrl+Shift+H")} aria-label={t("Hide interface", "Oberfläche ausblenden")}>HUD</button>
           </div>
         </header>
 

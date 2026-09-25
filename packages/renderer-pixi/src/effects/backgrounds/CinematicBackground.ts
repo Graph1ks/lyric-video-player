@@ -73,6 +73,7 @@ export class CinematicBackground {
   private mode: SceneMode = "neon";
   private preset: BackgroundPreset = "auto";
   private resolvedPreset: BackgroundPresetId = "nebula";
+  private autoAllowed?: BackgroundPresetId[];
   private lineIndex = -1;
   private currentLine?: LineCue;
   private quality: QualityMode = "cinema";
@@ -129,6 +130,20 @@ export class CinematicBackground {
     this.redrawBase();
     this.rebuildLyricBackdrop();
     if (previous !== this.resolvedPreset) this.hit(0.78);
+  }
+
+  setAutoAllowed(presets?: readonly BackgroundPresetId[]) {
+    this.autoAllowed = presets?.length ? [...presets] : undefined;
+    if (this.preset !== "auto") return;
+
+    const previous = this.resolvedPreset;
+    this.resolvePreset();
+    if (previous !== this.resolvedPreset) {
+      this.applyPresetVisibility();
+      this.redrawBase();
+      this.rebuildLyricBackdrop();
+      this.hit(0.62);
+    }
   }
 
   getPreset() {
@@ -225,7 +240,15 @@ export class CinematicBackground {
       this.resolvedPreset = this.preset;
       return;
     }
-    const options = AUTO_BACKGROUND_PRESETS[this.mode];
+    const preferred = AUTO_BACKGROUND_PRESETS[this.mode];
+    const filtered = this.autoAllowed?.length
+      ? preferred.filter(value => this.autoAllowed?.includes(value))
+      : preferred;
+    const options = filtered.length
+      ? filtered
+      : this.autoAllowed?.length
+        ? this.autoAllowed
+        : preferred;
     const safeLine = Math.max(0, this.lineIndex);
     this.resolvedPreset = options[safeLine % options.length];
   }
