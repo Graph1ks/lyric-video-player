@@ -1,15 +1,15 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `bf7a358ce22adab13f1ed81dd498e15e9f55036c`  
-**Active candidate:** `fix/memory-edge-safety-v0.11.2`  
-**Current phase/milestone:** renderer resource lifetime + physical-edge safety
+**Merged baseline:** `89f2ac1680d13f6ec126ab3258ad4659507e2272`  
+**Active candidate:** none  
+**Current phase/milestone:** v0.11.2 long-play + physical-edge visual acceptance
 
 ## Current objective
 
-Use merged PR #51 as the spatial-typography baseline, but first close the two failures found by real-track acceptance: memory growth during lyric playback and black edge reveals under full-frame spatial filters.
+Use merged PR #53 as the renderer-safety baseline and verify it on a lyric-heavy long-play plus fullscreen/high-DPI edge stress before continuing cinematic sequencing.
 
-## Active candidate — Resource lifetime + physical-edge safety v0.11.2
+## Merged baseline — Resource lifetime + physical-edge safety v0.11.2
 
 The long-play memory growth is not caused by the bounded typography metric cache. The renderer was repeatedly detaching high-resolution Pixi `Text` display objects without destroying them:
 
@@ -17,9 +17,9 @@ The long-play memory growth is not caused by the bounded typography metric cache
 - `clear()` / echo rebuild previously used `removeChildren()` only;
 - Recursive Lyrics also rebuilt 8–14 full-line `Text` objects even when that background was not active, and likewise detached old objects without explicit destruction.
 
-The candidate explicitly destroys outgoing word trees and echo `Text` resources, makes Recursive Lyrics allocation lazy/keyed, and destroys backdrop text/style resources when replaced. The expected acceptance behavior is a bounded plateau after warm-up rather than memory growth proportional to elapsed lyric lines.
+PR #53 explicitly destroys outgoing word trees and echo `Text` resources, makes Recursive Lyrics allocation lazy/keyed, and destroys backdrop text/style resources when replaced. The expected acceptance behavior is a bounded plateau after warm-up rather than memory growth proportional to elapsed lyric lines.
 
-The remaining physical-edge failure is compositor-level rather than world-geometry-level. The full-frame displacement/smear/post filters requested Pixi filter padding. Padding expands the filter input with transparent texels outside the actual scene Sprite; clamped warped samples can therefore still sample that transparent gutter and display it as black. The candidate:
+The remaining physical-edge failure is compositor-level rather than world-geometry-level. The full-frame displacement/smear/post filters requested Pixi filter padding. Padding expands the filter input with transparent texels outside the actual scene Sprite; clamped warped samples can therefore still sample that transparent gutter and display it as black. PR #53:
 
 - sets full-frame displacement, velocity-smear and post-FX padding to zero;
 - retains existing UV clamp + shader edge guards;
