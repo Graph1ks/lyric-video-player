@@ -149,3 +149,51 @@ test("legacy Vortex is a dedicated projected-depth world with one-way timestamp 
   assert.doesNotMatch(vortex, /radius = [^;]*audio\./);
   assert.doesNotMatch(vortex, /angle = [^;]*audio\./);
 });
+
+
+test("phase B legacy worlds are dedicated, isolated and keep geometry time-owned", async () => {
+  const [background, rays, starfield, nebula, grid] = await Promise.all([
+    source("packages/renderer-pixi/src/effects/backgrounds/CinematicBackground.ts"),
+    source("packages/renderer-pixi/src/effects/backgrounds/LegacyRaysWorld.ts"),
+    source("packages/renderer-pixi/src/effects/backgrounds/LegacyStarfieldWorld.ts"),
+    source("packages/renderer-pixi/src/effects/backgrounds/LegacyNebulaWorld.ts"),
+    source("packages/renderer-pixi/src/effects/backgrounds/LegacyGridWorld.ts"),
+  ]);
+
+  for (const [id, field] of [
+    ["rays", "legacyRays"],
+    ["starfield", "legacyStarfield"],
+    ["nebula", "legacyNebula"],
+    ["grid", "legacyGrid"],
+  ]) {
+    assert.match(
+      background,
+      new RegExp(`${field}\\.container\\.visible = this\\.resolvedPreset === "${id}"`),
+    );
+    assert.match(
+      background,
+      new RegExp(`${field}\\.update\\(time, legacyAudio`),
+    );
+  }
+  assert.match(background, /!artWorld && !specializedWorld/);
+
+  assert.match(rays, /Three nested passes emulate a volumetric falloff/);
+  assert.match(rays, /targetX = this\.w \* \(0\.5 \+ Math\.sin\(time/);
+  assert.doesNotMatch(rays, /targetX = [^\n]*audio\./);
+  assert.doesNotMatch(rays, /originX = [^\n]*audio\./);
+
+  assert.match(starfield, /travels monotonically toward/);
+  assert.match(starfield, /depthProgress = fract\(seedZ \+ time \* speed\)/);
+  assert.doesNotMatch(starfield, /depthProgress = [^\n]*audio\./);
+  assert.doesNotMatch(starfield, /const z = [^;]*audio\./);
+
+  assert.match(nebula, /footprints are deterministic functions of time/);
+  assert.match(nebula, /const orbit = time \*/);
+  assert.doesNotMatch(nebula, /const orbit = [^;]*audio\./);
+  assert.doesNotMatch(nebula, /const rx = [^;]*audio\./);
+
+  assert.match(grid, /Ground-plane rays establish perspective explicitly/);
+  assert.match(grid, /const scroll = fract\(time \*/);
+  assert.doesNotMatch(grid, /const scroll = [^;]*audio\./);
+  assert.doesNotMatch(grid, /const horizon = [^;]*audio\./);
+});
