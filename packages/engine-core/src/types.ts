@@ -75,7 +75,9 @@ export type BackgroundPresetId =
   | "prism-stage-beams"
   | "laser-canopy-grid"
   | "disco-mirrorball-room"
-  | "neon-energy-burst-tunnel";
+  | "neon-energy-burst-tunnel"
+  | "fractal-hex-spiral-mosaic"
+  | "soft-hex-cell-field";
 export type BackgroundPreset = "auto" | BackgroundPresetId;
 export type ColorHarmonyId =
   | "split-complement"
