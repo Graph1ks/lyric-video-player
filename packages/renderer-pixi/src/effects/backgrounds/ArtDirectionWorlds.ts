@@ -26,6 +26,7 @@ export class ArtDirectionWorlds {
   private w = 1;
   private h = 1;
   private intensity = 1;
+  private detail = 1;
   private lineIndex = -1;
 
   constructor() {
@@ -49,6 +50,10 @@ export class ArtDirectionWorlds {
 
   setIntensity(value: number) {
     this.intensity = Math.max(0.2, Math.min(1.8, value));
+  }
+
+  setDetail(value: number) {
+    this.detail = Math.max(0, Math.min(3, value));
   }
 
   setLineIndex(index: number) {
@@ -80,24 +85,25 @@ export class ArtDirectionWorlds {
     const p = this.palette!;
     const w = this.w;
     const h = this.h;
-    const pulse = 1 + audio.bass * 0.05 * this.intensity;
+    const power = Math.max(0, this.intensity);
+    const pulse = 1 + audio.bass * (0.04 + power * 0.06);
     const drift = Math.sin(time * 0.28 + this.lineIndex * 0.61);
     const vertical = this.lineIndex % 2 === 0;
 
     if (vertical) {
       const leftWidth = w * (0.11 + 0.025 * drift);
       const rightWidth = w * (0.14 - 0.02 * drift);
-      this.back.rect(0, 0, leftWidth, h).fill({ color: p.accentA, alpha: 0.17 });
-      this.back.rect(w - rightWidth, 0, rightWidth, h).fill({ color: p.surface, alpha: 0.78 });
-      this.mid.rect(w * 0.025, h * 0.12, w * 0.018, h * 0.76).fill({ color: p.textPrimary, alpha: 0.18 });
-      this.mid.rect(w * 0.91, h * 0.08, w * 0.035, h * 0.84).fill({ color: p.accentB, alpha: 0.13 });
+      this.back.rect(0, 0, leftWidth, h).fill({ color: p.accentA, alpha: Math.min(0.82, 0.08 + power * 0.12) });
+      this.back.rect(w - rightWidth, 0, rightWidth, h).fill({ color: p.surface, alpha: Math.min(0.94, 0.42 + power * 0.16) });
+      this.mid.rect(w * 0.025, h * 0.12, w * 0.018, h * 0.76).fill({ color: p.textPrimary, alpha: Math.min(0.78, 0.06 + power * 0.12) });
+      this.mid.rect(w * 0.91, h * 0.08, w * 0.035, h * 0.84).fill({ color: p.accentB, alpha: Math.min(0.72, 0.05 + power * 0.1) });
     } else {
       const topHeight = h * (0.13 + 0.018 * drift);
       const bottomHeight = h * (0.17 - 0.016 * drift);
-      this.back.rect(0, 0, w, topHeight).fill({ color: p.surface, alpha: 0.82 });
-      this.back.rect(0, h - bottomHeight, w, bottomHeight).fill({ color: p.accentA, alpha: 0.15 });
-      this.mid.rect(w * 0.08, h * 0.045, w * 0.84, h * 0.018).fill({ color: p.accentB, alpha: 0.22 });
-      this.mid.rect(w * 0.05, h * 0.9, w * 0.9, h * 0.012).fill({ color: p.textPrimary, alpha: 0.16 });
+      this.back.rect(0, 0, w, topHeight).fill({ color: p.surface, alpha: Math.min(0.95, 0.46 + power * 0.16) });
+      this.back.rect(0, h - bottomHeight, w, bottomHeight).fill({ color: p.accentA, alpha: Math.min(0.78, 0.06 + power * 0.11) });
+      this.mid.rect(w * 0.08, h * 0.045, w * 0.84, h * 0.018).fill({ color: p.accentB, alpha: Math.min(0.82, 0.07 + power * 0.13) });
+      this.mid.rect(w * 0.05, h * 0.9, w * 0.9, h * 0.012).fill({ color: p.textPrimary, alpha: Math.min(0.76, 0.05 + power * 0.11) });
     }
 
     const cornerSize = Math.min(w, h) * 0.09 * pulse;
@@ -114,7 +120,8 @@ export class ArtDirectionWorlds {
       .lineTo(w - inset, h - inset - cornerSize)
       .stroke({ width: 2, color: p.accentB, alpha });
 
-    const markerCount = this.quality === "cinema" ? 7 : 4;
+    const markerBase = this.quality === "cinema" ? 7 : 4;
+    const markerCount = Math.max(3, Math.min(18, Math.round(markerBase * Math.max(0.45, this.detail))));
     for (let index = 0; index < markerCount; index++) {
       const y = h * (0.19 + index * 0.095);
       const width = w * (0.025 + hash01(this.lineIndex * 97 + index * 19) * 0.055);
@@ -130,8 +137,9 @@ export class ArtDirectionWorlds {
     const w = this.w;
     const h = this.h;
     const cinema = this.quality === "cinema";
-    const columns = cinema ? 24 : 16;
-    const rows = cinema ? 14 : 9;
+    const columns = Math.max(10, Math.min(52, Math.round((cinema ? 24 : 16) * Math.max(0.45, this.detail))));
+    const rows = Math.max(6, Math.min(30, Math.round((cinema ? 14 : 9) * Math.max(0.45, this.detail))));
+    const power = Math.max(0, this.intensity);
     const spacingX = w / columns;
     const spacingY = h / rows;
     const phaseX = (time * 5.5) % spacingX;
@@ -150,7 +158,7 @@ export class ArtDirectionWorlds {
         const seed = hash01((row + 11) * 73 + (col + 17) * 131 + this.lineIndex * 29);
         const size = (1.2 + seed * 3.2) * (0.75 + audio.treble * 0.85) * this.intensity;
         const color = (row + col) % 4 === 0 ? p.accentB : p.accentA;
-        this.mid.circle(x, y, size).fill({ color, alpha: 0.045 + seed * 0.055 });
+        this.mid.circle(x, y, size).fill({ color, alpha: Math.min(0.65, (0.028 + seed * 0.052) * (0.35 + power * 1.35)) });
       }
     }
 
@@ -175,8 +183,9 @@ export class ArtDirectionWorlds {
     const cx = w * 0.5;
     const cy = h * 0.465;
     const cinema = this.quality === "cinema";
-    const frames = cinema ? 9 : 6;
-    const breathe = 1 + Math.sin(time * 0.38) * 0.012 + audio.bass * 0.018 * this.intensity;
+    const frames = Math.max(4, Math.min(22, Math.round((cinema ? 9 : 6) * Math.max(0.45, this.detail))));
+    const power = Math.max(0, this.intensity);
+    const breathe = 1 + Math.sin(time * 0.38) * (0.008 + power * 0.009) + audio.bass * (0.012 + power * 0.022);
 
     for (let index = 0; index < frames; index++) {
       const t = index / Math.max(1, frames - 1);
@@ -187,7 +196,7 @@ export class ArtDirectionWorlds {
       this.mid.rect(x, y, fw, fh).stroke({
         width: index % 3 === 0 ? 1.6 : 1,
         color: index % 2 ? p.accentA : p.accentB,
-        alpha: 0.025 + (1 - t) * 0.035 + audio.energy * 0.025,
+        alpha: Math.min(0.72, (0.018 + (1 - t) * 0.04 + audio.energy * 0.035) * (0.35 + power * 1.45)),
       });
     }
 
@@ -208,7 +217,7 @@ export class ArtDirectionWorlds {
       });
     });
 
-    const pillarCount = cinema ? 8 : 5;
+    const pillarCount = Math.max(4, Math.min(18, Math.round((cinema ? 8 : 5) * Math.max(0.45, this.detail))));
     for (let index = 0; index < pillarCount; index++) {
       const t = index / Math.max(1, pillarCount - 1);
       const side = index % 2 === 0 ? -1 : 1;
@@ -226,8 +235,9 @@ export class ArtDirectionWorlds {
     const w = this.w;
     const h = this.h;
     const cinema = this.quality === "cinema";
-    const layers = cinema ? 7 : 4;
-    const points = cinema ? 18 : 12;
+    const power = Math.max(0, this.intensity);
+    const layers = Math.max(3, Math.min(16, Math.round((cinema ? 7 : 4) * Math.max(0.45, this.detail))));
+    const points = Math.max(10, Math.min(36, Math.round((cinema ? 18 : 12) * Math.max(0.6, this.detail))));
 
     for (let layer = 0; layer < layers; layer++) {
       const topBand = layer % 2 === 0;
@@ -252,7 +262,7 @@ export class ArtDirectionWorlds {
       const color = layer % 2 ? p.accentB : p.accentA;
       this.back.poly(poly).fill({
         color,
-        alpha: 0.025 + layer * 0.006 + audio.energy * 0.026,
+        alpha: Math.min(0.48, (0.018 + layer * 0.006 + audio.energy * 0.04) * (0.3 + power * 1.25)),
       });
     }
 
@@ -262,7 +272,7 @@ export class ArtDirectionWorlds {
       .rect(w * 0.5 - glowWidth * 0.5, horizon - 1, glowWidth, 2)
       .fill({ color: p.glow, alpha: 0.035 + audio.energy * 0.04 });
 
-    const moteCount = cinema ? 26 : 14;
+    const moteCount = Math.max(8, Math.min(72, Math.round((cinema ? 26 : 14) * Math.max(0.4, this.detail))));
     for (let index = 0; index < moteCount; index++) {
       const sx = hash01(this.lineIndex * 101 + index * 13.7);
       const sy = hash01(this.lineIndex * 211 + index * 7.3);
