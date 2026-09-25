@@ -155,3 +155,95 @@ test("spiral depth travels continuously across a word handoff", () => {
   assert.ok(travel < 80, `handoff travel was ${travel}px`);
   assert.ok(Math.abs(a.scale - b.scale) < 0.18);
 });
+
+
+test("Shape Build assigns stable phrase ordinals and builds a frame", () => {
+  const source = lines();
+  const earlyWindow = deriveTypographySequenceWindow(source, 1.1, {
+    historySeconds: 10,
+    lineStartIndex: 0,
+    lineEndIndex: 1,
+  });
+  const laterWindow = deriveTypographySequenceWindow(source, 1.8, {
+    historySeconds: 10,
+    lineStartIndex: 0,
+    lineEndIndex: 1,
+  });
+  const early = planTypographySequence({
+    grammar: "shape-build",
+    window: earlyWindow,
+    width: 1280,
+    height: 720,
+  });
+  const later = planTypographySequence({
+    grammar: "shape-build",
+    window: laterWindow,
+    width: 1280,
+    height: 720,
+  });
+
+  assert.equal(early.variant, "frame");
+  assert.equal(earlyWindow.scopeWordCount, 6);
+  const stableId = typographyWordId(0, 0);
+  const a = early.words.find(word => word.id === stableId);
+  const b = later.words.find(word => word.id === stableId);
+  assert.ok(a && b);
+  assert.ok(Math.abs(a.x - b.x) < 0.001);
+  assert.ok(Math.abs(a.y - b.y) < 0.001);
+  assert.ok(Math.abs(Math.abs(a.y) - 720 * 0.285) < 1);
+});
+
+test("Shape Build alternates to a ring for odd phrase scope starts", () => {
+  const window = deriveTypographySequenceWindow(lines(), 2.8, {
+    historySeconds: 10,
+    lineStartIndex: 1,
+    lineEndIndex: 1,
+  });
+  const plan = planTypographySequence({
+    grammar: "shape-build",
+    window,
+    width: 1280,
+    height: 720,
+  });
+
+  assert.equal(plan.variant, "ring");
+  assert.ok(plan.words.length >= 2);
+  assert.ok(plan.words.every(word => Number.isFinite(word.rotation)));
+});
+
+test("Ribbon Path preserves motion continuity across active-word handoff", () => {
+  const source = lines();
+  const beforeWindow = deriveTypographySequenceWindow(source, 3.14, {
+    historySeconds: 10,
+    leadSeconds: 0.12,
+    lineStartIndex: 0,
+    lineEndIndex: 1,
+  });
+  const afterWindow = deriveTypographySequenceWindow(source, 3.16, {
+    historySeconds: 10,
+    leadSeconds: 0.12,
+    lineStartIndex: 0,
+    lineEndIndex: 1,
+  });
+  const before = planTypographySequence({
+    grammar: "ribbon-path",
+    window: beforeWindow,
+    width: 1920,
+    height: 1080,
+  });
+  const after = planTypographySequence({
+    grammar: "ribbon-path",
+    window: afterWindow,
+    width: 1920,
+    height: 1080,
+  });
+
+  assert.equal(before.variant, "s-curve");
+  const previousId = typographyWordId(1, 1);
+  const a = before.words.find(word => word.id === previousId);
+  const b = after.words.find(word => word.id === previousId);
+  assert.ok(a && b);
+  const travel = Math.hypot(a.x - b.x, a.y - b.y);
+  assert.ok(travel < 100, `ribbon handoff travel was ${travel}px`);
+  assert.ok(Math.abs(a.scale - b.scale) < 0.2);
+});

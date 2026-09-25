@@ -97,3 +97,31 @@ test("cinematic bundles expose persistent sequence grammars selectively", () => 
   assert.equal(next.phraseStartLine, 4);
   assert.equal(next.phraseEndLine, 4);
 });
+
+
+test("AUTO routes compact second phrase into Shape Build", () => {
+  const director = new SceneDirector();
+  director.load([
+    line(0, 1.2, "first hit", 2),
+    line(1.2, 2.4, "keeps phrase", 2),
+    line(3.4, 4.6, "second phrase", 2),
+    line(4.6, 5.8, "builds shape", 2),
+  ]);
+
+  const second = director.sceneFor(2);
+  assert.equal(second.phraseIndex, 1);
+  assert.equal(second.mode, "poster");
+  assert.equal(second.typography.sequenceGrammar, "shape-build");
+});
+
+test("AUTO exposes Ribbon Path on Neon phrase family", () => {
+  const director = new SceneDirector();
+  director.load([
+    line(0, 2.8, "this phrase has enough words to stay cinematic", 8),
+    line(2.85, 5.4, "and continues without a compact poster hit", 8),
+  ]);
+
+  const scene = director.sceneFor(0);
+  assert.equal(scene.mode, "neon");
+  assert.equal(scene.typography.sequenceGrammar, "ribbon-path");
+});

@@ -1,13 +1,13 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `7d9c6570868198b2e7cfa159ba70a3b03376dccc`  
-**Active candidate:** `feat/render-persistent-typography-sequences-v0.9`  
+**Merged baseline:** `019d5f3630cc8f13a2741bf20d79141142e0c6ea`  
+**Active candidate:** `feat/shape-build-ribbon-path-v0.9` / PR #40  
 **Current phase/milestone:** cinematic sequence direction + temporal readability
 
 ## Current objective
 
-Consume the merged pure multi-cue model in Pixi and make Spiral Depth / Hero-Echo visible as complete phrase-level AUTO shots while preserving deterministic seek and manual override behavior.
+Add Shape Build and Ribbon Path as first-class persistent phrase grammars on top of the merged Spiral/Hero renderer baseline.
 
 ## Current implementation state
 
@@ -52,7 +52,7 @@ The merged `7d9c657` baseline creates the pure sequence model before Pixi cachin
 
 Next, Pixi will diff/cache display objects as a performance layer over this plan. Cache history must never become the visual source of truth.
 
-## Active candidate — Visible persistent sequence rendering
+## Merged baseline — Visible persistent sequence rendering
 
 - `PersistentTypographySequences` diffs a bounded map of Pixi Text nodes keyed by the pure stable word IDs.
 - The pure time-derived window + plan is recomputed from lyric time; cached Pixi nodes are only render resources.
@@ -62,6 +62,31 @@ Next, Pixi will diff/cache display objects as a performance layer over this plan
 - While a persistent grammar is active, normal `KineticLyrics` is hidden rather than double-rendered.
 - Manual Typography/Layout/Composition-Motion choices immediately disable the AUTO sequence grammar; returning all three to AUTO restores it.
 - Sequence styles use the shared semantic palette and bounded viewport fitting.
+
+## Active candidate — Shape Build + Ribbon Path
+
+### Shape Build
+
+- uses phrase-stable `scopeOrdinal` and `scopeWordCount` metadata from the pure sequence window;
+- alternates deterministic **Frame/Square** and **Ring/Circle** calligrams by phrase scope;
+- a word's slot does not move merely because later words appear;
+- active/recent words are solid; deeper history becomes outline structure;
+- incoming words may preview briefly at their final shape slot;
+- renderer retains a larger but bounded phrase history for calligram integrity.
+
+### Ribbon Path
+
+- uses one S-curve trajectory instead of independent word entry vectors;
+- active word occupies the focus region while recent/history words trail behind;
+- active progress advances the trail continuously;
+- the previous active word arrives at its next trail rank at the word boundary, avoiding a sequence snap;
+- the next incoming word converges toward the same focus point during the short lead window.
+
+### Shared renderer changes
+
+- Shape/Ribbon positions are treated as structural geometry and are not collapsed inward by the rapid-lyrics travel budget;
+- readability pressure still constrains active micro-motion, opacity floors and history density;
+- rotated persistent text now uses both width and height fitting.
 
 
 ### Existing merged engine
@@ -276,11 +301,11 @@ Windows packaging remains a separate required gate.
 
 ## Next concrete work
 
-1. Verify visible Spiral/Hero rendering in Linux + Windows CI.
-2. Run real-track browser/Desktop acceptance for phrase boundaries, dense lyrics and mobile.
-3. Add Shape Build / Ribbon Path.
-4. Add Elastic Tether and sequence-owned camera intent.
-5. Extend visual acceptance around gaze continuity, persistent history and shot-size rhythm.
+1. Verify Shape Build + Ribbon Path in Linux + Windows CI.
+2. Run real-track browser/Desktop acceptance across Spiral/Hero/Shape/Ribbon, dense lyrics and mobile.
+3. Add Elastic Tether.
+4. Add sequence-owned camera intent / eye-trace handoff.
+5. Extend visual acceptance around gaze continuity, persistent history, calligram integrity and shot-size rhythm.
 
 ## Resume instruction
 
