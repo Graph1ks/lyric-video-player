@@ -50,6 +50,10 @@ Git history remains the complete technical history. This file records meaningful
 - Redesigned Visual Director workspace with semantic effect preview cards and task-oriented navigation.
 - Synchronized browser/Electron Director popout for second-screen live control.
 - Session cue-plan workspace for timestamped visual-look capture and live recall.
+- Manual Director controls for Spiral Depth, Hero/Echo, Shape Build and Ribbon Path persistent sequences.
+- Detached-Director operator transport for playback, seek, volume, loading and player fullscreen.
+- English/German Director and player-shell localization.
+- Ten-style Lower Third system with artist/title metadata overrides and optional artist portrait URL/upload.
 
 ### Changed
 
@@ -70,6 +74,11 @@ Git history remains the complete technical history. This file records meaningful
 - Fast lyric passages reduce large spatial excursions and competing clutter while retaining visible local kinetic motion.
 - Persistent typography AUTO shots replace, rather than overlay, ordinary current-line typography while active.
 - Shape/Ribbon structural geometry is preserved under readability pressure while local motion remains adaptive.
+- Background/world rendering is screen-anchored outside the lyric camera so camera motion cannot expose transparent black edges.
+- Fullscreen/viewport changes explicitly reflow Pixi and render-target dimensions.
+- Screen FX use output overscan and primary lyric textures use elevated raster resolution for cleaner edges.
+- The main player becomes a clean output monitor while the detached Director is present.
+- Director typography sizing is raised for professional readability instead of micro-label density.
 - GSAP remains excluded because the planned visual-editor direction could intersect its visual-animation-builder restriction.
 
 ### Security / Privacy

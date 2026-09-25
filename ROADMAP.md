@@ -142,6 +142,25 @@ See `docs/CINEMATIC_TYPOGRAPHY_DIRECTION.md`.
 
 See `docs/VISUAL_DIRECTOR_WORKSPACE.md`.
 
+## Cross-cutting v0.10.1 — Operator Output + Presentation — active
+
+- screen-anchored background independent from lyric camera — active candidate
+- host/fullscreen/VisualViewport render-target reflow — active candidate
+- screen-FX overscan / no visible effect boundaries — active candidate
+- high-resolution Pixi text raster baseline for hero zooms — active candidate
+- explicit Spiral / Hero-Echo / Shape Build / Ribbon Path Director controls — active candidate
+- detached Director owns player transport while open — active candidate
+- clean-output player mode while Director is detached — active candidate
+- professional readable Director type scale — active candidate
+- English / German control-plane localization — active candidate
+- Lower Third screen-space presentation layer — active candidate
+- ten Lower Third looks + Auto rotation — active candidate
+- artist/title metadata overrides + optional portrait URL/upload — active candidate
+- project persistence for Lower Third config/assets — planned with scene/project directives
+- playlist-per-song presentation plans — planned after playlist support
+
+See `docs/OPERATOR_OUTPUT_LOWER_THIRDS.md`.
+
 ## Milestone 0.9 — Editor
 - scene browser
 - effect inspector
