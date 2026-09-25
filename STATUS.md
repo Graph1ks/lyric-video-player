@@ -1,8 +1,8 @@
 # Project Status
 
-**Last updated:** 2026-09-25  
-**Last known good merged baseline:** `1ba05e51ce0424077326ad9d0f61fd072ff0a4df`  
-**Active candidate:** `feat/legacy-world-rehab-art-direction` — draft PR #78  
+**Last updated:** 2026-09-26  
+**Last known good merged baseline:** `7611eb4d57bb03559b5d8866c961ced7f9d895e0`  
+**Active candidate:** `feat/rebuild-laser-canopy-sparks` — draft PR #79  
 **Current phase/milestone:** legacy world/background rehabilitation
 
 ## Current objective
@@ -15,7 +15,9 @@ Rehabilitate all 15 legacy Background presets before WORLD_09/10: remove raw-aud
 - **Merged PR #75 raised the fidelity floor and rebuilt `cinematic` + `liquid`:** Cinematic is a dedicated fullscreen atmospheric/lens-light shader world; Liquid is a semantic-palette raymarched smooth-min implicit surface with real normals/Fresnel/specular lighting.
 - **Merged PR #76 rebuilt `spectrum` + `sparks`:** Spectrum is a real-FFT projected 3D frequency topography; Sparks is deterministic analytic ballistic motion with history-derived trails and transient response restricted to fresh emission/accent.
 - **Merged PR #77 rebuilt `lyrics` + `minimal`:** Lyrics is a dedicated perspective typography corridor with one-way time-owned z travel and explicit Text destruction; Minimal is a fullscreen precision-material shader built around negative space, asymmetric material structure and optical detail.
-- **Draft PR #78 finishes the four Art Direction worlds at the same fidelity floor:** `editorial` and `print` become dedicated fullscreen layout/material shaders, `architecture` becomes a perspective depth world, and `aurora` becomes a procedural volumetric curtain shader. `CinematicBackground` no longer routes those IDs through the old shared `ArtDirectionWorlds` Graphics renderer.
+- **Merged PR #78 finishes the four Art Direction worlds at the same fidelity floor:** `editorial` and `print` are dedicated fullscreen layout/material shaders, `architecture` is a perspective depth world, and `aurora` is a procedural volumetric curtain shader. `CinematicBackground` no longer routes those IDs through the old shared `ArtDirectionWorlds` Graphics renderer.
+- **Real-display rejection after PR #78 exposed two remaining fidelity failures in non-legacy/newer worlds:** `laser-canopy-grid` still read as flat 2D beams from one screen-space rig, and `sparks` read as four repeating baby-firework fountains.
+- **Draft PR #79 supersedes those identities:** Laser Canopy now uses explicit projected 3D club-room coordinates, perspective floor/ceiling truss depth and transverse/longitudinal/diagonal canopy beams; Sparks is now a fullscreen procedural multi-direction spark storm with no fixed emitters or ballistic fountain arcs. Audio is restricted to light/emission response and Laser now consumes semantic `VisualPalette` roles.
 - The first systemic corrections remove raw bass/transient whole-geometry pumping from shared blobs, particles, rings, beams, editorial/architecture geometry and liquid absolute-time phase/topology.
 - `WorldColorContext` now exists as the pure engine-core contract for representative/title-safe luminance, highlight risk, chroma/busyness pressure, polarity hysteresis and outline-support pressure; renderer-to-typography wiring is still pending.
 - **The five worst legacy motion offenders are now dedicated fidelity worlds:** `LegacyVortexWorld`, `LegacyRaysWorld`, `LegacyStarfieldWorld`, `LegacyNebulaWorld` and `LegacyGridWorld` replace the shared generic stack for those preset IDs.
