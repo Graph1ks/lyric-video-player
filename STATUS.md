@@ -1,16 +1,20 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `09460a4abd7a4eaa8bdd7020bce32ef6bbbf1f6a`  
-**Active candidate:** `feat/cinematic-sequence-director-v0.9` / PR #37  
+**Last known good merged baseline:** `c58be3e7e9b20fce0656bc71f537a93f65f33fe5`  
+**Active candidate:** `feat/persistent-typography-sequences-v0.9`  
 **Current phase/milestone:** cinematic sequence direction + temporal readability
 
 ## Current objective
 
-Make lyric motion feel cinematically directed across phrases rather than like independent line effects, while preserving visible motion under very fast word timing. Establish the multi-cue architecture required for spiral/path/shape/hero typography scenes.
+Build the seek-safe persistent multi-cue typography model required for Spiral Depth, Hero/Echo, Shape Build and path-based lyric cinematography. Keep visual history bounded and reconstructable from absolute Enhanced LRC time.
 
 ## Current state
 
+- Phrase-level cinematic direction + adaptive readability pressure are merged in `c58be3e`.
+- Active candidate adds a pure multi-cue typography window with stable word IDs and `active/recent/history/incoming` roles derived only from absolute lyric time.
+- Active candidate bounds visual history by time + word budget while prioritizing active/incoming/recent content.
+- Active candidate adds renderer-independent Spiral Depth and Hero/Echo placement planners.
 - Active candidate introduces phrase-level cinematic direction: AUTO typography preset, layout and composition motion are selected as coherent bundles and held across a phrase instead of independently cycling every line.
 - Phrases expose Establish / Develop / Accent / Release shot roles for the next sequence/camera layer.
 - Active candidate adds kinetic readability pressure from line duration, words/s, chars/s and shortest word duration.
@@ -98,11 +102,11 @@ Make lyric motion feel cinematically directed across phrases rather than like in
 
 ## Next concrete action
 
-1. Get PR #37 phrase direction/readability CI green and visually calibrate rapid/burst behavior on real dense tracks.
-2. Implement the seek-safe persistent multi-cue typography scene graph.
-3. Build Spiral Depth and Hero / Echo Field as the first persistent sequence grammars.
+1. Verify the pure multi-cue window + Spiral/Hero planners in CI.
+2. Add a bounded Pixi display-object cache/diff driven by the pure plan.
+3. Integrate Spiral Depth and Hero/Echo into the renderer without making cache state authoritative.
 4. Add Shape Build / Ribbon Path, then Elastic Tether and continuity-aware camera direction.
-5. Continue Color Canvas / art-world acceptance inside the new cinematic sequence model rather than as an independent effect checklist.
+5. Calibrate Rapid/Burst budgets and persistent sequences on real Enhanced LRC tracks.
 
 ## Do not redo
 
