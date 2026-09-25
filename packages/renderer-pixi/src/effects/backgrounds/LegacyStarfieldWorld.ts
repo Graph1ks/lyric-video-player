@@ -94,7 +94,6 @@ export class LegacyStarfieldWorld {
 
     const p = this.palette;
     const background = p?.background ?? 0x01040a;
-    const surface = p?.surface ?? 0x061017;
     const accentA = p?.accentA ?? 0x8cfff7;
     const accentB = p?.accentB ?? 0x8c6fff;
     const glow = p?.glow ?? 0xf2ffff;
