@@ -14,21 +14,29 @@ export interface VisualFxRack {
   vignette: number;
 }
 
-export const DEFAULT_VISUAL_FX_RACK: VisualFxRack = Object.freeze({
-  cameraMotion: 0.75,
-  impactPulse: 0.65,
-  displacement: 0.55,
-  smear: 0.45,
-  bloom: 0.7,
-  feedback: 0.35,
-  postFx: 0.55,
+/**
+ * Factory rack = the visual balance that existed before the controls were
+ * exposed. Every formerly implicit renderer/compositor layer ran at authored
+ * strength 1.0. Keeping factory at 1.0 is important: exposing a control must
+ * not silently make the product cleaner/flatter.
+ */
+export const FACTORY_VISUAL_FX_RACK: VisualFxRack = Object.freeze({
+  cameraMotion: 1,
+  impactPulse: 1,
+  displacement: 1,
+  smear: 1,
+  bloom: 1,
+  feedback: 1,
+  postFx: 1,
   worldIntensity: 1,
   worldDetail: 1,
-  screenBloom: 0.55,
-  scanlines: 0.35,
-  grain: 0.35,
-  vignette: 0.55,
+  screenBloom: 1,
+  scanlines: 1,
+  grain: 1,
+  vignette: 1,
 });
+
+export const DEFAULT_VISUAL_FX_RACK: VisualFxRack = FACTORY_VISUAL_FX_RACK;
 
 export type VisualFxRackKey = keyof VisualFxRack;
 
