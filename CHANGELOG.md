@@ -68,8 +68,8 @@ Git history remains the complete technical history. This file records meaningful
 - **Laser Canopy Grid** world with an overhead rig, crisp red/cyan/mint laser architecture, floor hit-points and audio-reactive canopy sweeps.
 - **Disco Mirrorball Room** shader world with spherical mirror facets, metallic/specular response and dense moving room reflections.
 - **Neon Energy Burst Tunnel** shader world with logarithmic tunnel depth, dense radial streaks, electric filaments, arc sparks and central energy bloom.
-- **Fractal Hex Spiral Mosaic** shader world with recursive multi-sink hex warping, rainbow graphic cells, black outlines and inset-cell detail.
-- **Soft Hex Cell Field** shader world with layered variable-size pastel cells, black gaps, bevel depth and selective facet highlights.
+- **Fractal Hex Spiral Mosaic** rebuilt from a rejected flat warp shader into projected 3D moving hex prisms with real z-depth, three spiral sinks, perspective parallax, depth sorting and visible extrusion.
+- **Soft Hex Cell Field** rebuilt from rejected screen-space masks into a mathematically packed axial 3D hex-prism surface with controlled gaps, camera perspective, relief, occlusion and bevel/highlight geometry.
 - User-authored-only Performance Presets; the previously shipped emotion/pace preset library is removed.
 - FX Rack factory reset that restores the original pre-exposure renderer/compositor balance.
 
