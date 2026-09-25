@@ -54,6 +54,10 @@ Git history remains the complete technical history. This file records meaningful
 - Detached-Director operator transport for playback, seek, volume, loading and player fullscreen.
 - English/German Director and player-shell localization.
 - Ten-style Lower Third system with artist/title metadata overrides and optional artist portrait URL/upload.
+- Global shared measured typography spatial model for collision-aware layouts.
+- Shape Fill occupancy packing based on real word geometry rather than anonymous slots.
+- Progressive editorial Manifesto page build with immutable future-slot reservation.
+- Measured collision separation for Spiral Depth and Ribbon Path.
 - Shape Fill persistent grammar with Tree, Star and Human/Figure packed word silhouettes.
 - Manifesto Wall persistent grammar with deterministic masonry blocks, rigid snap-ins and vertical bracket words.
 

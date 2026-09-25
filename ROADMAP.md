@@ -181,6 +181,24 @@ See `docs/OPERATOR_OUTPUT_LOWER_THIRDS.md`.
 
 See `docs/SHAPE_FILL_MANIFESTO_EDGE_SAFETY.md`.
 
+## Cross-cutting v0.11.1 — Spatial Typography — active
+
+- shared renderer-independent typography spatial metrics — active candidate
+- Pixi CanvasTextMetrics + native ink-bound measurement — active candidate
+- stable complete phrase-scope reservation — active candidate
+- rotated AABB collision/envelope helpers — active candidate
+- measured Shape Fill occupancy packing + deterministic shrink/retry — active candidate
+- progressive editorial Manifesto page composer — active candidate
+- persistent full-phrase Manifesto/Shape history without lyric omission — active candidate
+- per-word width + height in ordinary composition collision solver — active candidate
+- Spiral Depth measured screen-space separation — active candidate
+- Ribbon Path measured screen-space separation — active candidate
+- revealed-page-aware Manifesto camera framing + subtle angled skew — active candidate
+- cached static phrase geometry — active candidate
+- pixel-mask / glyph-alpha exact collision — future only if conservative boxes prove too sparse
+
+See `docs/SHAPE_FILL_MANIFESTO_EDGE_SAFETY.md`.
+
 ## Milestone 0.9 — Editor
 - scene browser
 - effect inspector

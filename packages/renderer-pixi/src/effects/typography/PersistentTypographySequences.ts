@@ -150,14 +150,18 @@ export class PersistentTypographySequences {
     const historySeconds = persistentStructure
       ? 3600
       : (cinema ? 7.5 : 4.5) * (0.48 + echoBudget * 0.52);
-    const maxWords = structuralShape
-      ? (cinema ? 160 : 100)
-      : architecturalWall
-        ? (cinema ? 180 : 120)
-        : Math.max(
-            8,
-            Math.round((cinema ? 42 : 24) * (0.42 + echoBudget * 0.58)),
-          );
+    const phraseWordCount = this.lines
+      .slice(
+        this.phraseStartLine,
+        Math.min(this.lines.length, this.phraseEndLine + 1),
+      )
+      .reduce((sum, line) => sum + line.words.length, 0);
+    const maxWords = persistentStructure
+      ? Math.max(1, phraseWordCount)
+      : Math.max(
+          8,
+          Math.round((cinema ? 42 : 24) * (0.42 + echoBudget * 0.58)),
+        );
     const window = deriveTypographySequenceWindow(this.lines, time, {
       historySeconds,
       recentSeconds: Math.min(historySeconds, cinema ? 1.55 : 1.15),
