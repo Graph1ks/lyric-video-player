@@ -310,6 +310,19 @@ export function VisualDirector({
                   description="Global energy, lyric sync and renderer quality. These do not change the authored visual family."
                 />
 
+                <div className="director-audio-mini" aria-label="Audio reactive bands">
+                  {([
+                    ["BASS", state.directorAudioBands.bass],
+                    ["MID", state.directorAudioBands.mid],
+                    ["AIR", state.directorAudioBands.treble],
+                  ] as const).map(([label, value]) => (
+                    <span key={label}>
+                      <i><b style={{ transform: `scaleY(${Math.max(0.04, value)})` }} /></i>
+                      <small>{label}</small>
+                    </span>
+                  ))}
+                </div>
+
                 <ControlSlider
                   label="Intensity"
                   value={Math.round(state.intensity * 100)}
