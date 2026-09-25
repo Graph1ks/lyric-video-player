@@ -74,7 +74,7 @@ float boxEdge(vec2 p, vec2 center, vec2 halfSize, float width) {
   float outer = max(d.x, d.y);
   vec2 innerD = abs(p - center) - max(halfSize - vec2(width), vec2(0.001));
   float inner = max(innerD.x, innerD.y);
-  return smoothstep(width, 0.0, abs(outer)) * step(0.0, inner + width * 1.6);
+  return (1.0 - smoothstep(0.0, width, abs(outer))) * step(0.0, inner + width * 1.6);
 }
 float softBox(vec2 p, vec2 center, vec2 halfSize) {
   vec2 d = abs(p - center) - halfSize;
@@ -145,8 +145,8 @@ void main(void) {
       float laneX = laneSeed * 0.82 + sin(laneSeed * 2.3) * 0.12;
       float lane = exp(-abs(worldX - laneX) * mix(16.0, 28.0, detail));
       float packetPhase = fract(worldZ * 0.115 - t * (0.46 + float(laneIndex) * 0.035) + laneSeed * 0.17);
-      float packet = smoothstep(0.17, 0.0, abs(packetPhase - 0.5));
-      float tail = smoothstep(0.38, 0.0, abs(fract(packetPhase + 0.14) - 0.5)) * 0.22;
+      float packet = 1.0 - smoothstep(0.0, 0.17, abs(packetPhase - 0.5));
+      float tail = (1.0 - smoothstep(0.0, 0.38, abs(fract(packetPhase + 0.14) - 0.5))) * 0.22;
       color += mix(colorA, glow, 0.58) * lane * (packet + tail) * distanceFade
         * (0.16 + uTreble * 0.12);
     }
@@ -162,7 +162,7 @@ void main(void) {
       lineCell(topZ * 1.6, 0.017 + invTop * 0.0007)
     );
     float topFade = (1.0 - smoothstep(3.2, 10.0, invTop))
-      * smoothstep(horizon - 0.12, horizon - 0.30, p.y);
+      * (1.0 - smoothstep(horizon - 0.30, horizon - 0.12, p.y));
     color += mix(surface, colorB, 0.46) * topGrid * topFade * 0.13;
   }
 
@@ -177,7 +177,7 @@ void main(void) {
     float sideOffset = mix(0.13, aspect * 0.69, depth);
     float towerHeight = mix(0.055, 0.43, depth) * (0.66 + seed * 0.65);
     float towerWidth = mix(0.018, 0.105, depth) * (0.72 + seed * 0.48);
-    float fade = smoothstep(0.02, 0.14, depthPhase) * smoothstep(1.0, 0.84, depthPhase);
+    float fade = smoothstep(0.02, 0.14, depthPhase) * (1.0 - smoothstep(0.84, 1.0, depthPhase));
 
     for (int sideIndex = 0; sideIndex < 2; sideIndex++) {
       float side = sideIndex == 0 ? -1.0 : 1.0;
@@ -197,7 +197,8 @@ void main(void) {
       // Vertical energy pylons extend architecture into the upper frame.
       float pylonGate = step(0.74, hash11(k * 11.1 + float(sideIndex) * 3.7));
       float pylonX = exp(-abs(p.x - center.x) * mix(80.0, 155.0, detail));
-      float pylonY = smoothstep(yBase, yBase - towerHeight * 1.75, p.y)
+      float pylonY = (1.0 - step(yBase, p.y))
+        * smoothstep(yBase - towerHeight * 1.75, yBase - towerHeight * 0.10, p.y)
         * smoothstep(-0.58, -0.16, p.y);
       color += buildingTint * pylonX * pylonY * pylonGate * fade * (0.025 + uEnergy * 0.025);
     }
@@ -215,7 +216,7 @@ void main(void) {
     vec2 cell = floor((p + vec2(2.0)) * vec2(72.0, 88.0));
     float seed = hash21(cell);
     vec2 local = fract((p + vec2(2.0)) * vec2(72.0, 88.0)) - 0.5;
-    float spark = step(0.994, seed) * smoothstep(0.06, 0.0, length(local));
+    float spark = step(0.994, seed) * (1.0 - smoothstep(0.0, 0.06, length(local)));
     spark *= 0.35 + horizonFog * 0.65;
     color += glow * spark * (0.10 + uTreble * 0.08);
   }
