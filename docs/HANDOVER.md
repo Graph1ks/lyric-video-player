@@ -1,13 +1,13 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `f359c94c24b7d0d9fe30fbe833c9e618af97c953`  
-**Active candidate:** none  
-**Current phase/milestone:** v0.12 Director Performance Preset visual acceptance
+**Merged baseline:** `fd13259b8608e779ac868180ad0e4095c9fd70f9`  
+**Active candidate:** `feat/pro-control-surface-fx-rack` / PR #57  
+**Current phase/milestone:** v0.13 professional control surface + explicit FX ownership
 
 ## Current objective
 
-Visually verify merged PR #55: AUTO must draw only from the active preset's allowed visual/color pools, Lower Third scheduling must support permanent/scheduled/manual/outro use, and the detached Director transport/HUD controls must remain ergonomically correct.
+Complete PR #57 and then visually verify its operator contract: the detached playhead must remain live independently of Pixi RAF throttling, Lower Third schedules must follow authoritative playback time, every major renderer effect must be directly controllable, and world/preset dynamics must span restrained through deliberately extreme.
 
 ## Merged baseline — Resource lifetime + physical-edge safety v0.11.2
 
@@ -48,6 +48,46 @@ Lower Third presentation is changed from Intro/Rotate to Off/Scheduled/Always. S
 The detached Director topbar is reflowed into operator actions + a full-width transport row so the existing player controls no longer collapse. The main HUD text button also receives an explicit text-sized border box.
 
 Detailed contract: `docs/DIRECTOR_PERFORMANCE_PRESETS.md`.
+
+## Active candidate — Professional control surface + FX ownership
+
+PR #57 addresses a shared root cause and an ownership problem.
+
+**Transport / Lower Third root cause**
+
+The main `HtmlAudioClock` delivers visual ticks through `requestAnimationFrame`. When the main player becomes a background window while the detached Director is foreground, browsers can throttle that RAF even though HTML audio continues playing. Director telemetry previously lived inside the same tick, so the detached counter/progress and Lower Third scheduler could see stale playback time.
+
+The candidate samples authoritative media time independently through media events plus a 125 ms heartbeat. The detached Director interpolates only its visible counter/playhead between shared samples. Rendering/LRC evaluation remains tied to the real audio clock; the interpolation is not a second timing authority.
+
+**Explicit FX ownership**
+
+`VisualFxRack` makes previously implicit renderer layers first-class Director controls:
+
+- camera motion;
+- impact/pulse;
+- displacement;
+- velocity smear;
+- bloom;
+- temporal feedback;
+- lens/chroma/warp post pass;
+- World Power + World Detail;
+- screen bloom, scanlines, grain and vignette.
+
+Each uses 0–300%; 0% is off. The engine keeps global authored Intensity separate.
+
+**Preset semantics**
+
+Preset category rows may be empty. Empty means ANY/unrestricted on that AUTO axis. FX values are independent and can be zero. A preset therefore does not have to select every family or run every effect.
+
+The built-in presets are re-authored as smaller visual vocabularies with explicit FX racks, making low-energy and high-energy profiles structurally different rather than minor variations of the same global stack.
+
+**World dynamics**
+
+World Power now affects visibility/amplitude/audio response while World Detail affects actual density and structure across art worlds, particles, recursive lyrics, sparks, spectrum and procedural geometry. The intended range is genuinely quiet at the bottom and showpiece/extreme at the top.
+
+**UI research/design**
+
+The player and Director were rebuilt around current DAW/post-production control-surface patterns: persistent transport/counter, strong hierarchy, direct controls, modular panels and restrained chrome. See `docs/PRO_CONTROL_SURFACE_FX_RACK.md`.
 
 ## Current implementation state
 
