@@ -222,15 +222,25 @@ function planRibbonPath(input: TypographySequencePlanInput): TypographySequenceP
     const depth = clamp(units / 10);
     const isActive = word.role === "active";
     const recent = word.role === "recent";
+    const trailScale = lerp(recent ? 0.78 : 0.68, 0.34, depth);
+    const trailAlpha = lerp(recent ? 0.82 : 0.62, 0.07, depth);
+    // Position already hands off continuously through rank + activeProgress.
+    // Do the same for scale/alpha/orientation so the outgoing hero arrives at
+    // the exact visual state its rank-1 trail node will use after the boundary.
+    const scale = isActive ? lerp(1.14, 0.78, activeProgress) : trailScale;
+    const alpha = isActive ? lerp(1, 0.82, activeProgress) : trailAlpha;
+    const rotation = isActive
+      ? point.rotation * lerp(0.45, 1, activeProgress)
+      : point.rotation;
 
     return {
       id: word.id,
       role: word.role,
       x: point.x,
       y: point.y,
-      scale: isActive ? 1.14 : lerp(recent ? 0.78 : 0.68, 0.34, depth),
-      rotation: isActive ? point.rotation * 0.45 : point.rotation,
-      alpha: isActive ? 1 : lerp(recent ? 0.82 : 0.62, 0.07, depth),
+      scale,
+      rotation,
+      alpha,
       zIndex: 100 - Math.round(units * 6),
       treatment: isActive || recent ? "solid" : "outline",
     };
