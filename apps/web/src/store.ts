@@ -348,6 +348,11 @@ function controlSnapshot(state: UiState): DirectorControlSnapshot {
     colorCanvas: state.colorCanvas,
     colorFlow: state.colorFlow,
     syncMs: state.syncMs,
+    lowerThirdMode: state.lowerThirdMode,
+    lowerThirdPreset: state.lowerThirdPreset,
+    lowerThirdArtistOverride: state.lowerThirdArtistOverride,
+    lowerThirdTitleOverride: state.lowerThirdTitleOverride,
+    lowerThirdArtistImage: state.lowerThirdArtistImage,
   };
 }
 

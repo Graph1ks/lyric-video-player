@@ -90,6 +90,8 @@ describe("Operator + presentation state", () => {
     useUiStore.getState().addDirectorCue(24, "SPIRAL");
     const cue = useUiStore.getState().directorCues[0];
     expect(cue.snapshot.typographySequence).toBe("spiral-depth");
+    expect(cue.snapshot.lowerThirdMode).toBe("rotate");
+    expect(cue.snapshot.lowerThirdPreset).toBe("poster-stamp");
   });
 
   it("keeps UI language and lower-third controls in shared Director state", () => {
