@@ -1,13 +1,13 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `bb5afb8a678c19dd490c5d05a20ad9e6b4a082fe`  
-**Active candidate:** `feat/worlds-05-06-motion-fixes`  
-**Current phase/milestone:** motion-semantics repair + WORLD_05 / WORLD_06 implementation
+**Merged baseline:** `35ea8cf1a20834e8f52453c9219beb0ef08bb3b5`  
+**Active candidate:** none  
+**Current phase/milestone:** WORLD_03–06 visual acceptance
 
 ## Current objective
 
-Correct WORLD_03/WORLD_04 motion semantics found in local acceptance, then land WORLD_05 Fractal Hex Spiral Mosaic and WORLD_06 Soft Hex Cell Field.
+Visually accept merged PR #65: corrected WORLD_03/WORLD_04 motion semantics plus WORLD_05 Fractal Hex Spiral Mosaic and WORLD_06 Soft Hex Cell Field.
 
 ## Merged baseline — Resource lifetime + physical-edge safety v0.11.2
 
@@ -160,7 +160,7 @@ File: `packages/renderer-pixi/src/effects/backgrounds/NeonEnergyBurstTunnelWorld
 
 Both are registered as specialized `BackgroundPresetId` values, suppress legacy generic world layers, expose Director miniatures and participate in unrestricted AUTO routing.
 
-## Active candidate — motion fixes + WORLD_05 / WORLD_06
+## Merged baseline — motion fixes + WORLD_05 / WORLD_06
 
 Local acceptance exposed a motion-mapping problem independent of shader fidelity.
 
