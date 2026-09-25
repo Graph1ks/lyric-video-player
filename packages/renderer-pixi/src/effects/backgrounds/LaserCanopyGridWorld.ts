@@ -1,45 +1,239 @@
-import { Container, Graphics } from "pixi.js";
+import { Container, Filter, GlProgram, Graphics } from "pixi.js";
 import type { AudioBands } from "@graph1ks/emo-audio-web";
 import type { QualityMode } from "@graph1ks/emo-engine-core";
 
-interface EmitterSpec {
-  x: number;
-  y: number;
-  phase: number;
-  bias: number;
+const vertex = `
+in vec2 aPosition;
+out vec2 vTextureCoord;
+uniform vec4 uInputSize;
+uniform vec4 uOutputFrame;
+uniform vec4 uOutputTexture;
+
+vec4 filterVertexPosition(void) {
+    vec2 position = aPosition * uOutputFrame.zw + uOutputFrame.xy;
+    position.x = position.x * (2.0 / uOutputTexture.x) - 1.0;
+    position.y = position.y * (2.0 * uOutputTexture.z / uOutputTexture.y) - uOutputTexture.z;
+    return vec4(position, 0.0, 1.0);
 }
 
-const RED = 0xff4259;
-const CYAN = 0x55efff;
-const MINT = 0x42ffc2;
-const WHITE = 0xf7fbff;
+vec2 filterTextureCoord(void) {
+    return aPosition * (uOutputFrame.zw * uInputSize.zw);
+}
+
+void main(void) {
+    gl_Position = filterVertexPosition();
+    vTextureCoord = filterTextureCoord();
+}
+`;
+
+const fragment = `
+precision highp float;
+in vec2 vTextureCoord;
+uniform sampler2D uTexture;
+uniform float uTime;
+uniform float uPower;
+uniform float uDetail;
+uniform float uBass;
+uniform float uMid;
+uniform float uTreble;
+uniform float uEnergy;
+uniform float uTransient;
+uniform float uAspect;
+uniform float uQuality;
+
+float hash11(float p) {
+    p = fract(p * 0.1031);
+    p *= p + 33.33;
+    p *= p + p;
+    return fract(p);
+}
+
+float hash21(vec2 p) {
+    p = fract(p * vec2(123.34, 456.21));
+    p += dot(p, p + 45.32);
+    return fract(p.x * p.y);
+}
+
+float noise2(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    float a = hash21(i);
+    float b = hash21(i + vec2(1.0, 0.0));
+    float c = hash21(i + vec2(0.0, 1.0));
+    float d = hash21(i + vec2(1.0, 1.0));
+    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+
+float sdSegment(vec2 p, vec2 a, vec2 b) {
+    vec2 pa = p - a;
+    vec2 ba = b - a;
+    float h = clamp(dot(pa, ba) / max(dot(ba, ba), 0.00001), 0.0, 1.0);
+    return length(pa - ba * h);
+}
+
+float sdBox(vec2 p, vec2 b) {
+    vec2 d = abs(p) - b;
+    return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
+}
+
+vec3 laserColor(float index) {
+    float phase = mod(index, 7.0);
+    if (phase < 3.0) return vec3(1.0, 0.11, 0.22);
+    if (phase < 5.0) return vec3(0.18, 0.94, 1.0);
+    if (phase < 6.0) return vec3(0.16, 1.0, 0.60);
+    return vec3(0.92, 0.98, 1.0);
+}
+
+void main(void) {
+    vec2 uv = vTextureCoord;
+    vec2 p = uv * 2.0 - 1.0;
+    p.x *= uAspect;
+
+    float power = max(0.0, uPower);
+    float quality = mix(0.68, 1.0, uQuality);
+    float emitterCount = mix(7.0, 18.0, clamp(uDetail / 3.0, 0.0, 1.0));
+    float rayCount = mix(12.0, 32.0, clamp(uDetail / 3.0, 0.0, 1.0));
+
+    vec3 color = vec3(0.0025, 0.0045, 0.007);
+    float roomFog = noise2(p * vec2(2.1, 3.4) + vec2(uTime * 0.014, -uTime * 0.009));
+    color += vec3(0.008, 0.016, 0.022) * roomFog * (0.25 + uEnergy * 0.25 + power * 0.08);
+
+    float rigY = -0.78;
+    float rigMask = 1.0 - smoothstep(0.006, 0.018, sdBox(p - vec2(0.0, rigY), vec2(uAspect * 0.37, 0.012)));
+    color = mix(color, vec3(0.028, 0.034, 0.045), rigMask * 0.92);
+
+    // Perspective floor is intentionally subtle: it provides physical depth,
+    // but the laser architecture remains the hero.
+    float floorStart = 0.43;
+    if (p.y > floorStart) {
+        float depth = clamp((p.y - floorStart) / (1.0 - floorStart), 0.0, 1.0);
+        float perspective = depth * depth;
+        float horizontal = abs(fract((perspective * 16.0 - uTime * 0.12)) - 0.5);
+        float hLine = 1.0 - smoothstep(0.485, 0.5, horizontal);
+        float convergeX = p.x / max(0.10, depth + 0.10);
+        float vertical = abs(fract(convergeX * 0.22 + 0.5) - 0.5);
+        float vLine = 1.0 - smoothstep(0.492, 0.5, vertical);
+        color += vec3(0.04, 0.15, 0.18) * (hLine + vLine * 0.5)
+            * (0.006 + power * 0.004 + uMid * 0.006) * quality;
+    }
+
+    for (int i = 0; i < 32; i++) {
+        float fi = float(i);
+        float active = step(fi + 0.5, rayCount);
+        float seed = hash11(fi * 19.31 + 2.7);
+
+        float emitterIndex = mod(fi, max(1.0, emitterCount));
+        float emitterT = (emitterIndex + 0.5) / max(1.0, emitterCount);
+        float ex = mix(-uAspect * 0.34, uAspect * 0.34, emitterT);
+        float ey = rigY + 0.035 + (hash11(emitterIndex * 7.2 + 1.3) - 0.5) * 0.045;
+        vec2 a = vec2(ex, ey);
+
+        float fan = (hash11(fi * 3.71 + 8.2) - 0.5) * 2.0;
+        float sweep = sin(uTime * (0.17 + seed * 0.13) + seed * 10.0)
+            * (0.10 + uBass * 0.07 + power * 0.018);
+        float tx = clamp(
+            ex * 0.28 + fan * (0.55 + uBass * 0.18) + sweep,
+            -uAspect * 0.88,
+            uAspect * 0.88
+        );
+        float ty = 0.78 - abs(fan) * 0.10 - seed * 0.045;
+        vec2 b = vec2(tx, ty);
+
+        float d = sdSegment(p, a, b);
+        float coreWidth = mix(0.0014, 0.0022, quality);
+        float glowWidth = coreWidth * (4.0 + power * 0.7);
+        float core = 1.0 - smoothstep(coreWidth, coreWidth * 2.2, d);
+        float glow = 1.0 - smoothstep(glowWidth, glowWidth * 2.4, d);
+
+        vec3 lc = laserColor(fi);
+        float flicker = 0.90 + 0.10 * sin(uTime * (7.0 + seed * 8.0) + seed * 41.0);
+        float gain = active * flicker * (0.46 + uEnergy * 0.34 + uTransient * 0.20) * (0.56 + power * 0.26);
+        color += lc * glow * gain * 0.22;
+        color += mix(lc, vec3(1.0), 0.40) * core * gain * 0.90;
+
+        float sourceDist = length(p - a);
+        float sourceGlint = 1.0 - smoothstep(0.0, 0.016 + uTransient * 0.004, sourceDist);
+        color += lc * sourceGlint * active * (0.13 + uTreble * 0.16 + uTransient * 0.12);
+
+        float targetDist = length(p - b);
+        float floorHalo = 1.0 - smoothstep(0.0, 0.030 + uBass * 0.016, targetDist);
+        float floorHot = 1.0 - smoothstep(0.0, 0.006 + uTransient * 0.003, targetDist);
+        color += lc * floorHalo * active * (0.022 + uBass * 0.06 + uTransient * 0.04);
+        color += mix(lc, vec3(1.0), 0.55) * floorHot * active * (0.20 + uTransient * 0.30);
+    }
+
+    // Fixture apertures: thin luminous slots, not cartoon dots.
+    for (int j = 0; j < 18; j++) {
+        float fj = float(j);
+        float active = step(fj + 0.5, emitterCount);
+        float t = (fj + 0.5) / max(1.0, emitterCount);
+        vec2 fixtureP = p - vec2(mix(-uAspect * 0.34, uAspect * 0.34, t), rigY + 0.035);
+        float body = 1.0 - smoothstep(0.004, 0.010, sdBox(fixtureP, vec2(0.021, 0.012)));
+        float aperture = 1.0 - smoothstep(0.002, 0.006, sdBox(fixtureP - vec2(0.0, 0.004), vec2(0.010, 0.0025)));
+        color = mix(color, vec3(0.010, 0.012, 0.016), body * active * 0.74);
+        color += laserColor(fj) * aperture * active * (0.20 + uTreble * 0.18);
+    }
+
+    // Microscopic suspended haze specks sell volume while keeping line edges crisp.
+    float speck = smoothstep(0.985, 1.0, noise2(p * 65.0 + vec2(uTime * 0.45, -uTime * 0.18)));
+    color += vec3(0.45, 0.75, 0.80) * speck * (0.008 + uTreble * 0.018) * quality;
+
+    color *= 0.80 + power * 0.30;
+    color = 1.0 - exp(-max(color, vec3(0.0)) * (1.12 + uEnergy * 0.30));
+    color = pow(color, vec3(0.94));
+
+    gl_FragColor = vec4(color, 1.0);
+}
+`;
+
+type Uniforms = {
+  uTime: number;
+  uPower: number;
+  uDetail: number;
+  uBass: number;
+  uMid: number;
+  uTreble: number;
+  uEnergy: number;
+  uTransient: number;
+  uAspect: number;
+  uQuality: number;
+};
 
 export class LaserCanopyGridWorld {
   readonly container = new Container();
 
-  private readonly backdrop = new Graphics();
-  private readonly haze = new Graphics();
-  private readonly rig = new Graphics();
-  private readonly glow = new Graphics();
-  private readonly beams = new Graphics();
-  private readonly floor = new Graphics();
-  private readonly sparkles = new Graphics();
-
+  private readonly surface = new Graphics();
+  private readonly filter: Filter;
   private width = 1;
   private height = 1;
   private intensity = 1;
   private detail = 1;
   private quality: QualityMode = "cinema";
-  private emitters: EmitterSpec[] = [];
 
   constructor() {
-    this.glow.blendMode = "add";
-    this.beams.blendMode = "add";
-    this.floor.blendMode = "add";
-    this.sparkles.blendMode = "add";
-    this.container.addChild(this.backdrop, this.haze, this.rig, this.glow, this.beams, this.floor, this.sparkles);
+    this.filter = new Filter({
+      glProgram: GlProgram.from({ vertex, fragment }),
+      resources: {
+        laserUniforms: {
+          uTime: { value: 0, type: "f32" },
+          uPower: { value: 1, type: "f32" },
+          uDetail: { value: 1, type: "f32" },
+          uBass: { value: 0, type: "f32" },
+          uMid: { value: 0, type: "f32" },
+          uTreble: { value: 0, type: "f32" },
+          uEnergy: { value: 0, type: "f32" },
+          uTransient: { value: 0, type: "f32" },
+          uAspect: { value: 16 / 9, type: "f32" },
+          uQuality: { value: 1, type: "f32" },
+        },
+      },
+    });
+    this.filter.padding = 0;
+    this.surface.filters = [this.filter];
+    this.container.addChild(this.surface);
     this.container.visible = false;
-    this.rebuild();
+    this.resize(1, 1);
   }
 
   setIntensity(value: number) {
@@ -47,184 +241,41 @@ export class LaserCanopyGridWorld {
   }
 
   setDetail(value: number) {
-    const next = clamp(value, 0, 3);
-    if (next === this.detail) return;
-    this.detail = next;
-    this.rebuild();
+    this.detail = clamp(value, 0, 3);
   }
 
   setQuality(value: QualityMode) {
-    if (value === this.quality) return;
     this.quality = value;
-    this.rebuild();
   }
 
   resize(width: number, height: number) {
     this.width = Math.max(1, width);
     this.height = Math.max(1, height);
-    this.rebuild();
+    this.surface.clear().rect(0, 0, this.width, this.height).fill({ color: 0x020305, alpha: 1 });
+    this.write("uAspect", this.width / this.height);
   }
 
   update(time: number, audio: AudioBands) {
     if (!this.container.visible) return;
-
-    const power = this.intensity;
-    const bass = clamp(audio.bass, 0, 1);
-    const mid = clamp(audio.mid, 0, 1);
-    const treble = clamp(audio.treble, 0, 1);
-    const energy = clamp(audio.energy, 0, 1);
-    const transient = clamp(audio.transient, 0, 1);
-    const bleed = Math.max(this.width, this.height) * 0.16;
-    const floorY = this.height * 0.9;
-
-    this.backdrop.clear();
-    this.haze.clear();
-    this.rig.clear();
-    this.glow.clear();
-    this.beams.clear();
-    this.floor.clear();
-    this.sparkles.clear();
-
-    this.backdrop
-      .rect(-bleed, -bleed, this.width + bleed * 2, this.height + bleed * 2)
-      .fill({ color: 0x020305, alpha: 1 });
-
-    this.haze
-      .ellipse(this.width * 0.5, this.height * 0.47, this.width * 0.52, this.height * 0.42)
-      .fill({ color: 0x09131b, alpha: clamp(0.04 + energy * 0.035 + power * 0.018, 0, 0.16) });
-
-    const rigLeft = this.width * 0.17;
-    const rigRight = this.width * 0.83;
-    const rigY = this.height * 0.085;
-    this.rig
-      .roundRect(rigLeft, rigY, rigRight - rigLeft, 8, 4)
-      .fill({ color: 0x161a22, alpha: 0.98 });
-    this.rig
-      .roundRect(rigLeft, rigY + 9, rigRight - rigLeft, 2, 1)
-      .fill({ color: 0x39424f, alpha: 0.46 });
-
-    const raysPerEmitter = Math.max(2, Math.min(7, Math.round((this.quality === "cinema" ? 3.5 : 2.4) * Math.max(0.65, this.detail))));
-    const spread = this.width * (0.045 + 0.03 * Math.min(3, power)) * (0.75 + bass * 0.38);
-    let laserIndex = 0;
-
-    for (let emitterIndex = 0; emitterIndex < this.emitters.length; emitterIndex++) {
-      const emitter = this.emitters[emitterIndex];
-      const ex = emitter.x;
-      const ey = emitter.y;
-      const fixtureColor = emitterIndex % 2 === 0 ? RED : CYAN;
-
-      this.rig.circle(ex, ey, 5.5).fill({ color: WHITE, alpha: 0.95 });
-      this.rig.circle(ex, ey, 10 + transient * 3).stroke({ width: 1, color: fixtureColor, alpha: clamp(0.18 + treble * 0.18, 0, 0.5) });
-
-      const sweep = Math.sin(time * (0.22 + emitter.bias * 0.16) + emitter.phase) * spread;
-      const fanCenter = this.width * (0.5 + (emitter.bias - 0.5) * 0.16);
-
-      for (let ray = 0; ray < raysPerEmitter; ray++) {
-        const t = raysPerEmitter <= 1 ? 0.5 : ray / (raysPerEmitter - 1);
-        const fan = (t - 0.5) * 2;
-        const color = laserColor(laserIndex);
-        const landingX = clamp(
-          fanCenter + fan * spread * (1.8 + emitter.bias * 1.3) + sweep,
-          this.width * 0.055,
-          this.width * 0.945,
-        );
-        const landingY = floorY - Math.abs(fan) * this.height * 0.055 - emitter.bias * this.height * 0.02;
-        const baseAlpha = (0.23 + energy * 0.28 + transient * 0.17) * (0.48 + power * 0.34);
-        const alpha = clamp(baseAlpha, 0, 0.82);
-        const crispWidth = ray % 3 === 0 ? 1.35 : 0.9;
-
-        this.glow.moveTo(ex, ey).lineTo(landingX, landingY).stroke({
-          width: crispWidth + 3.5 + power * 0.55,
-          color,
-          alpha: alpha * 0.08,
-        });
-        this.beams.moveTo(ex, ey).lineTo(landingX, landingY).stroke({
-          width: crispWidth,
-          color,
-          alpha,
-        });
-        this.beams.moveTo(ex, ey).lineTo(landingX, landingY).stroke({
-          width: 0.38,
-          color: WHITE,
-          alpha: clamp(alpha * 0.42, 0, 0.34),
-        });
-
-        const hitRadius = 1.6 + bass * 2.2 + transient * 3.4;
-        this.floor.circle(landingX, landingY, hitRadius + 5).fill({ color, alpha: clamp(0.025 + bass * 0.055 + transient * 0.05, 0, 0.16) });
-        this.floor.circle(landingX, landingY, hitRadius).fill({ color, alpha: clamp(0.22 + bass * 0.26 + transient * 0.24, 0, 0.86) });
-        this.floor.circle(landingX, landingY, Math.max(0.7, hitRadius * 0.35)).fill({ color: WHITE, alpha: 0.55 });
-
-        const dustCount = this.quality === "cinema" ? 4 : 2;
-        for (let dust = 0; dust < dustCount; dust++) {
-          const dt = (dust + 1) / (dustCount + 1);
-          const flicker = 0.5 + 0.5 * Math.sin(time * (2.6 + dust * 0.5) + emitter.phase + ray);
-          const px = ex + (landingX - ex) * dt;
-          const py = ey + (landingY - ey) * dt;
-          this.sparkles.circle(px, py, 0.55 + treble * 0.8).fill({
-            color,
-            alpha: clamp((0.018 + treble * 0.06) * flicker, 0, 0.1),
-          });
-        }
-
-        laserIndex += 1;
-      }
-    }
-
-    const perspectiveRows = Math.max(3, Math.min(8, Math.round(3 + this.detail * 1.4)));
-    for (let row = 0; row < perspectiveRows; row++) {
-      const t = row / Math.max(1, perspectiveRows - 1);
-      const y = this.height * (0.72 + t * t * 0.24);
-      this.floor.moveTo(this.width * 0.06, y).lineTo(this.width * 0.94, y).stroke({
-        width: 1,
-        color: 0x66d9e8,
-        alpha: clamp(0.008 + power * 0.007 + mid * 0.008, 0, 0.035),
-      });
-    }
-
-    const dotCount = Math.max(20, Math.min(100, Math.round((this.quality === "cinema" ? 42 : 24) * Math.max(0.55, this.detail))));
-    for (let i = 0; i < dotCount; i++) {
-      const x = this.width * pseudo(i * 7.81 + 2.2);
-      const y = this.height * (0.72 + pseudo(i * 11.29 + 3.7) * 0.25);
-      const color = i % 3 === 0 ? MINT : i % 2 === 0 ? CYAN : RED;
-      const twinkle = 0.45 + 0.55 * Math.sin(time * (1.1 + pseudo(i * 3.4)) + i);
-      this.floor.circle(x, y, 0.7 + pseudo(i * 9.2) * 1.2).fill({
-        color,
-        alpha: clamp((0.02 + treble * 0.035) * twinkle * (0.7 + power * 0.2), 0, 0.09),
-      });
-    }
-
-    this.container.alpha = clamp(power, 0, 1);
+    this.write("uTime", time);
+    this.write("uPower", this.intensity);
+    this.write("uDetail", this.detail);
+    this.write("uBass", audio.bass);
+    this.write("uMid", audio.mid);
+    this.write("uTreble", audio.treble);
+    this.write("uEnergy", audio.energy);
+    this.write("uTransient", audio.transient);
+    this.write("uAspect", this.width / this.height);
+    this.write("uQuality", this.quality === "cinema" ? 1 : 0);
+    this.container.alpha = clamp(this.intensity, 0, 1);
   }
 
-  private rebuild() {
-    const count = Math.max(6, Math.min(22, Math.round((this.quality === "cinema" ? 10 : 7) * Math.max(0.65, this.detail))));
-    const emitters: EmitterSpec[] = [];
-    for (let i = 0; i < count; i++) {
-      const t = (i + 0.5) / count;
-      emitters.push({
-        x: this.width * (0.18 + t * 0.64),
-        y: this.height * (0.115 + pseudo(i * 5.1) * 0.055),
-        phase: pseudo(i * 12.7 + 1.8) * Math.PI * 2,
-        bias: pseudo(i * 19.4 + 0.9),
-      });
-    }
-    this.emitters = emitters;
+  private write(name: keyof Uniforms, value: number) {
+    const uniforms = (this.filter.resources.laserUniforms as { uniforms: Uniforms }).uniforms;
+    uniforms[name] = value;
   }
-}
-
-function laserColor(index: number) {
-  const phase = index % 7;
-  if (phase <= 2) return RED;
-  if (phase <= 4) return CYAN;
-  if (phase === 5) return MINT;
-  return WHITE;
 }
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
-}
-
-function pseudo(value: number) {
-  const raw = Math.sin(value * 12.9898) * 43758.5453;
-  return raw - Math.floor(raw);
 }
