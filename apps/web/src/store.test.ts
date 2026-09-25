@@ -28,3 +28,52 @@ describe("E-MO UI store", () => {
     expect(useUiStore.getState().syncMs).toBe(120);
   });
 });
+
+
+describe("Director workspace state", () => {
+  it("captures and recalls complete visual cue snapshots", () => {
+    useUiStore.setState({
+      directorCues: [],
+      directorTrackTitle: "TEST TRACK",
+      mode: "poster",
+      intensity: 1.24,
+      quality: "cinema",
+      typographyPreset: "impact",
+      typographyLayout: "editorial",
+      compositionMotion: "takeover",
+      backgroundPreset: "print",
+      colorHarmony: "triad",
+      colorMood: "rage",
+      colorCanvas: "poster",
+      colorFlow: "rainbow",
+      syncMs: 90,
+    });
+
+    useUiStore.getState().addDirectorCue(12.5, "HOOK HIT");
+    const cue = useUiStore.getState().directorCues[0];
+    expect(cue.label).toBe("HOOK HIT");
+    expect(cue.at).toBe(12.5);
+    expect(cue.trackLabel).toBe("TEST TRACK");
+    expect(cue.snapshot.typographyPreset).toBe("impact");
+    expect(cue.snapshot.backgroundPreset).toBe("print");
+
+    useUiStore.getState().setMode("neon");
+    useUiStore.getState().setTypographyPreset("wave");
+    useUiStore.getState().setBackgroundPreset("aurora");
+    useUiStore.getState().applyDirectorCue(cue.id);
+
+    expect(useUiStore.getState().mode).toBe("poster");
+    expect(useUiStore.getState().typographyPreset).toBe("impact");
+    expect(useUiStore.getState().backgroundPreset).toBe("print");
+    expect(useUiStore.getState().syncMs).toBe(90);
+  });
+
+  it("clears planner drafts without altering live controls", () => {
+    useUiStore.getState().addDirectorCue(2, "A");
+    expect(useUiStore.getState().directorCues.length).toBeGreaterThan(0);
+    const mode = useUiStore.getState().mode;
+    useUiStore.getState().clearDirectorCues();
+    expect(useUiStore.getState().directorCues).toHaveLength(0);
+    expect(useUiStore.getState().mode).toBe(mode);
+  });
+});
