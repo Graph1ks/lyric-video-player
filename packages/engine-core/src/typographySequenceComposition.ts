@@ -4,6 +4,7 @@ import {
   buildShapeFillLayout,
   shapeFillVariantForScope,
   type TypographyMetricsById,
+  type TypographyPackingSlot,
 } from "./typographyShapePacking.js";
 import {
   normalizeSpatialMetrics,
@@ -64,6 +65,7 @@ export interface TypographySequencePlanInput {
   width: number;
   height: number;
   metricsById?: TypographyMetricsById;
+  staticLayout?: ReadonlyMap<string, TypographyPackingSlot>;
 }
 
 export function planTypographySequence(
@@ -174,7 +176,7 @@ function planSpiralDepth(input: TypographySequencePlanInput): TypographySequence
     }
 
     cumulativeDepth = depthUnits;
-    occupied.push(chosenBox);
+    if (chosenBox) occupied.push(chosenBox);
     placements.push(chosen);
   }
 
@@ -239,7 +241,7 @@ function planShapeFill(input: TypographySequencePlanInput): TypographySequencePl
   const width = Math.max(1, input.width);
   const height = Math.max(1, input.height);
   const shapeVariant = shapeFillVariantForScope(input.window.scopeStartLineIndex);
-  const layout = buildShapeFillLayout(
+  const layout = input.staticLayout ?? buildShapeFillLayout(
     shapeVariant,
     input.window.scopeWords,
     input.metricsById ?? {},
@@ -293,7 +295,7 @@ function planShapeFill(input: TypographySequencePlanInput): TypographySequencePl
 function planManifestoWall(input: TypographySequencePlanInput): TypographySequencePlan {
   const width = Math.max(1, input.width);
   const height = Math.max(1, input.height);
-  const layout = buildManifestoPageLayout(
+  const layout = input.staticLayout ?? buildManifestoPageLayout(
     input.window.scopeWords,
     input.metricsById ?? {},
     width,

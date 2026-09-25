@@ -2,15 +2,19 @@ import { Container, Text, TextStyle } from "pixi.js";
 import type { AudioBands } from "@graph1ks/emo-audio-web";
 import {
   analyzeKineticReadability,
+  buildManifestoPageLayout,
+  buildShapeFillLayout,
   clamp,
   deriveTypographySequenceWindow,
   planTypographySequence,
+  shapeFillVariantForScope,
   type LineCue,
   spatialBoxFor,
   spatialEnvelope,
   type QualityMode,
   type SequenceTypographyTreatment,
   type TypographySequenceGrammarId,
+  type TypographyPackingSlot,
   type TypographySpatialMetrics,
   type VisualPalette,
 } from "@graph1ks/emo-engine-core";
@@ -36,6 +40,8 @@ export class PersistentTypographySequences {
   private h = 1;
   private baseFontSize = 84;
   private scopeMetrics = new Map<string, TypographySpatialMetrics>();
+  private staticLayout?: Map<string, TypographyPackingSlot>;
+  private staticLayoutKey = "";
   private framingCenterX = 0;
   private framingCenterY = 0;
   private framingScale = 1;
@@ -117,6 +123,8 @@ export class PersistentTypographySequences {
       entry.node.style = this.styleFor(entry.treatment);
     }
     this.scopeMetrics.clear();
+    this.staticLayout = undefined;
+    this.staticLayoutKey = "";
   }
 
   update(time: number, audio: AudioBands) {
@@ -173,12 +181,48 @@ export class PersistentTypographySequences {
       metricsById[scopeWord.id] = metrics;
     }
 
+    let staticLayout: Map<string, TypographyPackingSlot> | undefined;
+    if (persistentStructure) {
+      const layoutKey = [
+        this.grammar,
+        this.phraseStartLine,
+        this.phraseEndLine,
+        Math.round(this.w),
+        Math.round(this.h),
+        Math.round(this.baseFontSize * 100),
+        window.scopeWords.length,
+      ].join(":");
+
+      if (!this.staticLayout || this.staticLayoutKey !== layoutKey) {
+        this.staticLayout = architecturalWall
+          ? buildManifestoPageLayout(
+              window.scopeWords,
+              metricsById,
+              this.w,
+              this.h,
+            )
+          : buildShapeFillLayout(
+              shapeFillVariantForScope(window.scopeStartLineIndex),
+              window.scopeWords,
+              metricsById,
+              this.w,
+              this.h,
+            );
+        this.staticLayoutKey = layoutKey;
+      }
+      staticLayout = this.staticLayout;
+    } else if (this.staticLayout) {
+      this.staticLayout = undefined;
+      this.staticLayoutKey = "";
+    }
+
     const plan = planTypographySequence({
       grammar: this.grammar,
       window,
       width: this.w,
       height: this.h,
       metricsById,
+      staticLayout,
     });
     const refs = new Map(window.words.map(word => [word.id, word]));
     const activeIds = new Set<string>();
@@ -379,6 +423,8 @@ export class PersistentTypographySequences {
     }
     this.nodes.clear();
     this.scopeMetrics.clear();
+    this.staticLayout = undefined;
+    this.staticLayoutKey = "";
     this.framingCenterX = 0;
     this.framingCenterY = 0;
     this.framingScale = 1;
