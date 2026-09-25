@@ -1,8 +1,8 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `120c247de32316ece937d0f2abe1bb374f3dc196`  
-**Active candidate:** `feat/legacy-world-rehab-phase-a` — draft PR #74  
+**Merged baseline:** `d46776cb35e881839abc139fc0075d487c970de6`  
+**Active candidate:** `feat/legacy-world-rehab-spectrum-sparks` — draft PR #76  
 **Current phase/milestone:** legacy world/background rehabilitation
 
 ## Current objective
@@ -64,13 +64,13 @@ The Color Director remains the art-direction source of truth:
 6. full palette/readability acceptance across 0–300% World Power;
 7. only then resume WORLD_09/10.
 
-### Candidate implementation state — draft PR #74
+### Legacy rehabilitation implementation state — PR #74/#75 merged; draft PR #76 active
 
 - Phase A audit is durable in `docs/LEGACY_WORLD_MOTION_AUDIT.md` and classifies all 15 legacy presets before further rebuilds.
 - `WorldAudioReactivity` is now the allocation-light legacy adapter: attack/release-smoothed bands, rising-edge transient event, positive decay envelope, long-energy envelope and seek/discontinuity reset.
 - The legacy shared stack consumes those primitives while WORLD_01–08 keep their already-authored dedicated audio semantics.
 - Raw bass/transient whole-geometry pumping is removed from shared blob/ring/beam/particle scale/push paths and from editorial/architecture whole-form scaling.
-- `ProceduralLiquidFX` no longer multiplies absolute-time phase speed or field spatial frequency by audio.
+- PR #75 supersedes the old `ProceduralLiquidFX` material: Liquid is now a semantic-palette raymarched smooth-min implicit surface with real normals, Fresnel/specular response and time-owned SDF topology.\n- PR #75 also isolates `cinematic` into a dedicated fullscreen atmospheric/lens-light shader with layered haze, anamorphic flare structure and foreground depth masses instead of shared blobs/rings/beams.
 - `WorldColorContext` is defined in engine-core with title-safe luminance, highlight risk, busyness/chroma pressure, stable text-polarity recommendation and outline-support pressure.
 - The five Phase-B worst offenders are now isolated as dedicated worlds instead of shared-stack variants:
   - `vortex` → `LegacyVortexWorld`: projected helix ribbons, depth hoops and monotonic one-way tracers;
@@ -81,7 +81,7 @@ The Color Director remains the art-direction source of truth:
 - Those five preset IDs are included in the specialized-world isolation set, so generic particles/blobs/rings/beams no longer dilute them.
 - All five consume semantic `VisualPalette` roles. Geometry/phase/direction are timestamp-owned; smoothed legacy audio only affects light/material response, and Rays uses the positive transient envelope for light only. Full-frame post-FX barrel/displacement/smear sampling distance is also time-owned so global FX cannot reintroduce bass-driven scene breathing.
 - All five remain **visual-acceptance pending**; do not describe them as fidelity-accepted until real browser/Desktop review passes.
-- Fidelity escalation is now explicit in `docs/WORLD_BACKGROUND_REHABILITATION_PLAN.md`: continuous media/spatial worlds must use shader/projected-3D/Mesh primitives appropriate to their identity instead of primitive `Graphics` stand-ins; `Graph1ks/website` remains the internal quality benchmark.
+- Fidelity escalation is now explicit in `docs/WORLD_BACKGROUND_REHABILITATION_PLAN.md`: continuous media/spatial worlds must use shader/projected-3D/Mesh primitives appropriate to their identity instead of primitive `Graphics` stand-ins; `Graph1ks/website` remains the internal quality benchmark.\n- PR #76 continues that floor: `spectrum` is now a projected real-FFT frequency topography rather than another minimal waveform, and `sparks` is a deterministic ballistic/trail system whose transient envelope gates fresh emission rather than whole-scene motion. The old generic spark/spectrum layers are disabled for those preset IDs.
 
 ## Merged baseline — Resource lifetime + physical-edge safety v0.11.2
 

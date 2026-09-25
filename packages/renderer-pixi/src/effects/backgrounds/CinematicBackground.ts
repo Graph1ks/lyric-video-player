@@ -26,6 +26,8 @@ import { LegacyStarfieldWorld } from "./LegacyStarfieldWorld.js";
 import { LegacyNebulaWorld } from "./LegacyNebulaWorld.js";
 import { LegacyGridWorld } from "./LegacyGridWorld.js";
 import { LegacyCinematicWorld } from "./LegacyCinematicWorld.js";
+import { LegacySpectrumWorld } from "./LegacySpectrumWorld.js";
+import { LegacySparksWorld } from "./LegacySparksWorld.js";
 
 const EMPTY_SPECTRUM = new Float32Array(0);
 
@@ -64,6 +66,8 @@ const ART_DIRECTION_PRESETS = new Set<BackgroundPresetId>([
 const SPECIALIZED_WORLD_PRESETS = new Set<BackgroundPresetId>([
   "cinematic",
   "liquid",
+  "spectrum",
+  "sparks",
   "vortex",
   "rays",
   "starfield",
@@ -98,6 +102,8 @@ export class CinematicBackground {
   private legacyNebula = new LegacyNebulaWorld();
   private legacyGrid = new LegacyGridWorld();
   private legacyCinematic = new LegacyCinematicWorld();
+  private legacySpectrum = new LegacySpectrumWorld();
+  private legacySparks = new LegacySparksWorld();
   private liquidSurface = new Graphics();
   private liquidFX = new ProceduralLiquidFX();
   private geometry = new Graphics();
@@ -150,6 +156,8 @@ export class CinematicBackground {
       this.legacyNebula.container,
       this.legacyGrid.container,
       this.legacyCinematic.container,
+      this.legacySpectrum.container,
+      this.legacySparks.container,
       this.liquidSurface,
       this.lyricBackdropLayer,
       this.blobLayer,
@@ -247,6 +255,8 @@ export class CinematicBackground {
     this.legacyNebula.setPalette(palette);
     this.legacyGrid.setPalette(palette);
     this.legacyCinematic.setPalette(palette);
+    this.legacySpectrum.setPalette(palette);
+    this.legacySparks.setPalette(palette);
     this.liquidFX.setPalette(palette);
     this.applyModePalette();
     if (refreshStatic) this.rebuildLyricBackdrop();
@@ -284,6 +294,8 @@ export class CinematicBackground {
     this.legacyNebula.setDetail(this.worldDetail);
     this.legacyGrid.setDetail(this.worldDetail);
     this.legacyCinematic.setDetail(this.worldDetail);
+    this.legacySpectrum.setDetail(this.worldDetail);
+    this.legacySparks.setDetail(this.worldDetail);
     this.liquidFX.setDetail(this.worldDetail);
     this.applyPresetVisibility();
     this.rebuildLyricBackdrop();
@@ -321,6 +333,10 @@ export class CinematicBackground {
     this.legacyGrid.setDetail(this.worldDetail);
     this.legacyCinematic.setIntensity(power);
     this.legacyCinematic.setDetail(this.worldDetail);
+    this.legacySpectrum.setIntensity(power);
+    this.legacySpectrum.setDetail(this.worldDetail);
+    this.legacySparks.setIntensity(power);
+    this.legacySparks.setDetail(this.worldDetail);
     this.liquidFX.setIntensity(power);
     this.liquidFX.setDetail(this.worldDetail);
   }
@@ -342,6 +358,8 @@ export class CinematicBackground {
     this.legacyNebula.setQuality(value);
     this.legacyGrid.setQuality(value);
     this.legacyCinematic.setQuality(value);
+    this.legacySpectrum.setQuality(value);
+    this.legacySparks.setQuality(value);
     this.liquidFX.setQuality(value);
     this.applyPresetVisibility();
   }
@@ -364,6 +382,8 @@ export class CinematicBackground {
     this.legacyNebula.resize(w, h);
     this.legacyGrid.resize(w, h);
     this.legacyCinematic.resize(w, h);
+    this.legacySpectrum.resize(w, h);
+    this.legacySparks.resize(w, h);
     this.redrawBase();
     this.redrawLiquidSurface();
     this.liquidFX.resize(w, h);
@@ -405,11 +425,11 @@ export class CinematicBackground {
     this.legacyNebula.update(time, legacyAudio);
     this.legacyGrid.update(time, legacyAudio);
     this.legacyCinematic.update(time, legacyAudio);
+    this.legacySpectrum.update(time, legacyAudio, spectrum);
+    this.legacySparks.update(time, legacyAudio, legacyFrame.transientEnvelope);
     if (this.liquidSurface.visible) this.liquidFX.update(time, legacyAudio);
     this.updateGeometry(time, legacyAudio);
     this.updateLyricBackdrop(time, legacyAudio);
-    this.updateSparks(time, legacyAudio, legacyFrame.transientEnvelope);
-    this.updateSpectrum(time, legacyAudio, spectrum);
     this.updateBlobs(time, cx, cy, energy);
     this.updateParticles(time, legacyAudio, cx, cy, legacyFrame.transientEnvelope);
     this.updateRings(time, cx, cy, energy);
@@ -463,11 +483,13 @@ export class CinematicBackground {
     this.legacyNebula.container.visible = this.resolvedPreset === "nebula";
     this.legacyGrid.container.visible = this.resolvedPreset === "grid";
     this.legacyCinematic.container.visible = this.resolvedPreset === "cinematic";
+    this.legacySpectrum.container.visible = this.resolvedPreset === "spectrum";
+    this.legacySparks.container.visible = this.resolvedPreset === "sparks";
     this.artDirection.setLineIndex(this.lineIndex);
     this.liquidSurface.visible = this.resolvedPreset === "liquid";
     this.lyricBackdropLayer.visible = this.resolvedPreset === "lyrics";
-    this.sparkLayer.visible = this.resolvedPreset === "sparks";
-    this.spectrumLayer.visible = this.resolvedPreset === "spectrum";
+    this.sparkLayer.visible = false;
+    this.spectrumLayer.visible = false;
     const particleStride = this.resolvedPreset === "minimal"
       ? cinema ? 4 : 7
       : this.resolvedPreset === "liquid"
