@@ -455,7 +455,11 @@ export class KineticLyrics {
       let cursor = 0;
       const chars = [...cue.text];
       chars.forEach((char, glyphIndex) => {
-        const node = new Text({ text: char, style: this.mainStyle });
+        const node = new Text({
+          text: char,
+          style: this.mainStyle,
+          resolution: textTextureResolution(),
+        });
         node.anchor.set(0.5);
         const half = node.width * 0.5;
         const baseX = cursor + half;
@@ -1102,4 +1106,10 @@ export class KineticLyrics {
     }
     return -1;
   }
+}
+
+
+function textTextureResolution() {
+  const dpr = typeof devicePixelRatio === "number" ? devicePixelRatio : 1;
+  return Math.max(2, Math.min(4, dpr * 2));
 }

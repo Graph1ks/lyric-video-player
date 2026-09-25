@@ -46,6 +46,7 @@ export class EngineRenderer {
   readonly app = new Application();
   readonly root = new Container();
 
+  private scene = new Container();
   private camera = new Container();
   private background = new CinematicBackground();
   private sequenceLyrics = new PersistentTypographySequences();
@@ -89,6 +90,9 @@ export class EngineRenderer {
   private lastLyricTime = 0;
   private lastPaletteFlowTick = -1;
   private resizeListener?: () => void;
+  private fullscreenListener?: () => void;
+  private visualViewportListener?: () => void;
+  private resizeObserver?: ResizeObserver;
 
   constructor() {
     this.lyrics.onWordHit((index, audio) => {
@@ -112,11 +116,14 @@ export class EngineRenderer {
     });
 
     host.appendChild(this.app.canvas);
+    // Background/world stays screen-anchored. Only typography lives inside the
+    // camera rig. This prevents camera/lyric travel from exposing transparent
+    // render-target edges as black bars.
     this.camera.addChild(
-      this.background.container,
       this.sequenceLyrics.container,
       this.lyrics.container,
     );
+    this.scene.addChild(this.background.container, this.camera);
     this.root.addChild(this.renderGraph.output);
     this.app.stage.addChild(this.root);
 
@@ -125,7 +132,20 @@ export class EngineRenderer {
     this.renderGraph.setIntensity(this.intensity);
     this.resize();
     this.resizeListener = () => this.resize();
+    this.fullscreenListener = () => {
+      // Fullscreen layout settles asynchronously in Chromium. Resize once now
+      // and again on the next frame so the render targets match the final box.
+      this.resize();
+      requestAnimationFrame(() => this.resize());
+    };
+    this.visualViewportListener = () => this.resize();
     window.addEventListener("resize", this.resizeListener);
+    document.addEventListener("fullscreenchange", this.fullscreenListener);
+    window.visualViewport?.addEventListener("resize", this.visualViewportListener);
+    if (typeof ResizeObserver !== "undefined") {
+      this.resizeObserver = new ResizeObserver(() => this.resize());
+      this.resizeObserver.observe(host);
+    }
   }
 
   onModeChange(listener: (mode: SceneMode) => void) {
@@ -425,7 +445,7 @@ export class EngineRenderer {
     this.updateCinematicCamera(lyricTime);
     this.cameraRig.update(time, audio);
 
-    this.renderGraph.capture(this.app.renderer, this.camera, time);
+    this.renderGraph.capture(this.app.renderer, this.scene, time);
     this.app.renderer.render({
       container: this.app.stage,
       clear: true,
@@ -438,6 +458,9 @@ export class EngineRenderer {
 
   destroy() {
     if (this.resizeListener) window.removeEventListener("resize", this.resizeListener);
+    if (this.fullscreenListener) document.removeEventListener("fullscreenchange", this.fullscreenListener);
+    if (this.visualViewportListener) window.visualViewport?.removeEventListener("resize", this.visualViewportListener);
+    this.resizeObserver?.disconnect();
     this.renderGraph.destroy();
     this.app.destroy();
   }
@@ -581,6 +604,14 @@ export class EngineRenderer {
 
   private resize() {
     if (!this.app.renderer) return;
+    const rect = this.host?.getBoundingClientRect();
+    const requestedW = Math.max(1, Math.round(rect?.width ?? window.innerWidth));
+    const requestedH = Math.max(1, Math.round(rect?.height ?? window.innerHeight));
+    const currentW = this.app.renderer.width / this.app.renderer.resolution;
+    const currentH = this.app.renderer.height / this.app.renderer.resolution;
+    if (Math.abs(currentW - requestedW) > 0.5 || Math.abs(currentH - requestedH) > 0.5) {
+      this.app.renderer.resize(requestedW, requestedH);
+    }
     const w = this.app.renderer.width / this.app.renderer.resolution;
     const h = this.app.renderer.height / this.app.renderer.resolution;
     this.background.resize(w, h);
