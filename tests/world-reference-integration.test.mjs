@@ -42,7 +42,7 @@ test("specialized stage and laser worlds suppress generic background layers", as
   assert.match(background, /particleSpiralVortex\.container\.visible = this\.resolvedPreset === "particle-spiral-vortex"/);
   assert.match(background, /minimalRainbowWaveform\.container\.visible = this\.resolvedPreset === "minimal-rainbow-waveform"/);
   assert.match(background, /minimalRainbowWaveform\.update\(time, audio, spectrum\)/);
-  assert.match(background, /!artWorld && !specializedWorld/);
+  assert.match(background, /!specializedWorld/);
 });
 
 test("Prism Stage Beams uses a GPU volumetric shader instead of cartoon Graphics fixtures", async () => {

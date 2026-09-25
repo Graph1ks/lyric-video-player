@@ -1,113 +1,189 @@
 # Art Direction Worlds
 
-**Status:** merged Step 4 baseline  
+**Status:** rehabilitation candidate — draft PR #78  
 **Last updated:** 2026-09-25
 
 ## Purpose
 
-E-MO backgrounds must be art-direction systems, not a collection of nearly identical particle fields.
+The Art Direction presets are now held to the same fidelity floor as the rehabilitated Nebula / Rays / Starfield / Grid / Cinematic / Liquid / Spectrum / Sparks / Lyrics / Minimal worlds.
 
-A world owns the large visual grammar behind the lyrics: blocks, spatial structure, print texture, light ribbons or other scene-scale forms. Small particles, post-FX and lyric typography remain independent layers.
-
-Every world must:
-
-- consume semantic `VisualPalette` roles rather than own arbitrary scene colors;
-- preserve a quiet/readable central lyric region unless the selected typography motion explicitly takes over the frame;
-- use explicit audio/LRC time and deterministic seeded values;
-- remain seek-reconstructable;
-- have distinct geometry/composition rather than merely a different color or particle density;
-- support Performance and Cinema budgets.
-
-## Step 4 baseline worlds
-
-### Editorial
-
-**Visual grammar:** asymmetric plates, bars, crop/corner marks and graphic-design framing.
-
-Palette roles:
-
-- `surface`: large structural plates;
-- `accentA`: primary edge block/marker;
-- `accentB`: secondary rule/plate;
-- `textPrimary` / `muted`: fine graphic marks.
-
-Readability budget: major blocks stay at frame edges; the center remains negative space.
-
-### Print
-
-**Visual grammar:** moving halftone field, print bands and diagonal registration/texture lines.
-
-Palette roles:
-
-- `accentA/B`: halftone dots;
-- `surface`: print bands;
-- `textSecondary`: fine line texture.
-
-Readability budget: the halftone generator explicitly skips a central quiet rectangle around the lyric attention field.
-
-### Architecture
-
-**Visual grammar:** nested frames, vanishing-point guides and side pillars.
-
-Palette roles:
-
-- `accentA/B`: spatial frame lines;
-- `surface`: structural pillars.
-
-Readability budget: structures frame the lyric field instead of crossing through its center.
-
-### Aurora
-
-**Visual grammar:** layered translucent top/bottom ribbons, horizon glow and sparse motes.
-
-Palette roles:
-
-- `accentA/B`: ribbon layers;
-- `glow`: horizon line.
-
-Readability budget: ribbons originate at the upper/lower frame edges and leave the central lyric band relatively quiet.
-
-## Runtime integration
-
-Implementation:
-
-`packages/renderer-pixi/src/effects/backgrounds/ArtDirectionWorlds.ts`
-
-`CinematicBackground` owns one `ArtDirectionWorlds` instance. When an art-direction preset is selected:
-
-- generic blob, particle, ring and beam layers are suppressed;
-- legacy geometry rendering is bypassed;
-- the art world is drawn directly from current palette, time and audio bands;
-- post-FX remain available after composition.
-
-This suppression is important: otherwise the new worlds would still look like the same particle background with extra shapes.
-
-## New background preset IDs
+The old shared `ArtDirectionWorlds.ts` Graphics implementation remains only as historical baseline code. It is no longer the active runtime owner for:
 
 - `editorial`
 - `print`
 - `architecture`
 - `aurora`
 
-These are valid in UI selection, AUTO routing and `emo.project/v1`.
+Each preset now owns a dedicated renderer and is routed through `CinematicBackground` as a specialized world.
 
-## AUTO routing
+## Non-negotiable contracts
 
-The baseline routing intentionally gives the newer worlds meaningful exposure:
+Every Art Direction world must:
 
-- Poster favors Editorial / Print / Architecture.
-- Neon favors Aurora / Architecture.
-- Vortex favors Architecture / Print / Aurora alongside its existing tunnel worlds.
+- have a recognizable paused-frame identity;
+- consume semantic `VisualPalette` roles;
+- keep continuous geometry, perspective, phase and camera/depth travel owned by playback time or deterministic line state;
+- restrict smoothed audio to material, ink, emission or lighting response;
+- preserve a deliberate lyric-safe composition rather than relying on generic blur or darkness;
+- use World Power and World Detail to alter staging/material complexity, not merely opacity;
+- preserve the same visual identity in Performance and Cinema;
+- suppress unrelated generic blob / particle / ring / beam fallback layers.
 
-AUTO remains deterministic by scene family + cue index.
+## Editorial — `LegacyEditorialWorld`
 
-## Next world candidates
+**Rendering primitive:** fullscreen custom shader.
 
-The next Step 4 additions should be selected for genuinely different composition, not quantity:
+**Identity:**
 
-- volumetric light/fog;
-- collage/cutout;
-- 2.5D parallax planes;
-- image/video treatment with explicit readability masks.
+- asymmetric edge plates;
+- modular horizontal/vertical rule systems;
+- registration cross;
+- crop/corner marks;
+- substrate/fibre detail in Cinema;
+- deterministic layout variant by lyric-line index;
+- protected central lyric field.
 
-Before adding them, visually accept the first four worlds against real Enhanced LRC tracks.
+**Motion ownership:**
+
+- plate drift and registration movement are time-owned;
+- line-index changes can switch deterministic composition variants;
+- audio only affects ink/material response.
+
+**Palette roles:**
+
+- `background`: substrate;
+- `surface`: structural plates;
+- `accentA/B`: primary/secondary graphic ink;
+- `glow`: precision rules/crop emphasis;
+- `muted`: secondary registration detail.
+
+## Print — `LegacyPrintWorld`
+
+**Rendering primitive:** fullscreen custom shader.
+
+**Identity:**
+
+- multiple rotated halftone screens;
+- deterministic mechanical misregistration;
+- print bands;
+- registration furniture;
+- diagonal process-line structure;
+- substrate grain / wear;
+- soft central readability attenuation rather than a hard cutout.
+
+**Motion ownership:**
+
+- screen offsets and registration drift are time-owned;
+- audio cannot move dot coordinates or screen angle;
+- smoothed audio only changes ink/material strength.
+
+**Palette roles:**
+
+- `background`: paper/substrate field;
+- `surface`: print bands and substrate;
+- `accentA/B`: separate ink screens;
+- `glow`: fine registration/process lines;
+- `muted`: tertiary ink screen.
+
+## Architecture — `LegacyArchitectureWorld`
+
+**Rendering primitive:** fullscreen perspective shader.
+
+**Identity:**
+
+- full perspective nave/corridor;
+- time-owned depth travel;
+- repeated projected structural frames;
+- side pillars with near-field weight;
+- pointed/arched crowns;
+- floor and ceiling perspective structure;
+- side recess/window parallax;
+- central vanishing haze and controlled negative space.
+
+This replaces the former flat nested-rectangle Graphics treatment.
+
+**Motion ownership:**
+
+- `worldZ` and camera travel derive only from playback time;
+- perspective, corridor width and depth spacing never depend on audio;
+- audio only changes lighting/material response.
+
+**Palette roles:**
+
+- `background`: room field;
+- `surface`: pillars / structural masses / haze;
+- `accentA/B`: frame and arch light;
+- `glow`: vanishing-point and dust highlights;
+- `muted`: floor/lane structure.
+
+## Aurora — `LegacyAuroraWorld`
+
+**Rendering primitive:** fullscreen procedural curtain shader.
+
+**Identity:**
+
+- multiple continuous FBM-warped curtain layers;
+- folded/striated density;
+- local density-gradient lighting;
+- subtle horizon structure;
+- sparse scale/depth stars;
+- same curtain composition in Performance and Cinema with reduced detail budget.
+
+This replaces the former top/bottom Graphics ribbon polygons.
+
+**Motion ownership:**
+
+- curtain phase, warp and fold travel are time-owned;
+- audio does not alter curtain coordinates or topology;
+- smoothed energy/mid/treble only alter emission and highlights.
+
+**Palette roles:**
+
+- `background`: night field;
+- `surface` / `muted`: haze;
+- `accentA/B`: curtain body;
+- `glow`: folded highlights and stars.
+
+## Runtime integration
+
+Active renderers:
+
+- `packages/renderer-pixi/src/effects/backgrounds/LegacyEditorialWorld.ts`
+- `packages/renderer-pixi/src/effects/backgrounds/LegacyPrintWorld.ts`
+- `packages/renderer-pixi/src/effects/backgrounds/LegacyArchitectureWorld.ts`
+- `packages/renderer-pixi/src/effects/backgrounds/LegacyAuroraWorld.ts`
+
+`CinematicBackground` owns all four dedicated renderers and includes all four preset IDs in `SPECIALIZED_WORLD_PRESETS`.
+
+When one is active:
+
+- its dedicated container is visible;
+- generic particles, blobs, rings and beams are suppressed;
+- the old shared `ArtDirectionWorlds` renderer is not instantiated or updated by `CinematicBackground`;
+- semantic palette, World Power, World Detail and Quality are forwarded directly to the dedicated world;
+- post-FX remain available after scene composition.
+
+## Regression contract
+
+`tests/world-background-rehabilitation.test.mjs` locks:
+
+- no active `ArtDirectionWorlds` routing;
+- dedicated visibility/update/palette/detail wiring for all four IDs;
+- shader-first identity for Editorial / Print / Architecture / Aurora;
+- no raw/smoothed audio inside the geometry-defining sections;
+- perspective depth for Architecture;
+- continuous curtain field for Aurora;
+- no regression of Print into Graphics dot loops.
+
+Real-display acceptance remains separate from CI. The automated contract prevents architectural backsliding; it does not certify aesthetics.
+
+## Next milestone
+
+After these four worlds merge, all 15 legacy preset IDs have dedicated rehabilitated identities. The remaining pre-WORLD_09/10 architecture work is:
+
+1. expose/aggregate per-world `WorldColorContext`;
+2. resolve background-aware typography treatment from actual world context;
+3. apply temporal smoothing and polarity hysteresis;
+4. verify 7:1 / 4.5:1 / 3:1 contrast floors across representative worlds, World Power 0–300%, Performance/Cinema and viewport classes;
+5. run the full real-display visual acceptance matrix;
+6. only then resume WORLD_09/10.
