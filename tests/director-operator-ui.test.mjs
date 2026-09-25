@@ -73,3 +73,20 @@ test("previously hidden renderer effects are exposed through the Director FX rac
   assert.match(renderer, /setEffectLevels\(value\.cameraMotion, value\.impactPulse\)/);
   assert.match(renderer, /setFeedbackMix\(value\.feedback\)/);
 });
+
+
+test("Director exposes FX factory reset and requires explicit delete confirmation", async () => {
+  const director = await source("apps/web/src/VisualDirector.tsx");
+
+  assert.match(director, /RESET FX TO FACTORY/);
+  assert.match(director, /resetFxRack/);
+  assert.match(director, /CONFIRM DELETE/);
+  assert.match(director, /deleteConfirmId !== active\.id/);
+});
+
+test("performance preset UI no longer ships authored curated presets", async () => {
+  const presets = await source("apps/web/src/performancePresets.ts");
+
+  assert.match(presets, /BUILTIN_PERFORMANCE_PRESETS: PerformancePresetDefinition\[\] = \[\]/);
+  assert.match(presets, /RETIRED_BUILTIN_PRESET_IDS/);
+});
