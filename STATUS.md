@@ -1,7 +1,7 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `32c3dce154ebbe8f5bf2634b29c9002393cb2af3`  
+**Last known good merged baseline:** `df5e5c34f2ddf5de2ddec5e6fe7dad6da01592f1`  
 **Active candidate:** none  
 **Current phase/milestone:** WORLD_05–08 visual acceptance
 
