@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { VisualDirector } from "./VisualDirector";
 import { sendDirectorCommand } from "./directorSync";
 import { formatDirectorTime, parseDirectorTime } from "./directorPlanning";
@@ -137,7 +137,7 @@ export function DirectorWindow() {
 
           <div
             className="director-pro-timeline"
-            style={{ "--transport-progress": `${trackProgress * 100}%` } as React.CSSProperties}
+            style={{ "--transport-progress": `${trackProgress * 100}%` } as CSSProperties}
           >
             <div className="director-pro-timeline__head">
               <span>{playing ? t("PLAYING", "LÄUFT") : t("STOPPED", "GESTOPPT")}</span>
