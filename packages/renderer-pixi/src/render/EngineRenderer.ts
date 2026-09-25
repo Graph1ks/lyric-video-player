@@ -211,6 +211,7 @@ export class EngineRenderer {
 
   setFxRack(value: VisualFxRack) {
     this.fxRack = { ...value };
+    if (value.impactPulse <= 0.001) this.sceneTransition = 0;
     this.cameraRig.setEffectLevels(value.cameraMotion, value.impactPulse);
     this.background.setImpactPulse(value.impactPulse);
     this.displacementFX.setMix(value.displacement);
