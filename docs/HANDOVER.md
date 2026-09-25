@@ -1,13 +1,13 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `4e0e30d09596a57ed628ddbf9827f4850c4be7fc`  
-**Active candidate:** `feature/composition-palette-v0.8`  
+**Merged baseline:** `fdb8889d6898e34c2c6094baebddbe5e9eab726e`  
+**Active candidate:** none  
 **Current phase/milestone:** v0.8 lyric-scene composition + color direction
 
 ## Current objective
 
-Land the first two lyric-video design layers above the existing glyph engine: typography composition and OKLCH palette direction.
+Build Step 3 composition-level motion grammar on top of the merged typography-composition and OKLCH palette contracts.
 
 ## Current implementation state
 
@@ -20,7 +20,7 @@ Land the first two lyric-video design layers above the existing glyph engine: ty
 - React Visual Director and project defaults;
 - hosted/desktop project runtime and Windows packaging gates.
 
-### Step 1 candidate — Typography Composition Engine
+### Step 1 merged — Typography Composition Engine
 
 New pure engine-core planner returns per-word:
 
@@ -45,7 +45,7 @@ AUTO layout is deterministic by scene family + cue index. KineticLyrics consumes
 
 Renderer, React and `emo.project/v1` expose typography layout controls. Keyboard `L` cycles layouts.
 
-### Step 2 candidate — OKLCH Palette Director
+### Step 2 merged — OKLCH Palette Director
 
 New engine-core color system provides:
 
@@ -93,11 +93,10 @@ Windows packaging remains a separate required gate.
 
 ## Next concrete work
 
-1. Merge v0.8 after all gates.
-2. Implement composition-level motion grammar.
-3. Migrate specialist background shaders to full palette-role uniforms.
-4. Complete remaining typography primitives.
-5. Stabilize scene-stack serialization before timeline/editor work.
+1. Implement composition-level motion grammar.
+2. Migrate specialist background shaders to full palette-role uniforms.
+3. Complete remaining typography primitives.
+4. Stabilize scene-stack serialization before timeline/editor work.
 
 ## Resume instruction
 
