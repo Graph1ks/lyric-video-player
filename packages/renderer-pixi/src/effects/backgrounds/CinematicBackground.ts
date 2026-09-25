@@ -28,6 +28,8 @@ import { LegacyGridWorld } from "./LegacyGridWorld.js";
 import { LegacyCinematicWorld } from "./LegacyCinematicWorld.js";
 import { LegacySpectrumWorld } from "./LegacySpectrumWorld.js";
 import { LegacySparksWorld } from "./LegacySparksWorld.js";
+import { LegacyLyricsWorld } from "./LegacyLyricsWorld.js";
+import { LegacyMinimalWorld } from "./LegacyMinimalWorld.js";
 
 const EMPTY_SPECTRUM = new Float32Array(0);
 
@@ -68,6 +70,8 @@ const SPECIALIZED_WORLD_PRESETS = new Set<BackgroundPresetId>([
   "liquid",
   "spectrum",
   "sparks",
+  "lyrics",
+  "minimal",
   "vortex",
   "rays",
   "starfield",
@@ -104,6 +108,8 @@ export class CinematicBackground {
   private legacyCinematic = new LegacyCinematicWorld();
   private legacySpectrum = new LegacySpectrumWorld();
   private legacySparks = new LegacySparksWorld();
+  private legacyLyrics = new LegacyLyricsWorld();
+  private legacyMinimal = new LegacyMinimalWorld();
   private liquidSurface = new Graphics();
   private liquidFX = new ProceduralLiquidFX();
   private geometry = new Graphics();
@@ -158,6 +164,8 @@ export class CinematicBackground {
       this.legacyCinematic.container,
       this.legacySpectrum.container,
       this.legacySparks.container,
+      this.legacyLyrics.container,
+      this.legacyMinimal.container,
       this.liquidSurface,
       this.lyricBackdropLayer,
       this.blobLayer,
@@ -233,6 +241,7 @@ export class CinematicBackground {
   }
 
   setLineIndex(index: number) {
+    this.legacyLyrics.setLine(this.currentLine, index);
     if (index === this.lineIndex) return;
     this.lineIndex = index;
     this.artDirection.setLineIndex(index);
@@ -257,6 +266,8 @@ export class CinematicBackground {
     this.legacyCinematic.setPalette(palette);
     this.legacySpectrum.setPalette(palette);
     this.legacySparks.setPalette(palette);
+    this.legacyLyrics.setPalette(palette);
+    this.legacyMinimal.setPalette(palette);
     this.liquidFX.setPalette(palette);
     this.applyModePalette();
     if (refreshStatic) this.rebuildLyricBackdrop();
@@ -296,6 +307,8 @@ export class CinematicBackground {
     this.legacyCinematic.setDetail(this.worldDetail);
     this.legacySpectrum.setDetail(this.worldDetail);
     this.legacySparks.setDetail(this.worldDetail);
+    this.legacyLyrics.setDetail(this.worldDetail);
+    this.legacyMinimal.setDetail(this.worldDetail);
     this.liquidFX.setDetail(this.worldDetail);
     this.applyPresetVisibility();
     this.rebuildLyricBackdrop();
@@ -337,6 +350,10 @@ export class CinematicBackground {
     this.legacySpectrum.setDetail(this.worldDetail);
     this.legacySparks.setIntensity(power);
     this.legacySparks.setDetail(this.worldDetail);
+    this.legacyLyrics.setIntensity(power);
+    this.legacyLyrics.setDetail(this.worldDetail);
+    this.legacyMinimal.setIntensity(power);
+    this.legacyMinimal.setDetail(this.worldDetail);
     this.liquidFX.setIntensity(power);
     this.liquidFX.setDetail(this.worldDetail);
   }
@@ -360,6 +377,8 @@ export class CinematicBackground {
     this.legacyCinematic.setQuality(value);
     this.legacySpectrum.setQuality(value);
     this.legacySparks.setQuality(value);
+    this.legacyLyrics.setQuality(value);
+    this.legacyMinimal.setQuality(value);
     this.liquidFX.setQuality(value);
     this.applyPresetVisibility();
   }
@@ -384,6 +403,8 @@ export class CinematicBackground {
     this.legacyCinematic.resize(w, h);
     this.legacySpectrum.resize(w, h);
     this.legacySparks.resize(w, h);
+    this.legacyLyrics.resize(w, h);
+    this.legacyMinimal.resize(w, h);
     this.redrawBase();
     this.redrawLiquidSurface();
     this.liquidFX.resize(w, h);
@@ -427,6 +448,8 @@ export class CinematicBackground {
     this.legacyCinematic.update(time, legacyAudio);
     this.legacySpectrum.update(time, legacyAudio, spectrum);
     this.legacySparks.update(time, legacyAudio, legacyFrame.transientEnvelope);
+    this.legacyLyrics.update(time, legacyAudio);
+    this.legacyMinimal.update(time, legacyAudio);
     if (this.liquidSurface.visible) this.liquidFX.update(time, legacyAudio);
     this.updateGeometry(time, legacyAudio);
     this.updateLyricBackdrop(time, legacyAudio);
@@ -485,9 +508,11 @@ export class CinematicBackground {
     this.legacyCinematic.container.visible = this.resolvedPreset === "cinematic";
     this.legacySpectrum.container.visible = this.resolvedPreset === "spectrum";
     this.legacySparks.container.visible = this.resolvedPreset === "sparks";
+    this.legacyLyrics.container.visible = this.resolvedPreset === "lyrics";
+    this.legacyMinimal.container.visible = this.resolvedPreset === "minimal";
     this.artDirection.setLineIndex(this.lineIndex);
     this.liquidSurface.visible = this.resolvedPreset === "liquid";
-    this.lyricBackdropLayer.visible = this.resolvedPreset === "lyrics";
+    this.lyricBackdropLayer.visible = false;
     this.sparkLayer.visible = false;
     this.spectrumLayer.visible = false;
     const particleStride = this.resolvedPreset === "minimal"
@@ -853,7 +878,7 @@ export class CinematicBackground {
 
   private rebuildLyricBackdrop() {
     const text = this.currentLine?.text?.toUpperCase() ?? "";
-    const shouldBuild = this.resolvedPreset === "lyrics" && Boolean(text);
+    const shouldBuild = false;
     const key = shouldBuild
       ? [
           text,
