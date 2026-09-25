@@ -2721,23 +2721,27 @@ kbd {
   --pro-dim: rgba(255,255,255,.28);
   --pro-accent: #84fff2;
   --pro-accent-rgb: 132,255,242;
-  --screen-bloom-level: .55;
-  --screen-scanline-level: .35;
-  --screen-grain-level: .35;
-  --screen-vignette-level: .55;
+  --screen-bloom-level: 1;
+  --screen-scanline-level: 1;
+  --screen-grain-level: 1;
+  --screen-vignette-level: 1;
 }
 
 .screen-fx__bloom {
-  opacity: clamp(0, calc(var(--screen-bloom-level) * .72), 1);
+  /* 100% = the original authored bloom. Scale the audio-reactive source
+     alphas rather than replacing them with a static opacity. */
+  background:
+    radial-gradient(circle at 50% 48%, rgba(117,255,244,clamp(0, calc((.025 + var(--energy) * .055) * var(--screen-bloom-level)), 1)), transparent 38%),
+    radial-gradient(circle at 62% 35%, rgba(117,88,255,clamp(0, calc((.015 + var(--bass) * .04) * var(--screen-bloom-level)), 1)), transparent 34%);
 }
 .screen-fx__scanlines {
-  opacity: clamp(0, calc(var(--screen-scanline-level) * .18), .5) !important;
+  opacity: clamp(0, calc((.035 + var(--energy) * .025) * var(--screen-scanline-level)), .5) !important;
 }
 .screen-fx__grain {
-  opacity: clamp(0, calc(var(--screen-grain-level) * .14), .55) !important;
+  opacity: clamp(0, calc((.045 + var(--transient) * .035) * var(--screen-grain-level)), .55) !important;
 }
 .screen-fx__vignette {
-  opacity: clamp(0, calc(var(--screen-vignette-level) * .9), 1);
+  opacity: clamp(0, var(--screen-vignette-level), 1);
 }
 
 /* Main player — compact production monitor chrome */
