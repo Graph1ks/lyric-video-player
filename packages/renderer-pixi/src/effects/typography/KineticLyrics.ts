@@ -190,6 +190,7 @@ export class KineticLyrics {
       && previous?.typographyPreset === direction?.typographyPreset
       && previous?.layout === direction?.layout
       && previous?.motion === direction?.motion
+      && previous?.sequenceGrammar === direction?.sequenceGrammar
     ) return;
 
     this.cinematicDirection = direction;

@@ -107,3 +107,51 @@ test("hero echo keeps the current word solid and history as outline structure", 
   assert.ok(hero.scale > 1);
   assert.ok(plan.words.filter(word => word.id !== hero.id).every(word => word.treatment === "outline"));
 });
+
+
+test("sequence window can scope history to a directed phrase without changing stable IDs", () => {
+  const source = lines();
+  const window = deriveTypographySequenceWindow(source, 2.8, {
+    historySeconds: 10,
+    lineStartIndex: 1,
+    lineEndIndex: 1,
+  });
+
+  assert.ok(window.words.length > 0);
+  assert.ok(window.words.every(word => word.lineIndex === 1));
+  assert.equal(window.activeWordId, typographyWordId(1, 1));
+});
+
+test("spiral depth travels continuously across a word handoff", () => {
+  const source = lines();
+  const beforeWindow = deriveTypographySequenceWindow(source, 3.14, {
+    historySeconds: 10,
+    lineStartIndex: 0,
+    lineEndIndex: 1,
+  });
+  const afterWindow = deriveTypographySequenceWindow(source, 3.16, {
+    historySeconds: 10,
+    lineStartIndex: 0,
+    lineEndIndex: 1,
+  });
+  const before = planTypographySequence({
+    grammar: "spiral-depth",
+    window: beforeWindow,
+    width: 1920,
+    height: 1080,
+  });
+  const after = planTypographySequence({
+    grammar: "spiral-depth",
+    window: afterWindow,
+    width: 1920,
+    height: 1080,
+  });
+
+  const previousId = typographyWordId(1, 1);
+  const a = before.words.find(word => word.id === previousId);
+  const b = after.words.find(word => word.id === previousId);
+  assert.ok(a && b);
+  const travel = Math.hypot(a.x - b.x, a.y - b.y);
+  assert.ok(travel < 80, `handoff travel was ${travel}px`);
+  assert.ok(Math.abs(a.scale - b.scale) < 0.18);
+});

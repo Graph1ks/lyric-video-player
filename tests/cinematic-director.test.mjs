@@ -76,3 +76,24 @@ test("a recurring lyric motif starts a new directed phrase and keeps hook routin
   assert.equal(director.sceneFor(2).reason, "hook");
   assert.equal(director.sceneFor(2).mode, "vortex");
 });
+
+
+test("cinematic bundles expose persistent sequence grammars selectively", () => {
+  const director = new SceneDirector();
+  director.load([
+    line(0, 1.8, "compact hit", 2),
+    line(1.8, 3.6, "another compact hit", 2),
+    line(3.6, 5.4, "third compact hit", 2),
+    line(5.4, 7.2, "fourth compact hit", 2),
+    line(7.2, 9.0, "next phrase opens", 2),
+  ]);
+
+  const first = director.sceneFor(0);
+  assert.equal(first.phraseStartLine, 0);
+  assert.equal(first.phraseEndLine, 3);
+  assert.equal(first.typography.sequenceGrammar, "hero-echo");
+
+  const next = director.sceneFor(4);
+  assert.equal(next.phraseStartLine, 4);
+  assert.equal(next.phraseEndLine, 4);
+});

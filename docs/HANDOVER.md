@@ -1,13 +1,13 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `c58be3e7e9b20fce0656bc71f537a93f65f33fe5`  
-**Active candidate:** `feat/persistent-typography-sequences-v0.9`  
+**Merged baseline:** `7d9c6570868198b2e7cfa159ba70a3b03376dccc`  
+**Active candidate:** `feat/render-persistent-typography-sequences-v0.9`  
 **Current phase/milestone:** cinematic sequence direction + temporal readability
 
 ## Current objective
 
-Turn the merged phrase/readability director into persistent multi-cue typography: stable time-derived lyric history first, then Spiral Depth and Hero/Echo rendering without sacrificing deterministic seek.
+Consume the merged pure multi-cue model in Pixi and make Spiral Depth / Hero-Echo visible as complete phrase-level AUTO shots while preserving deterministic seek and manual override behavior.
 
 ## Current implementation state
 
@@ -38,9 +38,9 @@ The next architecture slice must derive a visible multi-cue lyric window from ab
 
 See `docs/CINEMATIC_TYPOGRAPHY_DIRECTION.md`.
 
-## Active candidate — Persistent typography sequences
+## Merged baseline — Persistent typography sequences
 
-The active candidate creates the pure sequence model before Pixi caching/render integration.
+The merged `7d9c657` baseline creates the pure sequence model before Pixi caching/render integration.
 
 - `deriveTypographySequenceWindow()` reconstructs visible lyric words from absolute lyric time.
 - Stable IDs use line + word index; roles are `active`, `recent`, `history` and `incoming`.
@@ -51,6 +51,17 @@ The active candidate creates the pure sequence model before Pixi caching/render 
 - The planners are renderer-independent and deterministic under repeated evaluation / seeking.
 
 Next, Pixi will diff/cache display objects as a performance layer over this plan. Cache history must never become the visual source of truth.
+
+## Active candidate — Visible persistent sequence rendering
+
+- `PersistentTypographySequences` diffs a bounded map of Pixi Text nodes keyed by the pure stable word IDs.
+- The pure time-derived window + plan is recomputed from lyric time; cached Pixi nodes are only render resources.
+- Director bundles selectively nominate `spiral-depth` or `hero-echo`.
+- Sequence history is phrase-scoped through explicit phrase start/end line bounds.
+- Spiral depth uses continuous active-word progress so existing words do not snap when the next word becomes active.
+- While a persistent grammar is active, normal `KineticLyrics` is hidden rather than double-rendered.
+- Manual Typography/Layout/Composition-Motion choices immediately disable the AUTO sequence grammar; returning all three to AUTO restores it.
+- Sequence styles use the shared semantic palette and bounded viewport fitting.
 
 
 ### Existing merged engine
@@ -265,11 +276,11 @@ Windows packaging remains a separate required gate.
 
 ## Next concrete work
 
-1. Verify the multi-cue window and Spiral/Hero planners.
-2. Add a bounded Pixi word cache/diff driven by the pure sequence plan.
-3. Render Spiral Depth and Hero/Echo without duplicating or fighting current-line glyph typography.
-4. Add Shape Build / Ribbon Path, then Elastic Tether and sequence-owned camera intent.
-5. Re-run color/world/mobile acceptance in the context of complete cinematic sequences.
+1. Verify visible Spiral/Hero rendering in Linux + Windows CI.
+2. Run real-track browser/Desktop acceptance for phrase boundaries, dense lyrics and mobile.
+3. Add Shape Build / Ribbon Path.
+4. Add Elastic Tether and sequence-owned camera intent.
+5. Extend visual acceptance around gaze continuity, persistent history and shot-size rhythm.
 
 ## Resume instruction
 

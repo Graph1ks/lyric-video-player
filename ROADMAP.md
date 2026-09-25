@@ -77,9 +77,11 @@
 - Establish / Develop / Accent / Release shot roles — complete baseline
 - cue-density readability pressure + adaptive motion budget — complete baseline
 - fast passages remain kinetic while reducing travel/rotation/overshoot/clutter — complete baseline
-- persistent multi-cue typography scene model + stable word IDs — active candidate
-- Spiral Depth pure placement grammar — active candidate; Pixi integration next
-- Hero / Echo Field pure placement grammar — active candidate; Pixi integration next
+- persistent multi-cue typography scene model + stable word IDs — complete baseline
+- Spiral Depth pure placement grammar — complete baseline; Pixi integration active candidate
+- Hero / Echo Field pure placement grammar — complete baseline; Pixi integration active candidate
+- bounded persistent Pixi word cache driven by pure time-derived plan — active candidate
+- phrase-scoped sequence history + manual AUTO fallback contract — active candidate
 - Shape Build / circle / frame calligrams — planned
 - Ribbon / Path composition — planned
 - Elastic Tether / stretch-squeeze — planned

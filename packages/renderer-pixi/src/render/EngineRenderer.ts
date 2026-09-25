@@ -11,6 +11,7 @@ import type {
   ColorMoodId,
   ColorMoodMode,
   CompositionMotionId,
+  DirectedScene,
   CompositionMotionPreset,
   ColorHarmonyMode,
   LineCue,
@@ -25,6 +26,7 @@ import type {
 } from "@graph1ks/emo-engine-core";
 import { CinematicBackground } from "../effects/backgrounds/CinematicBackground";
 import { KineticLyrics } from "../effects/typography/KineticLyrics";
+import { PersistentTypographySequences } from "../effects/typography/PersistentTypographySequences";
 import { CameraRig } from "./CameraRig";
 import { CinematicPostFX } from "./CinematicPostFX";
 import { SceneRenderGraph } from "./SceneRenderGraph";
@@ -40,6 +42,7 @@ export class EngineRenderer {
 
   private camera = new Container();
   private background = new CinematicBackground();
+  private sequenceLyrics = new PersistentTypographySequences();
   private lyrics = new KineticLyrics();
   private director = new SceneDirector();
   private cameraRig = new CameraRig(this.camera);
@@ -60,6 +63,7 @@ export class EngineRenderer {
   private colorCanvas: ColorCanvasMode = "auto";
   private colorFlow: ColorFlowMode = "static";
   private lastLineIndex = -1;
+  private currentDirection?: DirectedScene;
   private intensity = 1;
   private host?: HTMLElement;
   private modeListeners = new Set<(mode: SceneMode) => void>();
@@ -101,7 +105,11 @@ export class EngineRenderer {
     });
 
     host.appendChild(this.app.canvas);
-    this.camera.addChild(this.background.container, this.lyrics.container);
+    this.camera.addChild(
+      this.background.container,
+      this.sequenceLyrics.container,
+      this.lyrics.container,
+    );
     this.root.addChild(this.renderGraph.output);
     this.app.stage.addChild(this.root);
 
@@ -120,6 +128,7 @@ export class EngineRenderer {
 
   setLyrics(lines: LineCue[]) {
     this.director.load(lines);
+    this.sequenceLyrics.setLyrics(lines);
     this.renderGraph.resetFeedback();
     if (this.director.getMode() === "auto" && this.lastLineIndex >= 0) {
       this.applyMode(this.director.sceneFor(this.lastLineIndex).mode, true);
@@ -131,15 +140,19 @@ export class EngineRenderer {
     if (mode !== "auto") {
       this.applyMode(mode, true);
       if (this.lastLineIndex >= 0) {
-        this.lyrics.setCinematicDirection(this.director.sceneFor(this.lastLineIndex).typography);
+        this.currentDirection = this.director.sceneFor(this.lastLineIndex);
+        this.lyrics.setCinematicDirection(this.currentDirection.typography);
+        this.refreshTypographyPresentation();
         this.emitTypographyPreset();
         this.emitTypographyLayout();
         this.emitCompositionMotion();
       }
     } else if (this.lastLineIndex >= 0) {
       const directed = this.director.sceneFor(this.lastLineIndex);
+      this.currentDirection = directed;
       this.applyMode(directed.mode, true);
       this.lyrics.setCinematicDirection(directed.typography);
+      this.refreshTypographyPresentation();
       this.emitTypographyPreset();
       this.emitTypographyLayout();
       this.emitCompositionMotion();
@@ -250,12 +263,14 @@ export class EngineRenderer {
 
   setTypographyPreset(preset: TypographyPreset) {
     this.lyrics.setPreset(preset);
+    this.refreshTypographyPresentation();
     this.renderGraph.resetFeedback();
     this.emitTypographyPreset();
   }
 
   setTypographyLayout(preset: TypographyLayoutPreset) {
     this.lyrics.setLayoutPreset(preset);
+    this.refreshTypographyPresentation();
     this.renderGraph.resetFeedback();
     this.emitTypographyLayout();
   }
@@ -275,6 +290,7 @@ export class EngineRenderer {
 
   setCompositionMotion(preset: CompositionMotionPreset) {
     this.lyrics.setCompositionMotion(preset);
+    this.refreshTypographyPresentation();
     this.renderGraph.resetFeedback();
     this.emitCompositionMotion();
   }
@@ -308,6 +324,7 @@ export class EngineRenderer {
   setIntensity(value: number) {
     this.intensity = Math.max(0.2, Math.min(1.8, value));
     this.background.setIntensity(this.intensity);
+    this.sequenceLyrics.setIntensity(this.intensity);
     this.lyrics.setIntensity(this.intensity);
     this.cameraRig.setIntensity(this.intensity);
     this.displacementFX.setIntensity(this.intensity);
@@ -320,6 +337,7 @@ export class EngineRenderer {
   setQuality(quality: QualityMode) {
     this.quality = quality;
     this.background.setQuality(quality);
+    this.sequenceLyrics.setQuality(quality);
     this.displacementFX.setQuality(quality);
     this.velocitySmearFX.setQuality(quality);
     this.bloomThresholdFX.setQuality(quality);
@@ -346,6 +364,7 @@ export class EngineRenderer {
     this.background.setLine(line, index);
 
     const directed = index >= 0 ? this.director.sceneFor(index) : undefined;
+    this.currentDirection = directed;
     if (directed) {
       this.applyMode(directed.mode, true);
     }
@@ -353,6 +372,7 @@ export class EngineRenderer {
     this.emitBackgroundPreset();
     this.refreshPalette();
     this.lyrics.setLine(line, index, directed?.typography);
+    this.refreshTypographyPresentation();
     this.emitTypographyPreset();
     this.emitTypographyLayout();
     this.emitCompositionMotion();
@@ -393,6 +413,7 @@ export class EngineRenderer {
     this.postFX.update(time, audio);
     this.background.update(time, audio, spectrum);
     this.lyrics.update(lyricTime, audio);
+    this.sequenceLyrics.update(lyricTime, audio);
     this.cameraRig.update(time, audio);
 
     this.renderGraph.capture(this.app.renderer, this.camera, time);
@@ -445,6 +466,7 @@ export class EngineRenderer {
       hueShift: this.colorFlow === "rainbow" ? time * 2.4 : 0,
     });
     this.background.setPalette(palette, !dynamic);
+    this.sequenceLyrics.setPalette(palette, !dynamic);
     this.lyrics.setPalette(palette, !dynamic);
     this.host?.setAttribute("data-harmony", palette.resolvedHarmony);
     this.host?.setAttribute("data-mood", palette.resolvedMood);
@@ -464,6 +486,24 @@ export class EngineRenderer {
     if (key === this.lastPaletteKey) return;
     this.lastPaletteKey = key;
     for (const listener of this.paletteListeners) listener(palette);
+  }
+
+  private refreshTypographyPresentation() {
+    const direction = this.currentDirection;
+    const autoAuthored = this.lyrics.getPreset() === "auto"
+      && this.lyrics.getLayoutPreset() === "auto"
+      && this.lyrics.getCompositionMotion() === "auto";
+    const grammar = autoAuthored ? direction?.typography.sequenceGrammar : undefined;
+
+    this.sequenceLyrics.setSequence(
+      grammar,
+      direction?.phraseStartLine ?? 0,
+      direction?.phraseEndLine ?? -1,
+    );
+    const persistent = Boolean(grammar);
+    this.sequenceLyrics.container.visible = persistent;
+    this.lyrics.container.visible = !persistent;
+    this.host?.setAttribute("data-typography-sequence", grammar ?? "none");
   }
 
   private emitBackgroundPreset() {
@@ -499,6 +539,7 @@ export class EngineRenderer {
     const w = this.app.renderer.width / this.app.renderer.resolution;
     const h = this.app.renderer.height / this.app.renderer.resolution;
     this.background.resize(w, h);
+    this.sequenceLyrics.resize(w, h);
     this.lyrics.resize(w, h);
     this.cameraRig.setViewport(w, h);
 
