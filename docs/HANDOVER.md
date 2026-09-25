@@ -1,13 +1,13 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `16881100f0318786e0aaf0faf611b0fb5678333c`  
-**Active candidate:** none  
-**Current phase/milestone:** 13-world expansion — WORLD_03 + WORLD_04 visual acceptance
+**Merged baseline:** `bb5afb8a678c19dd490c5d05a20ad9e6b4a082fe`  
+**Active candidate:** `feat/worlds-05-06-motion-fixes`  
+**Current phase/milestone:** motion-semantics repair + WORLD_05 / WORLD_06 implementation
 
 ## Current objective
 
-Visually accept merged WORLD_03 Disco Mirrorball Room and WORLD_04 Neon Energy Burst Tunnel, preserving the no-primitive-prototype fidelity rule established after WORLD_01/WORLD_02.
+Correct WORLD_03/WORLD_04 motion semantics found in local acceptance, then land WORLD_05 Fractal Hex Spiral Mosaic and WORLD_06 Soft Hex Cell Field.
 
 ## Merged baseline — Resource lifetime + physical-edge safety v0.11.2
 
@@ -138,7 +138,8 @@ File: `packages/renderer-pixi/src/effects/backgrounds/DiscoMirrorballRoomWorld.t
 - metallic/Fresnel shading with several colored specular light directions;
 - three differently scaled moving square-reflection layers to create dense room projections without per-tile objects;
 - floor/ceiling/side-wall depth masks, subtle room edges, hanging cable and dust;
-- bass → room/ball breath, treble → facet sparkle, transient → specular/halo lift;
+- mirrorball mechanics are time-driven only: constant radius + constant angular velocity;
+- smoothed bass/treble/energy/transient affect lighting/specular response only;
 - World Detail increases facet/reflection density; World Power drives exposure/reactivity;
 - Three.js was evaluated but not added: current reference does not yet require true camera/parallax/projective reflection geometry.
 
@@ -152,10 +153,62 @@ File: `packages/renderer-pixi/src/effects/backgrounds/NeonEnergyBurstTunnelWorld
 - fBm/noise modulation for irregular trail density;
 - signed angular-distance electric filaments and broken arc sparks;
 - hot central aperture, magenta/blue/cyan/gold light language, anamorphic/vertical flare and ejecta;
-- bass → rush/depth cadence, treble → fine streak/electric complexity, transient → hot center and filament spikes;
+- radial travel is integrated monotonically from audio/playback time;
+- rising transient edges reset a positive burst age/envelope that creates an outward shock front and temporary acceleration;
+- raw audio is not multiplied into absolute phase time, preventing expand/retract phase jumps;
 - one pass avoids per-streak display-object churn.
 
 Both are registered as specialized `BackgroundPresetId` values, suppress legacy generic world layers, expose Director miniatures and participate in unrestricted AUTO routing.
+
+## Active candidate — motion fixes + WORLD_05 / WORLD_06
+
+Local acceptance exposed a motion-mapping problem independent of shader fidelity.
+
+### WORLD_03 correction
+
+`DiscoMirrorballRoomWorld.ts`
+
+- ball radius is fixed;
+- Y rotation is `uTime * 0.205`, not `uTime * (base + audio)`;
+- projected tile geometry no longer scales with bass/energy;
+- bass/treble/energy/transient use short attack/release smoothing before lighting response;
+- the visual should now read as a motorized mirrorball with music-reactive light, not an audio-driven object.
+
+### WORLD_04 correction
+
+`NeonEnergyBurstTunnelWorld.ts`
+
+- new CPU-owned monotonic `travel` phase;
+- audio may only add positive travel acceleration through a decaying burst envelope;
+- rising transient edges reset `burstAge` and create an outward shader shock front;
+- raw bass was removed from all `uTime * (...) ` phase multipliers that caused apparent retraction;
+- seek/time discontinuities reset travel from authoritative audio time.
+
+The generalized rule is documented in `docs/WORLD_MOTION_AUDIO_REACTIVITY.md`.
+
+### WORLD_05 Fractal Hex Spiral Mosaic
+
+`FractalHexSpiralMosaicWorld.ts`
+
+- analytic hex grid;
+- three recursive vortex warps;
+- sink-dependent local density/subdivision;
+- strong black cell outlines + inset hex details;
+- cyan/mint/yellow/pink/violet graphic palette;
+- geometry is slow/time-driven; audio accents color/light only.
+
+### WORLD_06 Soft Hex Cell Field
+
+`SoftHexCellFieldWorld.ts`
+
+- near/far variable-size analytic hex layers;
+- true black gaps;
+- pastel/muted per-cell palette;
+- bevel shading + selective white facet highlights;
+- slow parallax/domain warp;
+- audio changes illumination only, never geometry scale.
+
+Both 05/06 are first-class `BackgroundPresetId` values, Director-selectable, included in unrestricted AUTO routing and specialized-world isolation.
 
 ## Current implementation state
 
