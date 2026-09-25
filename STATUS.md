@@ -2,12 +2,12 @@
 
 **Last updated:** 2026-09-25  
 **Last known good merged baseline:** `4f6f5420a137839584cb622e3ef9c78c7fb5402a`  
-**Active candidate:** none  
+**Active candidate:** `feature/visual-acceptance-matrix-v0.8`  
 **Current phase/milestone:** v0.8 lyric-scene composition + color direction
 
 ## Current objective
 
-Visually accept and tune the merged Step 4 art-direction worlds, then add only genuinely missing visual grammars.
+Turn readability acceptance into a repeatable engineering gate while visually accepting the merged Step 4 art-direction worlds.
 
 ## Current state
 
@@ -61,6 +61,7 @@ Visually accept and tune the merged Step 4 art-direction worlds, then add only g
 - Art worlds consume semantic OKLCH palette roles and preserve a quiet central lyric region.
 - Selecting an art world suppresses generic blob/particle/ring/beam layers so the new worlds do not collapse back into the same ambient-particle look.
 - AUTO background routing now gives the new worlds first-class exposure in Poster/Neon/Vortex families.
+- Active QA candidate adds reusable composition assessment (bounds, overflow, collision pairs, overlap ratio) and a viewport stress matrix covering desktop, laptop, portrait and mobile classes.
 
 ## Last verified checks
 
@@ -76,11 +77,11 @@ Visually accept and tune the merged Step 4 art-direction worlds, then add only g
 
 ## Next concrete action
 
-1. Visually accept Editorial / Print / Architecture / Aurora on real Enhanced LRC tracks.
-2. Tune composition/layout/grammar combinations on narrow/mobile viewports.
-3. Add only genuinely distinct next worlds (volumetric light, collage/cutout, 2.5D/image treatment) after the first four pass visual acceptance.
-4. Finish remaining typography primitives.
-5. Stabilize serializable scene-stack directives before editor work.
+1. Get the visual-readability matrix candidate green and merge it.
+2. Visually accept Editorial / Print / Architecture / Aurora on real Enhanced LRC tracks using `docs/VISUAL_ACCEPTANCE_MATRIX.md`.
+3. Tune composition/layout/grammar combinations on narrow/mobile viewports.
+4. Add only genuinely distinct next worlds after the first four pass visual acceptance.
+5. Finish remaining typography primitives and scene-stack serialization.
 
 ## Do not redo
 

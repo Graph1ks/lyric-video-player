@@ -2,12 +2,12 @@
 
 **Last updated:** 2026-09-25  
 **Merged baseline:** `4f6f5420a137839584cb622e3ef9c78c7fb5402a`  
-**Active candidate:** none  
+**Active candidate:** `feature/visual-acceptance-matrix-v0.8`  
 **Current phase/milestone:** v0.8 lyric-scene composition + color direction
 
 ## Current objective
 
-Visually accept and tune the first merged Step 4 art-direction-world baseline before adding more world families.
+Add a repeatable composition/readability QA gate, then use it alongside real-track acceptance for the first Step 4 worlds.
 
 ## Current implementation state
 
@@ -126,6 +126,16 @@ All four worlds consume the shared `VisualPalette`, remain timestamp/audio-drive
 
 See `docs/ART_DIRECTION_WORLDS.md`.
 
+### Active visual-acceptance QA candidate
+
+The candidate adds `assessTypographyComposition()` in engine-core. It exposes transformed word bounds, attention-field overflow, collision pairs and maximum overlap ratio without depending on Pixi.
+
+`tests/visual-readability-matrix.test.mjs` exercises all six base layouts at desktop, laptop, portrait and mobile viewport classes.
+
+This does **not** replace real visual acceptance. It catches geometric regressions and makes narrow-viewport layout failures visible in CI before they become aesthetic debugging sessions.
+
+Manual acceptance is documented in `docs/VISUAL_ACCEPTANCE_MATRIX.md`.
+
 ## Important files / entry points
 
 | Path | Why it matters |
@@ -140,6 +150,7 @@ See `docs/ART_DIRECTION_WORLDS.md`.
 | `packages/renderer-pixi/src/effects/backgrounds/CinematicBackground.ts` | background routing / legacy layer coordination |
 | `packages/renderer-pixi/src/effects/backgrounds/ArtDirectionWorlds.ts` | Step 4 Editorial/Print/Architecture/Aurora worlds |
 | `docs/ART_DIRECTION_WORLDS.md` | world contracts, palette roles and readability budgets |
+| `docs/VISUAL_ACCEPTANCE_MATRIX.md` | automated viewport matrix + real-track visual acceptance checklist |
 | `packages/renderer-pixi/src/render/EngineRenderer.ts` | composition/palette orchestration |
 | `apps/web/src/App.tsx` | Visual Director controls |
 | `docs/PROJECT_FORMAT.md` | persisted layout/harmony defaults |
@@ -167,10 +178,10 @@ Windows packaging remains a separate required gate.
 
 ## Next concrete work
 
-1. Visually accept Editorial / Print / Architecture / Aurora on real Enhanced LRC tracks.
-2. Test dense lyrics at desktop + narrow/mobile sizes.
-3. Add the next distinct world only after identifying a missing visual grammar (volumetric/collage/2.5D).
-4. Migrate remaining specialist shader colors to palette-role uniforms.
+1. Get `feature/visual-acceptance-matrix-v0.8` green and merge.
+2. Visually accept Editorial / Print / Architecture / Aurora on real Enhanced LRC tracks.
+3. Test dense lyrics at desktop + narrow/mobile sizes.
+4. Add the next distinct world only after identifying a missing visual grammar.
 5. Complete remaining typography primitives and then stabilize scene-stack serialization.
 
 ## Resume instruction
