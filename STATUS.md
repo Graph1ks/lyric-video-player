@@ -1,17 +1,17 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `52c875aac3df9e89721622fd365c1d29c9ae7fb0`  
-**Active candidate:** `fix/fx-baseline-preset-cleanup-world-fidelity` / PR #61  
-**Current phase/milestone:** FX parity repair + shader-fidelity world rebuild
+**Last known good merged baseline:** `aa691e93ad44e7f4690ca729231264e836a5f524`  
+**Active candidate:** none  
+**Current phase/milestone:** FX parity + shader-world visual acceptance
 
 ## Current objective
 
-Restore the original cinematic renderer balance after FX exposure, remove shipped presets, make preset deletion safe, and raise WORLD_01/WORLD_02 from primitive prototypes to GPU-shader fidelity.
+Visually accept the restored cinematic FX baseline and the GPU-shader rebuilds of WORLD_01 Prism Stage Beams and WORLD_02 Laser Canopy Grid.
 
 ## Current state
 
-- **PR #61 repairs a real post-FX regression:** the CinematicPostFX shader's final true-bypass blend referenced an undefined `source` sample. The shader now explicitly samples the untouched frame before processing.
+- **Merged PR #61 repairs a real post-FX regression:** the CinematicPostFX shader's final true-bypass blend referenced an undefined `source` sample. The shader now explicitly samples the untouched frame before processing.
 - Exposed FX factory defaults are restored to the pre-exposure authored balance: every formerly implicit renderer/compositor/screen layer is 100% at factory reset.
 - Background Impact/Pulse no longer gets multiplied once before `CinematicBackground` and a second time inside it.
 - DOM bloom/scanlines/grain again retain their original audio reactivity; the FX rack scales those authored behaviors instead of replacing them with static opacity.
@@ -192,9 +192,9 @@ Restore the original cinematic renderer balance after FX exposure, remove shippe
 
 ## Next concrete action
 
-1. Finish PR #61 Linux + Windows CI and merge only after all gates pass.
-2. User locally confirms that factory FX reset visually matches the richer pre-exposure baseline and that PostFX is active again.
-3. Test Prism Stage Beams and Laser Canopy Grid at 50/100/200/300% World Power + Detail and compare against the supplied references.
+1. User locally confirms that **FX → Reset FX to Factory** restores the richer pre-exposure cinematic balance and that Lens/Chroma/Warp/PostFX is visibly active again.
+2. Verify all shipped Performance Presets are gone, user presets remain, and delete requires Delete → Confirm Delete.
+3. Test Prism Stage Beams and Laser Canopy Grid at 50/100/200/300% World Power + Detail against the supplied references.
 4. Tune shader scattering, flare, density and laser geometry from real-display feedback.
 5. Continue with WORLD_03/WORLD_04 using the rendering-tech selection rules in `docs/WORLD_RENDERING_TECH_RESEARCH.md`.
 
