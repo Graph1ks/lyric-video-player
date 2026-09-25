@@ -1,6 +1,6 @@
 # Art Direction Worlds
 
-**Status:** Step 4 candidate baseline  
+**Status:** merged Step 4 baseline  
 **Last updated:** 2026-09-25
 
 ## Purpose
