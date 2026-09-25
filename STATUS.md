@@ -1,13 +1,13 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `bb5afb8a678c19dd490c5d05a20ad9e6b4a082fe`  
-**Active candidate:** `feat/worlds-05-06-motion-fixes`  
-**Current phase/milestone:** motion-semantics repair + WORLD_05 / WORLD_06 implementation
+**Last known good merged baseline:** `35ea8cf1a20834e8f52453c9219beb0ef08bb3b5`  
+**Active candidate:** none  
+**Current phase/milestone:** WORLD_03–06 visual acceptance
 
 ## Current objective
 
-Correct WORLD_03/WORLD_04 motion semantics from local acceptance, then implement WORLD_05 Fractal Hex Spiral Mosaic and WORLD_06 Soft Hex Cell Field at the established GPU-shader fidelity bar.
+Visually accept the merged WORLD_03/WORLD_04 motion corrections plus WORLD_05 Fractal Hex Spiral Mosaic and WORLD_06 Soft Hex Cell Field.
 
 ## Current state
 
@@ -199,11 +199,10 @@ Correct WORLD_03/WORLD_04 motion semantics from local acceptance, then implement
 
 ## Next concrete action
 
-1. Finish CI for `feat/worlds-05-06-motion-fixes` and merge only after Linux + Windows gates pass.
-2. User verifies **Disco Mirrorball Room** rotates smoothly independent of music while glints/reflections still react.
-3. User verifies **Neon Energy Burst Tunnel** is continuously outward and transient hits read as one-way surges/shock fronts with no retract phase.
-4. Test **Fractal Hex Spiral Mosaic** and **Soft Hex Cell Field** at 50/100/200/300% World Power + Detail.
-5. Tune 05/06 from local-display feedback, then continue to WORLD_07/WORLD_08.
+1. User verifies **Disco Mirrorball Room** rotates smoothly independent of music while glints/reflections still react.
+2. User verifies **Neon Energy Burst Tunnel** is continuously outward and transient hits read as one-way surges/shock fronts with no retract phase.
+3. Test **Fractal Hex Spiral Mosaic** and **Soft Hex Cell Field** at 50/100/200/300% World Power + Detail.
+4. Tune 05/06 from local-display feedback, then continue to WORLD_07/WORLD_08.
 
 ### Previous visual-acceptance queue
 
