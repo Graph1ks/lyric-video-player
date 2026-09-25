@@ -207,10 +207,16 @@ export function loadPerformancePresets() {
     if (!raw) return defaults;
     const stored = JSON.parse(raw) as PerformancePresetDefinition[];
     const byId = new Map(stored.map(item => [item.id, item]));
-    return defaults.map(item => {
+    const merged = defaults.map(item => {
       const override = byId.get(item.id);
       return override ? sanitizePerformancePreset(override, item) : item;
     });
+    const builtinIds = new Set(defaults.map(item => item.id));
+    const custom = stored
+      .filter(item => !builtinIds.has(item.id))
+      .map(item => sanitizeCustomPerformancePreset(item))
+      .filter((item): item is PerformancePresetDefinition => Boolean(item));
+    return [...merged, ...custom];
   } catch {
     return defaults;
   }
@@ -228,6 +234,54 @@ export function savePerformancePresets(presets: PerformancePresetDefinition[]) {
 export function builtinPerformancePreset(id: string) {
   const preset = BUILTIN_PERFORMANCE_PRESETS.find(item => item.id === id);
   return preset ? clonePerformancePreset(preset) : undefined;
+}
+
+export function isBuiltinPerformancePreset(id: string) {
+  return BUILTIN_PERFORMANCE_PRESETS.some(item => item.id === id);
+}
+
+export function createCustomPerformancePreset(
+  source: PerformancePresetDefinition,
+  ordinal: number,
+): PerformancePresetDefinition {
+  const clone = clonePerformancePreset(source);
+  return {
+    ...clone,
+    id: `custom-${Date.now().toString(36)}-${Math.max(1, ordinal).toString(36)}`,
+    label: `Custom ${Math.max(1, ordinal)}`,
+    description: "Custom Director performance profile",
+  };
+}
+
+function sanitizeCustomPerformancePreset(
+  value: PerformancePresetDefinition,
+): PerformancePresetDefinition | undefined {
+  if (!value || typeof value.id !== "string" || typeof value.label !== "string") return undefined;
+  const auto = value.auto ?? {};
+  const required = [
+    "scenes",
+    "typographyPresets",
+    "sequences",
+    "layouts",
+    "motions",
+    "backgrounds",
+    "harmonies",
+    "moods",
+    "canvases",
+  ] as const;
+  if (required.some(key => !Array.isArray(auto[key]) || !auto[key]?.length)) return undefined;
+
+  return {
+    ...value,
+    emotion: typeof value.emotion === "string" ? value.emotion : "Custom",
+    pace: ["slow", "mid", "fast", "burst"].includes(value.pace) ? value.pace : "mid",
+    description: typeof value.description === "string" ? value.description : "Custom Director performance profile",
+    intensity: Number.isFinite(value.intensity) ? Math.max(0.2, Math.min(1.8, value.intensity)) : 1,
+    colorFlow: value.colorFlow === "rainbow" ? "rainbow" : "static",
+    auto: Object.fromEntries(
+      Object.entries(auto).map(([key, values]) => [key, Array.isArray(values) ? [...values] : values]),
+    ) as VisualAutoProfile,
+  };
 }
 
 function sanitizePerformancePreset(
