@@ -24,16 +24,11 @@ jobs:
         with:
           node-version: "22"
 
+      - name: npm 11
+        run: npm install --global npm@11.6.0
+
       - name: Install dependencies
-        shell: bash
-        run: |
-          set -e
-          if ! npm install --ignore-scripts --no-audit --no-fund; then
-            echo "::warning::npm install hit a transient Arborist/cache failure; clearing cache and retrying once"
-            rm -rf node_modules
-            npm cache clean --force
-            npm install --ignore-scripts --no-audit --no-fund
-          fi
+        run: npm install --ignore-scripts --no-audit --no-fund
 
       - name: Typecheck
         run: npm run typecheck
