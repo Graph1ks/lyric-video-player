@@ -70,6 +70,7 @@ export class EngineRenderer {
 
   setLyrics(lines: LineCue[]) {
     this.director.load(lines);
+    this.renderGraph.resetFeedback();
     if (this.director.getMode() === "auto" && this.lastLineIndex >= 0) {
       this.applyMode(this.director.sceneFor(this.lastLineIndex).mode, true);
     }
@@ -106,7 +107,12 @@ export class EngineRenderer {
 
   setLine(line: LineCue | undefined, index: number) {
     if (index === this.lastLineIndex) return;
+    const previousIndex = this.lastLineIndex;
     this.lastLineIndex = index;
+
+    if (previousIndex >= 0 && index >= 0 && Math.abs(index - previousIndex) > 1) {
+      this.renderGraph.resetFeedback();
+    }
 
     if (index >= 0) {
       const directed = this.director.sceneFor(index);
@@ -136,7 +142,7 @@ export class EngineRenderer {
     this.lyrics.update(lyricTime, audio);
     this.cameraRig.update(time, audio);
 
-    this.renderGraph.capture(this.app.renderer, this.camera);
+    this.renderGraph.capture(this.app.renderer, this.camera, time);
     this.app.renderer.render({
       container: this.app.stage,
       clear: true,
@@ -160,6 +166,7 @@ export class EngineRenderer {
     this.lyrics.setMode(mode);
     this.cameraRig.setMode(mode);
     this.postFX.setMode(mode);
+    this.renderGraph.setMode(mode);
     this.host?.setAttribute("data-scene", mode);
 
     if (animate) this.sceneTransition = 1;
