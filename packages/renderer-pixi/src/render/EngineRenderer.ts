@@ -527,9 +527,13 @@ export class EngineRenderer {
       (lyricTime - phraseStart) / Math.max(0.08, phraseEnd - phraseStart),
     );
     const persistent = Boolean(this.sequenceLyrics.getGrammar());
+    const sequenceGrammar = persistent ? this.sequenceLyrics.getGrammar() : undefined;
     const focus = persistent
       ? this.sequenceLyrics.getFocusPoint()
       : this.lyrics.getFocusPoint(lyricTime);
+    const framing = persistent
+      ? this.sequenceLyrics.getCameraFraming()
+      : undefined;
     const activeLine = this.lines[this.lastLineIndex];
     const readability = activeLine
       ? analyzeKineticReadability({
@@ -542,9 +546,11 @@ export class EngineRenderer {
     this.cameraRig.setCinematicPlan(evaluateCinematicCameraPlan({
       mode: direction.mode,
       shotRole: direction.shotRole,
-      sequenceGrammar: persistent ? this.sequenceLyrics.getGrammar() : undefined,
+      sequenceGrammar,
       phraseProgress,
       focus,
+      contentCenter: framing?.center,
+      contentFitScale: framing?.fitScale,
       readabilityPressure: readability?.pressure ?? 0,
       intensity: this.intensity,
     }));

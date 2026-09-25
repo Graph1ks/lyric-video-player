@@ -35,6 +35,7 @@ import {
   type VisualPalette,
   type WordCue,
 } from "@graph1ks/emo-engine-core";
+import { measureTypographyText } from "./TypographyMetrics.js";
 
 interface GlyphVisual {
   node: Text;
@@ -51,6 +52,7 @@ interface WordVisual {
   motion: Container;
   glyphs: GlyphVisual[];
   width: number;
+  height: number;
   baseX: number;
   baseY: number;
   layoutScale: number;
@@ -477,7 +479,13 @@ export class KineticLyrics {
         globalIndex += 1;
       });
 
-      const width = Math.max(1, cursor);
+      const measured = measureTypographyText(
+        cue.text.toUpperCase(),
+        this.mainStyle,
+        Math.max(2, this.fontSize * 0.028),
+      );
+      const width = Math.max(1, cursor, measured.width);
+      const height = Math.max(1, measured.height);
       glyphs.forEach(glyph => {
         glyph.baseX -= width * 0.5;
         glyph.node.x = glyph.baseX;
@@ -492,6 +500,7 @@ export class KineticLyrics {
         motion,
         glyphs,
         width,
+        height,
         baseX: 0,
         baseY: 0,
         layoutScale: 1,
@@ -1046,9 +1055,16 @@ export class KineticLyrics {
         glyph.baseX = cursor + half;
         cursor += glyph.node.width + Math.max(-1, this.fontSize * -0.018);
       }
-      word.width = Math.max(1, cursor);
+      const measured = measureTypographyText(
+        word.cue.text.toUpperCase(),
+        this.mainStyle,
+        Math.max(2, this.fontSize * 0.028),
+      );
+      const previousCenteringWidth = Math.max(1, cursor);
+      word.width = Math.max(previousCenteringWidth, measured.width);
+      word.height = Math.max(1, measured.height);
       word.glyphs.forEach(glyph => {
-        glyph.baseX -= word.width * 0.5;
+        glyph.baseX -= previousCenteringWidth * 0.5;
         glyph.node.x = glyph.baseX;
       });
     }
@@ -1064,6 +1080,7 @@ export class KineticLyrics {
       height: this.h,
       lineIndex: this.lineIndex,
       wordWidths: this.words.map(word => word.width),
+      wordHeights: this.words.map(word => word.height),
       wordHeight: this.fontSize,
       wordTexts: this.words.map(word => word.cue.text),
     });

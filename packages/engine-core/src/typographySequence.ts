@@ -3,16 +3,19 @@ import type { LineCue, WordCue } from "./types.js";
 
 export type SequenceWordRole = "active" | "recent" | "history" | "incoming";
 
-export interface SequenceWordRef {
+export interface SequenceScopeWordRef {
   id: string;
   lineIndex: number;
   wordIndex: number;
   text: string;
   start: number;
   end: number;
+  scopeOrdinal: number;
+}
+
+export interface SequenceWordRef extends SequenceScopeWordRef {
   role: SequenceWordRole;
   age: number;
-  scopeOrdinal: number;
 }
 
 export interface TypographySequenceWindow {
@@ -22,6 +25,7 @@ export interface TypographySequenceWindow {
   scopeStartLineIndex: number;
   scopeEndLineIndex: number;
   scopeWordCount: number;
+  scopeWords: SequenceScopeWordRef[];
   words: SequenceWordRef[];
   omittedWordCount: number;
 }
@@ -65,6 +69,7 @@ export function deriveTypographySequenceWindow(
 
   let activeLineIndex = -1;
   const candidates: SequenceWordRef[] = [];
+  const scopeWords: SequenceScopeWordRef[] = [];
   let scopeWordCount = 0;
   for (let lineIndex = lineStartIndex; lineIndex <= lineEndIndex; lineIndex++) {
     scopeWordCount += lines[lineIndex]?.words.length ?? 0;
@@ -80,21 +85,26 @@ export function deriveTypographySequenceWindow(
       const word = line.words[wordIndex];
       const wordScopeOrdinal = scopeOrdinal;
       scopeOrdinal += 1;
-      const role = roleAtTime(word, safeTime, historySeconds, recentSeconds, leadSeconds);
-      if (!role) continue;
-
-      candidates.push({
+      const scopeWord = {
         id: typographyWordId(lineIndex, wordIndex),
         lineIndex,
         wordIndex,
         text: word.text,
         start: word.start,
         end: word.end,
+        scopeOrdinal: wordScopeOrdinal,
+      } satisfies SequenceScopeWordRef;
+      scopeWords.push(scopeWord);
+
+      const role = roleAtTime(word, safeTime, historySeconds, recentSeconds, leadSeconds);
+      if (!role) continue;
+
+      candidates.push({
+        ...scopeWord,
         role,
         age: role === "incoming"
           ? word.start - safeTime
           : Math.max(0, safeTime - word.end),
-        scopeOrdinal: wordScopeOrdinal,
       });
     }
   }
@@ -112,6 +122,7 @@ export function deriveTypographySequenceWindow(
     scopeStartLineIndex: lineStartIndex,
     scopeEndLineIndex: lineEndIndex,
     scopeWordCount,
+    scopeWords,
     words: kept,
     omittedWordCount: Math.max(0, candidates.length - kept.length),
   };

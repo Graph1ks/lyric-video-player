@@ -6,11 +6,15 @@ import {
   deriveTypographySequenceWindow,
   planTypographySequence,
   type LineCue,
+  spatialBoxFor,
+  spatialEnvelope,
   type QualityMode,
   type SequenceTypographyTreatment,
   type TypographySequenceGrammarId,
+  type TypographySpatialMetrics,
   type VisualPalette,
 } from "@graph1ks/emo-engine-core";
+import { measureTypographyText } from "./TypographyMetrics.js";
 
 interface SequenceNode {
   node: Text;
@@ -31,6 +35,10 @@ export class PersistentTypographySequences {
   private w = 1;
   private h = 1;
   private baseFontSize = 84;
+  private scopeMetrics = new Map<string, TypographySpatialMetrics>();
+  private framingCenterX = 0;
+  private framingCenterY = 0;
+  private framingScale = 1;
   private focusX = 0;
   private focusY = 0;
   private hasFocus = false;
@@ -72,6 +80,16 @@ export class PersistentTypographySequences {
       : { x: 0, y: 0 };
   }
 
+  getCameraFraming() {
+    return {
+      center: {
+        x: this.framingCenterX,
+        y: this.framingCenterY,
+      },
+      fitScale: this.framingScale,
+    };
+  }
+
   setPalette(palette: VisualPalette, _refreshStatic = true) {
     this.palette = palette;
     // Outline scenes need independent fill + stroke palette roles. A single Pixi
@@ -98,6 +116,7 @@ export class PersistentTypographySequences {
     for (const entry of this.nodes.values()) {
       entry.node.style = this.styleFor(entry.treatment);
     }
+    this.scopeMetrics.clear();
   }
 
   update(time: number, audio: AudioBands) {
@@ -121,12 +140,12 @@ export class PersistentTypographySequences {
     const architecturalWall = this.grammar === "manifesto-wall";
     const persistentStructure = structuralShape || architecturalWall;
     const historySeconds = persistentStructure
-      ? (cinema ? 24 : 16)
+      ? 3600
       : (cinema ? 7.5 : 4.5) * (0.48 + echoBudget * 0.52);
     const maxWords = structuralShape
-      ? (cinema ? 72 : 48)
+      ? (cinema ? 160 : 100)
       : architecturalWall
-        ? (cinema ? 48 : 32)
+        ? (cinema ? 180 : 120)
         : Math.max(
             8,
             Math.round((cinema ? 42 : 24) * (0.42 + echoBudget * 0.58)),
@@ -139,11 +158,27 @@ export class PersistentTypographySequences {
       lineStartIndex: this.phraseStartLine,
       lineEndIndex: this.phraseEndLine,
     });
+    const metricsById: Record<string, TypographySpatialMetrics> = {};
+    const metricStyle = this.styleFor("solid");
+    for (const scopeWord of window.scopeWords) {
+      let metrics = this.scopeMetrics.get(scopeWord.id);
+      if (!metrics) {
+        metrics = measureTypographyText(
+          scopeWord.text.toUpperCase(),
+          metricStyle,
+          Math.max(2, this.baseFontSize * 0.035),
+        );
+        this.scopeMetrics.set(scopeWord.id, metrics);
+      }
+      metricsById[scopeWord.id] = metrics;
+    }
+
     const plan = planTypographySequence({
       grammar: this.grammar,
       window,
       width: this.w,
       height: this.h,
+      metricsById,
     });
     const refs = new Map(window.words.map(word => [word.id, word]));
     const activeIds = new Set<string>();
@@ -158,6 +193,7 @@ export class PersistentTypographySequences {
       ? clamp(heroPlacement.y / Math.max(1, this.h * 0.5), -1, 1)
       : 0;
 
+    const framingBoxes = [];
     for (const placement of plan.words) {
       const ref = refs.get(placement.id);
       if (!ref) continue;
@@ -237,6 +273,30 @@ export class PersistentTypographySequences {
         ? Math.max(placement.alpha, readability?.motion.alphaFloor ?? 0)
         : placement.alpha;
       node.zIndex = placement.zIndex;
+
+      const metrics = metricsById[placement.id];
+      if (metrics && placement.role !== "incoming") {
+        framingBoxes.push(spatialBoxFor(metrics, {
+          x: placement.x * travelScale,
+          y: placement.y * travelScale - focusPulse * this.h * focusLift * this.intensity,
+          scale: finalScale,
+          rotation: node.rotation,
+        }));
+      }
+    }
+
+    const envelope = spatialEnvelope(framingBoxes);
+    if (framingBoxes.length) {
+      this.framingCenterX = clamp(envelope.cx / Math.max(1, this.w * 0.5), -0.9, 0.9);
+      this.framingCenterY = clamp(envelope.cy / Math.max(1, this.h * 0.5), -0.86, 0.86);
+      this.framingScale = clamp(Math.min(
+        this.w * 0.88 / Math.max(1, envelope.width),
+        this.h * 0.8 / Math.max(1, envelope.height),
+      ), 0.78, 1.18);
+    } else {
+      this.framingCenterX = 0;
+      this.framingCenterY = 0;
+      this.framingScale = 1;
     }
 
     for (const [id, entry] of this.nodes) {
@@ -318,6 +378,10 @@ export class PersistentTypographySequences {
       entry.node.destroy();
     }
     this.nodes.clear();
+    this.scopeMetrics.clear();
+    this.framingCenterX = 0;
+    this.framingCenterY = 0;
+    this.framingScale = 1;
     this.focusX = 0;
     this.focusY = 0;
     this.hasFocus = false;
