@@ -1,13 +1,13 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `8c907a70b79721fe28c77eadd8b16a205754501e`  
-**Active candidate:** `feat/elastic-tether-camera-continuity-v0.9`  
+**Last known good merged baseline:** `0370659e5807c290414959cd32a44f15068054a8`  
+**Active candidate:** none  
 **Current phase/milestone:** cinematic sequence direction + temporal readability
 
 ## Current objective
 
-Implement Elastic Tether as a readable word-level deformation/arrival grammar and move camera ownership toward phrase/shot/focus direction instead of primarily audio impulses.
+Visually calibrate the merged Elastic Tether and continuity-aware camera baseline on real Enhanced LRC tracks, especially dense lyrics, mobile framing and phrase-to-phrase eye-trace continuity. Then proceed to section-level tension/release and shot-size sequencing.
 
 ## Current state
 
@@ -20,6 +20,13 @@ Implement Elastic Tether as a readable word-level deformation/arrival grammar an
 - **Ribbon Path** is merged as an S-curve trajectory where active/recent/history lyrics share one path and advance continuously across word handoffs.
 - Shape/Ribbon structural geometry is preserved under rapid-lyric readability pressure; active micro-motion and history budgets still adapt.
 - Rotated persistent words now fit against both viewport width and height, improving ring/frame side safety on narrow viewports.
+- **Elastic Tether** is merged: whole words now follow their composition entry vector, stretch/squash along the pull direction, overshoot and settle with bounded deformation.
+- Elastic glyph motion is now secondary follow-through; the large gesture belongs to the word/container level.
+- Rapid/Burst readability budgets reduce tether travel/deformation without eliminating motion.
+- **Cinematic Camera Plan** is merged: Establish/Develop/Accent/Release role + phrase progress + typography focus + persistent grammar + readability pressure determine base pan/scale/rotation and impulse budgets.
+- Ordinary and persistent typography expose deterministic focus points. Current-line focus begins handing off toward the next word near cue end.
+- CameraRig now treats bass/transient drift as bounded micro-response layered over the directed shot rather than the primary framing source.
+- Shape Build deliberately stays wider and follows focus less; Hero/Spiral/Ribbon receive stronger eye-trace following.
 - Phrase-level cinematic direction keeps AUTO typography preset, layout and composition motion in coherent phrase-stable bundles instead of independently cycling every line.
 - Phrases expose Establish / Develop / Accent / Release shot roles for the next sequence/camera layer.
 - Kinetic readability pressure uses line duration, words/s, chars/s and shortest word duration.
@@ -107,13 +114,15 @@ Implement Elastic Tether as a readable word-level deformation/arrival grammar an
 - Persistent Spiral/Hero Rendering (PR #39): Linux validation + Windows build/package/artifacts — passed.
 - Shape Build + Ribbon Path (PR #40): Linux typecheck/build/82 tests/publication audit — passed.
 - Shape Build + Ribbon Path (PR #40): Windows Node 22/24 launcher smokes + full build/NSIS/portable/artifact upload — passed.
+- Elastic Tether + Camera Continuity (PR #42): Linux typecheck/build/tests/publication audit — passed.
+- Elastic Tether + Camera Continuity (PR #42): Windows Node 22/24 launcher smokes + full build/NSIS/portable/artifact upload — passed.
 
 ## Next concrete action
 
-1. Verify Elastic Tether + continuity-aware camera planning in Linux/Windows CI.
-2. Visually calibrate tether deformation and camera eye-trace on real tracks, especially Rapid/Burst lyrics.
-3. Extend the cinematic acceptance matrix with gaze continuity, sequence persistence, calligram integrity and shot-scale variation.
-4. Add section-level tension/release + shot-size sequencing after camera acceptance.
+1. Visually calibrate tether deformation and camera eye-trace on real tracks, especially Rapid/Burst lyrics and mobile.
+2. Extend the cinematic acceptance matrix with gaze continuity, sequence persistence, calligram integrity, tether readability and shot-scale variation.
+3. Add section-level tension/release + shot-size sequencing.
+4. Evaluate whether genuine mesh/RenderTexture Elastic deformation is visually necessary after baseline acceptance.
 5. Stabilize serializable sequence directives only after those behaviors are visually accepted.
 
 ## Do not redo
