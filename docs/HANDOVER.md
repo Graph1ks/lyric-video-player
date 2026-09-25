@@ -1,13 +1,13 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `52c875aac3df9e89721622fd365c1d29c9ae7fb0`  
-**Active candidate:** `fix/fx-baseline-preset-cleanup-world-fidelity` / PR #61  
-**Current phase/milestone:** FX parity repair + shader-fidelity world rebuild
+**Merged baseline:** `aa691e93ad44e7f4690ca729231264e836a5f524`  
+**Active candidate:** none  
+**Current phase/milestone:** FX parity + shader-world visual acceptance
 
 ## Current objective
 
-Finish PR #61, then verify that factory FX reset restores the pre-exposure cinematic balance and that the shader-rebuilt WORLD_01/WORLD_02 materially improve fidelity over the rejected Graphics prototypes.
+Verify merged PR #61 locally: factory FX reset must restore the pre-exposure cinematic balance, shipped presets must be absent, delete must require confirmation, and shader-rebuilt WORLD_01/WORLD_02 must materially improve fidelity over the rejected Graphics prototypes.
 
 ## Merged baseline — Resource lifetime + physical-edge safety v0.11.2
 
@@ -111,7 +111,7 @@ PR #59 implements the first two as dedicated specialized worlds:
 
 Integration is in `CinematicBackground.ts`. Specialized worlds suppress generic particles/blobs/rings/beams so their identity is not diluted. Director catalog/CSS previews and energetic Performance Presets expose the two worlds.
 
-## Active candidate — FX parity investigation + world shader rebuild
+## Merged baseline — FX parity investigation + world shader rebuild
 
 The user's report that the image became cleaner/less cinematic after FX exposure was valid. The investigation found multiple concrete regressions rather than a subjective tuning issue:
 
