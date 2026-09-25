@@ -85,6 +85,7 @@ test("emo.project/v1 selects nested media and carries visual defaults", async ()
         typographyPreset: "tunnel",
         typographyLayout: "vertical-accent",
         backgroundPreset: "lyrics",
+        colorHarmony: "split-complement",
         intensity: 1.25,
         quality: "cinema",
         syncMs: 80,
@@ -100,6 +101,7 @@ test("emo.project/v1 selects nested media and carries visual defaults", async ()
     assert.equal(found.manifest?.defaults?.typographyPreset, "tunnel");
     assert.equal(found.manifest?.defaults?.typographyLayout, "vertical-accent");
     assert.equal(found.manifest?.defaults?.backgroundPreset, "lyrics");
+    assert.equal(found.manifest?.defaults?.colorHarmony, "split-complement");
     assert.equal(found.manifest?.defaults?.syncMs, 80);
     assert.ok(found.assets.some(asset => asset.relativePath.endsWith("assets/cover.webp")));
   } finally {
@@ -141,4 +143,11 @@ test("emo.project/v1 rejects traversal and invalid visual defaults", () => {
     lyrics: "lyrics.lrc",
     defaults: { backgroundPreset: "unknown" },
   })), /backgroundPreset is invalid/);
+
+  assert.throws(() => parseProjectManifest(JSON.stringify({
+    schema: "emo.project/v1",
+    audio: "track.mp3",
+    lyrics: "lyrics.lrc",
+    defaults: { colorHarmony: "unknown" },
+  })), /colorHarmony is invalid/);
 });

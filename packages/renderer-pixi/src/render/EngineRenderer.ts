@@ -1,9 +1,11 @@
 import { Application, Container } from "pixi.js";
 import type { AudioBands } from "@graph1ks/emo-audio-web";
-import { SceneDirector } from "@graph1ks/emo-engine-core";
+import { createVisualPalette, SceneDirector } from "@graph1ks/emo-engine-core";
 import type {
   BackgroundPreset,
   BackgroundPresetId,
+  ColorHarmonyId,
+  ColorHarmonyMode,
   LineCue,
   QualityMode,
   SceneMode,
@@ -12,6 +14,7 @@ import type {
   TypographyPreset,
   TypographyPresetId,
   VisualMode,
+  VisualPalette,
 } from "@graph1ks/emo-engine-core";
 import { CinematicBackground } from "../effects/backgrounds/CinematicBackground";
 import { KineticLyrics } from "../effects/typography/KineticLyrics";
@@ -45,6 +48,7 @@ export class EngineRenderer {
   );
   private activeMode: SceneMode = "neon";
   private quality: QualityMode = "cinema";
+  private colorHarmony: ColorHarmonyMode = "auto";
   private lastLineIndex = -1;
   private intensity = 1;
   private host?: HTMLElement;
@@ -52,9 +56,11 @@ export class EngineRenderer {
   private typographyListeners = new Set<(preset: TypographyPresetId) => void>();
   private layoutListeners = new Set<(layout: TypographyLayoutId) => void>();
   private backgroundListeners = new Set<(preset: BackgroundPresetId) => void>();
+  private paletteListeners = new Set<(palette: VisualPalette) => void>();
   private lastTypographyPreset?: TypographyPresetId;
   private lastTypographyLayout?: TypographyLayoutId;
   private lastBackgroundPreset?: BackgroundPresetId;
+  private lastPaletteKey = "";
   private sceneTransition = 0;
   private previousTime = 0;
   private resizeListener?: () => void;
@@ -110,6 +116,30 @@ export class EngineRenderer {
     this.director.setMode(mode);
     if (mode !== "auto") this.applyMode(mode, true);
     else if (this.lastLineIndex >= 0) this.applyMode(this.director.sceneFor(this.lastLineIndex).mode, true);
+  }
+
+  setColorHarmony(harmony: ColorHarmonyMode) {
+    if (this.colorHarmony === harmony) return;
+    this.colorHarmony = harmony;
+    this.renderGraph.resetFeedback();
+    this.refreshPalette();
+  }
+
+  onPaletteChange(listener: (palette: VisualPalette) => void) {
+    this.paletteListeners.add(listener);
+    return () => this.paletteListeners.delete(listener);
+  }
+
+  getColorHarmony() {
+    return this.colorHarmony;
+  }
+
+  getResolvedColorHarmony(): ColorHarmonyId {
+    return createVisualPalette({
+      harmony: this.colorHarmony,
+      scene: this.activeMode,
+      lineIndex: this.lastLineIndex,
+    }).resolvedHarmony;
   }
 
   setBackgroundPreset(preset: BackgroundPreset) {
@@ -215,6 +245,7 @@ export class EngineRenderer {
     }
 
     this.emitBackgroundPreset();
+    this.refreshPalette();
     this.lyrics.setLine(line, index);
     this.emitTypographyPreset();
     this.emitTypographyLayout();
@@ -279,11 +310,35 @@ export class EngineRenderer {
     this.bloomThresholdFX.setMode(mode);
     this.postFX.setMode(mode);
     this.renderGraph.setMode(mode);
+    this.refreshPalette();
     this.host?.setAttribute("data-scene", mode);
 
     if (animate) this.sceneTransition = 1;
 
     for (const listener of this.modeListeners) listener(mode);
+  }
+
+  private refreshPalette() {
+    const palette = createVisualPalette({
+      harmony: this.colorHarmony,
+      scene: this.activeMode,
+      lineIndex: this.lastLineIndex,
+    });
+    this.background.setPalette(palette);
+    this.lyrics.setPalette(palette);
+    this.host?.setAttribute("data-harmony", palette.resolvedHarmony);
+
+    const key = [
+      palette.resolvedHarmony,
+      Math.round(palette.baseHue * 10),
+      palette.background,
+      palette.textPrimary,
+      palette.accentA,
+      palette.accentB,
+    ].join(":");
+    if (key === this.lastPaletteKey) return;
+    this.lastPaletteKey = key;
+    for (const listener of this.paletteListeners) listener(palette);
   }
 
   private emitBackgroundPreset() {

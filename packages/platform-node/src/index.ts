@@ -8,6 +8,7 @@ import type {
   ProjectAssetKind,
   ProjectDescriptor,
   ProjectBackgroundPreset,
+  ProjectColorHarmony,
   ProjectQualityMode,
   ProjectTypographyLayout,
   ProjectTypographyPreset,
@@ -38,6 +39,15 @@ const TYPOGRAPHY_LAYOUTS = new Set<ProjectTypographyLayout>([
   "vertical-accent",
   "split-stage",
   "crossword",
+]);
+const COLOR_HARMONIES = new Set<ProjectColorHarmony>([
+  "auto",
+  "split-complement",
+  "analogous",
+  "complement",
+  "triad",
+  "tetrad",
+  "monochrome",
 ]);
 const BACKGROUND_PRESETS = new Set<ProjectBackgroundPreset>([
   "auto",
@@ -150,6 +160,16 @@ function parseDefaults(value: unknown): EmoProjectDefaults | undefined {
       throw new Error("E-MO manifest defaults.backgroundPreset is invalid");
     }
     defaults.backgroundPreset = input.backgroundPreset as ProjectBackgroundPreset;
+  }
+
+  if (input.colorHarmony !== undefined) {
+    if (
+      typeof input.colorHarmony !== "string"
+      || !COLOR_HARMONIES.has(input.colorHarmony as ProjectColorHarmony)
+    ) {
+      throw new Error("E-MO manifest defaults.colorHarmony is invalid");
+    }
+    defaults.colorHarmony = input.colorHarmony as ProjectColorHarmony;
   }
 
   if (input.intensity !== undefined) {

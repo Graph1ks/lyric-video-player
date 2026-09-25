@@ -50,6 +50,8 @@
 - inflated / soft-3D type — next
 - handwritten / stroke reveal — next
 - particle dissolve and smear exits — next
+- word-level composition planner — active v0.8 candidate
+- Center Stack / Directional Stage / Editorial / Vertical Accent / Split Stage / Crossword — active v0.8 candidate
 
 ## Milestone 0.6 — Advanced backgrounds — complete baseline
 - preset routing independent from scene family — complete baseline
@@ -61,6 +63,17 @@
 - waveform and spectrum ribbons — complete baseline
 - sparks / trails — complete baseline
 - recursive typography backgrounds — complete baseline
+
+## Cross-cutting v0.8 — Composition + Color Direction — active candidate
+- typography composition separated from glyph motion
+- deterministic composition AUTO routing
+- word placement / orientation / scale / entry vectors
+- OKLCH palette generation + sRGB gamut reduction
+- Split Complement / Analogous / Complement / Triad / Tetrad / Monochrome
+- semantic background/text/accent/glow roles
+- lyric/background contrast guarantees
+- React controls + project defaults
+- next: composition-level motion grammar
 
 ## Milestone 0.7 — Scene project format
 - scene JSON

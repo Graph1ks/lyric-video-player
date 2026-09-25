@@ -58,6 +58,14 @@ export type BackgroundPresetId =
   | "lyrics"
   | "minimal";
 export type BackgroundPreset = "auto" | BackgroundPresetId;
+export type ColorHarmonyId =
+  | "split-complement"
+  | "analogous"
+  | "complement"
+  | "triad"
+  | "tetrad"
+  | "monochrome";
+export type ColorHarmonyMode = "auto" | ColorHarmonyId;
 
 export interface VisualSettings {
   mode: VisualMode;
@@ -66,6 +74,7 @@ export interface VisualSettings {
   typographyPreset?: TypographyPreset;
   typographyLayout?: TypographyLayoutPreset;
   backgroundPreset?: BackgroundPreset;
+  colorHarmony?: ColorHarmonyMode;
 }
 
 export interface AudioBands {

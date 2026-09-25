@@ -19,6 +19,14 @@ export type ProjectTypographyLayout =
   | "vertical-accent"
   | "split-stage"
   | "crossword";
+export type ProjectColorHarmony =
+  | "auto"
+  | "split-complement"
+  | "analogous"
+  | "complement"
+  | "triad"
+  | "tetrad"
+  | "monochrome";
 export type ProjectBackgroundPreset =
   | "auto"
   | "cinematic"
@@ -40,6 +48,7 @@ export interface EmoProjectDefaults {
   typographyPreset?: ProjectTypographyPreset;
   typographyLayout?: ProjectTypographyLayout;
   backgroundPreset?: ProjectBackgroundPreset;
+  colorHarmony?: ProjectColorHarmony;
   syncMs?: number;
 }
 

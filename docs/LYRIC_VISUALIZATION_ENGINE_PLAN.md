@@ -26,7 +26,7 @@ LYRIC VISUAL SCENE
 
 The audio/LRC clock remains authoritative. All automatic layout, palette and motion decisions must be deterministic from project data, cue index, scene family and supplied playback time.
 
-## Step 1 — Typography Composition Engine
+## Step 1 — Typography Composition Engine — complete baseline
 
 **Problem:** the existing lyric engine animates words/glyphs well, but most lines still occupy the frame like centered subtitles.
 
@@ -47,9 +47,11 @@ The audio/LRC clock remains authoritative. All automatic layout, palette and mot
 - renderer API, React controls, keyboard cycling and project defaults;
 - layout decisions remain seek-safe and testable without Pixi.
 
+**Implemented baseline:** pure deterministic composition planning, six layout families, AUTO routing, 90° words, independent entry vectors/scales, renderer/UI/project controls and regression tests.
+
 **Acceptance:** the same lyric line can visibly occupy the frame in substantially different compositions while retaining the existing glyph animation presets.
 
-## Step 2 — OKLCH Palette Director + Contrast Roles
+## Step 2 — OKLCH Palette Director + Contrast Roles — complete baseline
 
 **Problem:** backgrounds and typography currently use mostly hard-coded scene colors and do not share an explicit color/contrast contract.
 
@@ -77,6 +79,8 @@ The audio/LRC clock remains authoritative. All automatic layout, palette and mot
 - primary typography/background layers consume one shared palette;
 - React harmony controls + palette preview;
 - project default serialization.
+
+**Implemented baseline:** OKLCH conversion/gamut reduction, six harmony families, semantic palette roles, contrast checks, shared primary typography/background palette, React preview/control, project defaults and tests.
 
 **Acceptance:** changing harmony changes the whole scene coherently while primary lyric text remains clearly readable against the generated background.
 

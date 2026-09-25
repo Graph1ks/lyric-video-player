@@ -22,6 +22,7 @@ import {
   type TypographyLayoutPreset,
   type TypographyPreset,
   type TypographyPresetId,
+  type VisualPalette,
   type WordCue,
 } from "@graph1ks/emo-engine-core";
 
@@ -88,6 +89,7 @@ export class KineticLyrics {
   private intensity = 1;
   private fontSize = 84;
   private glyphCount = 0;
+  private palette?: VisualPalette;
   private wordHitListeners = new Set<(index: number, audio: AudioBands) => void>();
 
   private mainStyle = new TextStyle({
@@ -150,6 +152,15 @@ export class KineticLyrics {
 
   getResolvedLayout() {
     return this.resolvedLayout;
+  }
+
+  setPalette(palette: VisualPalette) {
+    this.palette = palette;
+    if (this.line) {
+      this.configureStyle();
+      this.remeasureWords();
+      this.rebuildEchoLayers();
+    }
   }
 
   setIntensity(value: number) {
@@ -523,6 +534,13 @@ export class KineticLyrics {
   }
 
   private glyphTint(active: boolean, past: boolean, filled: boolean) {
+    if (this.palette) {
+      return active
+        ? (filled ? this.palette.textPrimary : this.palette.accentA)
+        : past
+          ? this.palette.textSecondary
+          : this.palette.muted;
+    }
     if (this.mode === "poster") {
       return active ? (filled ? 0xffffff : 0x8f9097) : past ? 0xd6d6d9 : 0x6f7077;
     }
@@ -616,7 +634,9 @@ export class KineticLyrics {
           fontFamily: "Arial Black, Impact, Helvetica Neue, Arial, sans-serif",
           fontWeight: "900",
           fontSize: this.fontSize * 1.02,
-          fill: i === 0 ? 0x36fff0 : 0xff387f,
+          fill: i === 0
+            ? (this.palette?.accentA ?? 0x36fff0)
+            : (this.palette?.accentB ?? 0xff387f),
           letterSpacing: -2,
         });
         const echo = new Text({ text: lineText, style });
@@ -630,14 +650,19 @@ export class KineticLyrics {
   }
 
   private echoStyle(index: number) {
+    const background = this.palette?.background ?? 0x050607;
+    const textPrimary = this.palette?.textPrimary ?? 0xffffff;
+    const accentA = this.palette?.accentA ?? (this.mode === "vortex" ? 0xff5260 : 0x73767e);
+    const accentB = this.palette?.accentB ?? (this.mode === "neon" ? 0xff447c : 0xff704d);
+
     if (this.resolvedPreset === "outline") {
       return new TextStyle({
         fontFamily: "Arial Black, Impact, Helvetica Neue, Arial, sans-serif",
         fontWeight: "900",
         fontSize: this.fontSize * (1 + index * 0.003),
-        fill: 0x050607,
+        fill: background,
         stroke: {
-          color: index % 3 === 0 ? 0xffffff : this.mode === "vortex" ? 0xff5260 : 0x73767e,
+          color: index % 3 === 0 ? textPrimary : accentA,
           width: index % 3 === 0 ? 2.6 : 1.1,
         },
         letterSpacing: -2,
@@ -649,9 +674,9 @@ export class KineticLyrics {
         fontFamily: "Arial Black, Impact, Helvetica Neue, Arial, sans-serif",
         fontWeight: "900",
         fontSize: this.fontSize * 1.14,
-        fill: 0x030304,
+        fill: background,
         stroke: {
-          color: this.mode === "neon" ? (index % 2 ? 0x5dfff3 : 0xff447c) : (index % 2 ? 0xff3348 : 0xff704d),
+          color: index % 2 ? accentA : accentB,
           width: 1.4,
         },
         letterSpacing: -2,
@@ -663,8 +688,8 @@ export class KineticLyrics {
         fontFamily: "Arial Black, Impact, Helvetica Neue, Arial, sans-serif",
         fontWeight: "900",
         fontSize: this.fontSize * 1.02,
-        fill: 0x070707,
-        stroke: { color: index === 3 ? 0xffffff : 0x8c8e93, width: index === 3 ? 3 : 1.2 },
+        fill: background,
+        stroke: { color: index === 3 ? textPrimary : accentA, width: index === 3 ? 3 : 1.2 },
         letterSpacing: -2,
       });
     }
@@ -675,7 +700,7 @@ export class KineticLyrics {
         fontWeight: "900",
         fontSize: this.fontSize * 1.18,
         fill: 0x050304,
-        stroke: { color: index % 2 ? 0xff3348 : 0xff704d, width: 1.6 },
+        stroke: { color: index % 2 ? accentA : accentB, width: 1.6 },
         letterSpacing: -2,
       });
     }
@@ -684,7 +709,7 @@ export class KineticLyrics {
       fontFamily: "Arial Black, Impact, Helvetica Neue, Arial, sans-serif",
       fontWeight: "900",
       fontSize: this.fontSize * 1.04,
-      fill: 0x58fff1,
+      fill: accentA,
       letterSpacing: -2,
     });
   }
@@ -788,10 +813,11 @@ export class KineticLyrics {
       : this.mode === "poster"
         ? -3
         : -2;
-    this.mainStyle.fill = this.mode === "vortex" ? 0xfff0eb : 0xffffff;
+    const textPrimary = this.palette?.textPrimary ?? (this.mode === "vortex" ? 0xfff0eb : 0xffffff);
+    this.mainStyle.fill = textPrimary;
     this.mainStyle.stroke = this.resolvedPreset === "outline"
-      ? { color: 0xffffff, width: 1.3 }
-      : { color: 0xffffff, width: 0 };
+      ? { color: textPrimary, width: 1.3 }
+      : { color: textPrimary, width: 0 };
   }
 
   private remeasureWords() {

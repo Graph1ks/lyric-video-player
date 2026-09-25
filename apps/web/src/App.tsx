@@ -6,8 +6,11 @@ import { AudioEngine, HtmlAudioClock } from "@graph1ks/emo-audio-web";
 import {
   ELRCParser,
   SCENE_LABELS,
+  hexColorToCss,
   type BackgroundPreset,
   type BackgroundPresetId,
+  type ColorHarmonyId,
+  type ColorHarmonyMode,
   type ParsedLyrics,
   type QualityMode,
   type SceneMode,
@@ -16,6 +19,7 @@ import {
   type TypographyPreset,
   type TypographyPresetId,
   type VisualMode,
+  type VisualPalette,
 } from "@graph1ks/emo-engine-core";
 import {
   classifyDroppedFiles,
@@ -49,6 +53,16 @@ const TYPOGRAPHY_LAYOUTS: TypographyLayoutPreset[] = [
   "vertical-accent",
   "split-stage",
   "crossword",
+];
+
+const COLOR_HARMONIES: ColorHarmonyMode[] = [
+  "auto",
+  "split-complement",
+  "analogous",
+  "complement",
+  "triad",
+  "tetrad",
+  "monochrome",
 ];
 
 const BACKGROUND_PRESETS: BackgroundPreset[] = [
@@ -93,6 +107,7 @@ export function App() {
   const typographyPreset = useUiStore(state => state.typographyPreset);
   const typographyLayout = useUiStore(state => state.typographyLayout);
   const backgroundPreset = useUiStore(state => state.backgroundPreset);
+  const colorHarmony = useUiStore(state => state.colorHarmony);
   const syncMs = useUiStore(state => state.syncMs);
   const projectDrawerOpen = useUiStore(state => state.projectDrawerOpen);
   const setHudVisible = useUiStore(state => state.setHudVisible);
@@ -102,6 +117,7 @@ export function App() {
   const setTypographyPreset = useUiStore(state => state.setTypographyPreset);
   const setTypographyLayout = useUiStore(state => state.setTypographyLayout);
   const setBackgroundPreset = useUiStore(state => state.setBackgroundPreset);
+  const setColorHarmony = useUiStore(state => state.setColorHarmony);
   const setSyncMs = useUiStore(state => state.setSyncMs);
   const setProjectDrawerOpen = useUiStore(state => state.setProjectDrawerOpen);
 
@@ -110,6 +126,8 @@ export function App() {
   const [activeTypography, setActiveTypography] = useState<TypographyPresetId>("elastic");
   const [activeLayout, setActiveLayout] = useState<TypographyLayoutId>("directional-stage");
   const [activeBackground, setActiveBackground] = useState<BackgroundPresetId>("nebula");
+  const [activeHarmony, setActiveHarmony] = useState<ColorHarmonyId>("split-complement");
+  const [activePalette, setActivePalette] = useState<VisualPalette | null>(null);
   const [hasContent, setHasContent] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
@@ -156,6 +174,11 @@ export function App() {
     });
     const offBackground = renderer.onBackgroundPresetChange(preset => {
       if (!disposed) setActiveBackground(preset);
+    });
+    const offPalette = renderer.onPaletteChange(palette => {
+      if (disposed) return;
+      setActiveHarmony(palette.resolvedHarmony);
+      setActivePalette(palette);
     });
 
     const offTick = clock.onTick(time => {
@@ -207,6 +230,7 @@ export function App() {
       renderer.setTypographyPreset(useUiStore.getState().typographyPreset);
       renderer.setTypographyLayout(useUiStore.getState().typographyLayout);
       renderer.setBackgroundPreset(useUiStore.getState().backgroundPreset);
+      renderer.setColorHarmony(useUiStore.getState().colorHarmony);
       renderer.setIntensity(useUiStore.getState().intensity);
       renderer.setQuality(useUiStore.getState().quality);
       clock.start();
@@ -220,6 +244,7 @@ export function App() {
       offTypography();
       offLayout();
       offBackground();
+      offPalette();
       audio.element.removeEventListener("play", onPlay);
       audio.element.removeEventListener("pause", onPause);
       audio.element.removeEventListener("ended", onEnded);
@@ -248,6 +273,10 @@ export function App() {
   useEffect(() => {
     rendererRef.current?.setBackgroundPreset(backgroundPreset);
   }, [backgroundPreset]);
+
+  useEffect(() => {
+    rendererRef.current?.setColorHarmony(colorHarmony);
+  }, [colorHarmony]);
 
   useEffect(() => {
     rendererRef.current?.setIntensity(intensity);
@@ -301,13 +330,17 @@ export function App() {
         const current = useUiStore.getState().backgroundPreset;
         const index = BACKGROUND_PRESETS.indexOf(current);
         setBackgroundPreset(BACKGROUND_PRESETS[(index + 1) % BACKGROUND_PRESETS.length]);
+      } else if (event.code === "KeyC") {
+        const current = useUiStore.getState().colorHarmony;
+        const index = COLOR_HARMONIES.indexOf(current);
+        setColorHarmony(COLOR_HARMONIES[(index + 1) % COLOR_HARMONIES.length]);
       } else if (event.code === "Comma") adjustSync(-50);
       else if (event.code === "Period") adjustSync(50);
     };
 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [setBackgroundPreset, setHudVisible, setMode, setSyncMs, setTypographyLayout, setTypographyPreset]);
+  }, [setBackgroundPreset, setColorHarmony, setHudVisible, setMode, setSyncMs, setTypographyLayout, setTypographyPreset]);
 
   useEffect(() => {
     const onDragEnter = (event: DragEvent) => {
@@ -439,6 +472,7 @@ export function App() {
       if (defaults?.typographyPreset !== undefined) setTypographyPreset(defaults.typographyPreset);
       if (defaults?.typographyLayout !== undefined) setTypographyLayout(defaults.typographyLayout);
       if (defaults?.backgroundPreset !== undefined) setBackgroundPreset(defaults.backgroundPreset);
+      if (defaults?.colorHarmony !== undefined) setColorHarmony(defaults.colorHarmony);
       if (defaults?.syncMs !== undefined) {
         syncRef.current = defaults.syncMs;
         setSyncMs(defaults.syncMs);
@@ -600,6 +634,41 @@ export function App() {
             </div>
           </div>
 
+          <div className="harmony-control">
+            <div className="control-heading">
+              <span>COLOR HARMONY</span>
+              <b>{activeHarmony.replaceAll("-", " ").toUpperCase()}</b>
+            </div>
+            <div className="harmony-grid" role="group" aria-label="OKLCH color harmony">
+              {COLOR_HARMONIES.map(value => (
+                <button
+                  key={value}
+                  className={`harmony-button ${colorHarmony === value ? "is-active" : ""}`}
+                  onClick={() => setColorHarmony(value)}
+                  title={value === "auto" ? "Auto OKLCH harmony · C" : `${value} OKLCH harmony`}
+                >
+                  {value.replaceAll("-", " ").toUpperCase()}
+                </button>
+              ))}
+            </div>
+            {activePalette && (
+              <div className="palette-preview" aria-label="Active generated palette">
+                {([
+                  ["BG", activePalette.background],
+                  ["TEXT", activePalette.textPrimary],
+                  ["A", activePalette.accentA],
+                  ["B", activePalette.accentB],
+                  ["GLOW", activePalette.glow],
+                ] as const).map(([label, color]) => (
+                  <span key={label} title={`${label} · ${hexColorToCss(color)}`}>
+                    <i style={{ background: hexColorToCss(color) }} />
+                    <small>{label}</small>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="background-control">
             <div className="control-heading">
               <span>BACKGROUND</span>
@@ -667,7 +736,7 @@ export function App() {
             ))}
           </div>
 
-          <div className="director-footnote">Scene AUTO directs the visual family. Typography, Composition and Background AUTO rotate deterministic choices per line. T/L/B cycle them.</div>
+          <div className="director-footnote">Scene AUTO directs the visual family. Typography, Composition, Background and OKLCH Harmony can AUTO-direct per line. T/L/B/C cycle them.</div>
         </aside>
 
         <section className={`empty-state ${hasContent ? "is-dismissed" : ""}`}>
