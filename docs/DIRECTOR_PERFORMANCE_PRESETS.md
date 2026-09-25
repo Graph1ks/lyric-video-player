@@ -1,6 +1,6 @@
 # Director Performance Presets
 
-**Status:** active candidate — `feat/director-performance-presets`  
+**Status:** merged baseline — PR #55 / `f359c94c24b7d0d9fe30fbe833c9e618af97c953`  
 **Started:** 2026-09-25  
 **Scope:** curated AUTO constraints, editable performance profiles, lower-third scheduling and detached-Director control ergonomics.
 
