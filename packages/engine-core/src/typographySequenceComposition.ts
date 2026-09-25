@@ -1,9 +1,11 @@
 import { clamp, lerp } from "./math.js";
 import {
-  buildManifestoSlots,
-  buildShapeFillSlots,
+  buildManifestoPageLayout,
+  buildShapeFillLayout,
   shapeFillVariantForScope,
+  type TypographyMetricsById,
 } from "./typographyShapePacking.js";
+import { normalizeSpatialMetrics } from "./typographySpatial.js";
 import type {
   SequenceWordRef,
   TypographySequenceWindow,
@@ -25,7 +27,7 @@ export type TypographySequenceVariant =
   | "shape-tree"
   | "shape-star"
   | "shape-figure"
-  | "masonry"
+  | "editorial-page"
   | "s-curve"
   | "frame"
   | "ring";
@@ -56,6 +58,7 @@ export interface TypographySequencePlanInput {
   window: TypographySequenceWindow;
   width: number;
   height: number;
+  metricsById?: TypographyMetricsById;
 }
 
 export function planTypographySequence(
@@ -84,8 +87,19 @@ function planSpiralDepth(input: TypographySequencePlanInput): TypographySequence
     : 0;
   const maxDepthUnits = 13;
 
+  let cumulativeDepth = activeProgress;
   const placements = visible.map((word, rank) => {
-    const depthUnits = rank + activeProgress;
+    if (rank > 0) {
+      const previous = visible[rank - 1];
+      const previousMetrics = normalizeSpatialMetrics(input.metricsById?.[previous.id], previous.text);
+      const currentMetrics = normalizeSpatialMetrics(input.metricsById?.[word.id], word.text);
+      const projectedExtent = (
+        Math.max(previousMetrics.width, previousMetrics.height)
+        + Math.max(currentMetrics.width, currentMetrics.height)
+      ) * 0.5;
+      cumulativeDepth += clamp(projectedExtent / Math.max(1, minDimension) * 4.4, 0.72, 1.85);
+    }
+    const depthUnits = cumulativeDepth;
     const depth = clamp(depthUnits / maxDepthUnits);
     const angle = -Math.PI * 0.16 - depthUnits * 0.64;
     const radius = minDimension * lerp(0.255, 0.028, Math.pow(depth, 0.8));
@@ -170,9 +184,10 @@ function planShapeFill(input: TypographySequencePlanInput): TypographySequencePl
   const width = Math.max(1, input.width);
   const height = Math.max(1, input.height);
   const shapeVariant = shapeFillVariantForScope(input.window.scopeStartLineIndex);
-  const slots = buildShapeFillSlots(
+  const layout = buildShapeFillLayout(
     shapeVariant,
-    Math.max(1, input.window.scopeWordCount),
+    input.window.scopeWords,
+    input.metricsById ?? {},
     width,
     height,
   );
@@ -182,30 +197,29 @@ function planShapeFill(input: TypographySequencePlanInput): TypographySequencePl
   const active = visible.find(word => word.role === "active");
 
   const placements = visible.map(word => {
-    const slot = slots[word.scopeOrdinal % Math.max(1, slots.length)];
+    const slot = layout.get(word.id);
     const isActive = word.role === "active";
     const recent = word.role === "recent";
     const isIncoming = word.role === "incoming";
     const arrival = isIncoming ? 1 - clamp(word.age / 0.12) : 1;
+    const baseScale = slot?.scale ?? 0.5;
 
     return {
       id: word.id,
       role: word.role,
       x: slot?.x ?? 0,
       y: slot?.y ?? 0,
-      scale: isActive ? 1.06 : recent ? 1.02 : 1,
+      scale: baseScale * (isActive ? 1.025 : recent ? 1.01 : 1),
       rotation: slot?.rotation ?? 0,
       alpha: isActive
         ? 1
         : recent
-          ? 0.92
+          ? 0.94
           : isIncoming
-            ? 0.08 + arrival * 0.42
-            : 0.76,
+            ? 0.08 + arrival * 0.46
+            : 0.8,
       zIndex: isActive ? input.window.scopeWordCount + 10 : word.scopeOrdinal + 1,
       treatment: "solid",
-      maxWidth: slot?.width,
-      maxHeight: slot?.height,
     } satisfies TypographySequencePlacement;
   });
 
@@ -224,8 +238,9 @@ function planShapeFill(input: TypographySequencePlanInput): TypographySequencePl
 function planManifestoWall(input: TypographySequencePlanInput): TypographySequencePlan {
   const width = Math.max(1, input.width);
   const height = Math.max(1, input.height);
-  const slots = buildManifestoSlots(
-    Math.max(1, input.window.scopeWordCount),
+  const layout = buildManifestoPageLayout(
+    input.window.scopeWords,
+    input.metricsById ?? {},
     width,
     height,
   );
@@ -235,61 +250,42 @@ function planManifestoWall(input: TypographySequencePlanInput): TypographySequen
   const active = visible.find(word => word.role === "active");
 
   const placements = visible.map(word => {
-    const slot = slots[word.scopeOrdinal % Math.max(1, slots.length)];
+    const slot = layout.get(word.id);
     const finalX = slot?.x ?? 0;
     const finalY = slot?.y ?? 0;
     const finalRotation = slot?.rotation ?? 0;
+    const finalScale = slot?.scale ?? 0.7;
     const isActive = word.role === "active";
-    const recent = word.role === "recent";
     const incoming = word.role === "incoming";
     const cueProgress = isActive
       ? clamp((input.window.time - word.start) / Math.max(0.04, word.end - word.start))
       : incoming
         ? 0
         : 1;
-    const snapProgress = isActive ? clamp(cueProgress / 0.18) : incoming ? 0 : 1;
-    const snap = 1 - Math.pow(1 - snapProgress, 4);
-    const entryDistanceX = Math.max(slot?.width ?? width * 0.08, width * 0.055);
-    const entryDistanceY = Math.max(slot?.height ?? height * 0.08, height * 0.06);
+    const snapProgress = isActive ? clamp(cueProgress / 0.16) : incoming ? 0 : 1;
+    const snap = 1 - Math.pow(1 - snapProgress, 5);
+    const entryDistance = Math.max(18, Math.min(width, height) * 0.035);
     const direction = word.scopeOrdinal % 4;
-    const entryX = direction === 0
-      ? -entryDistanceX
-      : direction === 1
-        ? entryDistanceX
-        : 0;
-    const entryY = direction === 2
-      ? -entryDistanceY
-      : direction === 3
-        ? entryDistanceY
-        : 0;
-    const entryRotation = finalRotation + (
-      direction % 2 === 0 ? -0.055 : 0.055
-    );
+    const entryX = direction === 0 ? -entryDistance : direction === 1 ? entryDistance : 0;
+    const entryY = direction === 2 ? -entryDistance : direction === 3 ? entryDistance : 0;
+    const entryRotation = finalRotation + (direction % 2 === 0 ? -0.025 : 0.025);
 
     return {
       id: word.id,
       role: word.role,
       x: lerp(finalX + entryX, finalX, snap),
       y: lerp(finalY + entryY, finalY, snap),
-      scale: lerp(1.14, 1, snap),
+      scale: finalScale * lerp(1.08, 1, snap),
       rotation: lerp(entryRotation, finalRotation, snap),
-      alpha: incoming
-        ? 0
-        : isActive
-          ? clamp(snap * 1.7)
-          : recent
-            ? 0.96
-            : 0.82,
+      alpha: incoming ? 0 : isActive ? clamp(snap * 1.8) : 0.9,
       zIndex: isActive ? input.window.scopeWordCount + 20 : word.scopeOrdinal + 1,
       treatment: "solid",
-      maxWidth: slot?.width,
-      maxHeight: slot?.height,
     } satisfies TypographySequencePlacement;
   });
 
   return {
     grammar: "manifesto-wall",
-    variant: "masonry",
+    variant: "editorial-page",
     heroId: active?.id,
     words: placements,
   };
