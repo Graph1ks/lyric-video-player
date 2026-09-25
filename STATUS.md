@@ -2,12 +2,12 @@
 
 **Last updated:** 2026-09-25  
 **Last known good merged baseline:** `35ea8cf1a20834e8f52453c9219beb0ef08bb3b5`  
-**Active candidate:** none  
-**Current phase/milestone:** WORLD_03–06 visual acceptance
+**Active candidate:** `fix/worlds-05-06-projected-3d`  
+**Current phase/milestone:** WORLD_05 / WORLD_06 projected-3D rebuild
 
 ## Current objective
 
-Visually accept the merged WORLD_03/WORLD_04 motion corrections plus WORLD_05 Fractal Hex Spiral Mosaic and WORLD_06 Soft Hex Cell Field.
+Replace the rejected flat WORLD_05/06 implementations with explicit projected 3D geometry benchmarked against the stronger background architecture in Graph1ks/website.
 
 ## Current state
 

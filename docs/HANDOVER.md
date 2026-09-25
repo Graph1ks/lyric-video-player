@@ -2,12 +2,12 @@
 
 **Last updated:** 2026-09-25  
 **Merged baseline:** `35ea8cf1a20834e8f52453c9219beb0ef08bb3b5`  
-**Active candidate:** none  
-**Current phase/milestone:** WORLD_03–06 visual acceptance
+**Active candidate:** `fix/worlds-05-06-projected-3d`  
+**Current phase/milestone:** WORLD_05 / WORLD_06 projected-3D rebuild
 
 ## Current objective
 
-Visually accept merged PR #65: corrected WORLD_03/WORLD_04 motion semantics plus WORLD_05 Fractal Hex Spiral Mosaic and WORLD_06 Soft Hex Cell Field.
+Replace the rejected WORLD_05/06 flat shader implementations with explicit projected 3D geometry, using the user's Graph1ks/website background runtime as the internal quality benchmark.
 
 ## Merged baseline — Resource lifetime + physical-edge safety v0.11.2
 
@@ -209,6 +209,26 @@ The generalized rule is documented in `docs/WORLD_MOTION_AUDIO_REACTIVITY.md`.
 - audio changes illumination only, never geometry scale.
 
 Both 05/06 are first-class `BackgroundPresetId` values, Director-selectable, included in unrestricted AUTO routing and specialized-world isolation.
+
+## Active candidate — WORLD_05 / WORLD_06 projected 3D rebuild
+
+Local visual acceptance rejected both first implementations.
+
+### Why WORLD_05 failed
+
+The v1 implementation was a 2D analytic hex field distorted by recursive domain warps. Despite good color/detail, it had no world-space z-depth, no independently moving cells, no occlusion and no true vortex travel. It read like a screenshot being warped.
+
+The replacement uses deterministic 3D hex-prism instances that physically travel along three logarithmic sinks. Each tile has x/y/z position, perspective scale, visible extrusion, depth sorting and autonomous progress. A slow camera orbit adds parallax.
+
+### Why WORLD_06 failed
+
+The v1 implementation layered two screen-space hex masks. Cell-size variance combined with those masks created uncontrolled black voids, and the result did not read as a coherent hex field.
+
+The replacement uses mathematically correct pointy-top axial placement, narrow footprint variance, real 3D prism heights, an explicit look-at camera, perspective projection and depth-sorted side/top faces.
+
+### Internal benchmark
+
+The user's `Graph1ks/website` repo was inspected. Its Circuit Grid already demonstrates the correct architectural principle: own world coordinates, relief, projection and camera depth instead of simulating depth with a screen-space warp. E-MO WORLD_05/06 now adopt that standard.
 
 ## Current implementation state
 

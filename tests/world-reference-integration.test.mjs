@@ -104,25 +104,33 @@ test("Neon Energy Burst Tunnel uses polar depth, fBm streaks and electric filame
   assert.doesNotMatch(tunnel, /uTime \* \([^\n]*uBass/);
 });
 
-test("Fractal Hex Spiral Mosaic uses recursive vortex warps and graphic hex-cell rendering", async () => {
+test("Fractal Hex Spiral Mosaic is projected 3D geometry with autonomous vortex travel", async () => {
   const fractal = await source("packages/renderer-pixi/src/effects/backgrounds/FractalHexSpiralMosaicWorld.ts");
 
-  assert.match(fractal, /Filter, GlProgram/);
-  assert.match(fractal, /vortexWarp/);
-  assert.match(fractal, /hexGrid/);
-  assert.match(fractal, /sinkField/);
-  assert.match(fractal, /Small inset hex detail/);
-  assert.match(fractal, /Geometry motion is intentionally slow\/time-driven/);
+  assert.match(fractal, /Stable deterministic population/);
+  assert.match(fractal, /True z-depth/);
+  assert.match(fractal, /const progress = fract/);
+  assert.match(fractal, /const z = 0\.25 \+ eased/);
+  assert.match(fractal, /hexPlane/);
+  assert.match(fractal, /project\(/);
+  assert.match(fractal, /Back-to-front side faces create actual prism depth/);
+  assert.match(fractal, /Small camera orbit creates real parallax/);
+  assert.doesNotMatch(fractal, /vortexWarp/);
+  assert.doesNotMatch(fractal, /Filter, GlProgram/);
 });
 
-test("Soft Hex Cell Field layers variable-size beveled cells over real black gaps", async () => {
+test("Soft Hex Cell Field is a correctly packed projected 3D hex-prism surface", async () => {
   const softHex = await source("packages/renderer-pixi/src/effects/backgrounds/SoftHexCellFieldWorld.ts");
 
-  assert.match(softHex, /renderHexLayer/);
-  assert.match(softHex, /mix\(minSize, maxSize/);
-  assert.match(softHex, /Selective white facet glints/);
-  assert.match(softHex, /Far layer puts smaller, darker cells into the gaps/);
-  assert.match(softHex, /Geometry never scales\/pulses with raw music input/);
+  assert.match(softHex, /Explicit 3D camera \+ look-at basis/);
+  assert.match(softHex, /Pointy-top axial coordinates guarantee a correctly packed hex field/);
+  assert.match(softHex, /SQRT3 \* radius \* \(q \+ r \* 0\.5\)/);
+  assert.match(softHex, /1\.5 \* radius \* r/);
+  assert.match(softHex, /0\.935 \+ seedC \* 0\.045/);
+  assert.match(softHex, /cameraBasis/);
+  assert.match(softHex, /Draw all six prism sides/);
+  assert.match(softHex, /actual occlusion\/depth/);
+  assert.doesNotMatch(softHex, /renderHexLayer/);
 });
 
 test("13-world reference roadmap remains durable in repository documentation", async () => {
