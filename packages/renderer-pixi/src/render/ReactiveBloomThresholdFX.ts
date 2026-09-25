@@ -73,6 +73,7 @@ export class ReactiveBloomThresholdFX {
   readonly filter: Filter;
 
   private intensity = 1;
+  private mix = 1;
   private quality: QualityMode = "cinema";
   private mode: SceneMode = "neon";
 
@@ -100,6 +101,10 @@ export class ReactiveBloomThresholdFX {
     this.intensity = Math.max(0.2, Math.min(1.8, value));
   }
 
+  setMix(value: number) {
+    this.mix = Math.max(0, Math.min(3, value));
+  }
+
   setQuality(quality: QualityMode) {
     this.quality = quality;
   }
@@ -113,11 +118,11 @@ export class ReactiveBloomThresholdFX {
 
     const knee = this.quality === "cinema" ? 0.135 : 0.085;
     const gainBase = this.quality === "cinema" ? 1.05 : 0.72;
-    const gain = gainBase * (0.8 + this.intensity * 0.2) * (1 + audio.energy * 0.25 + audio.transient * 0.52);
+    const gain = gainBase * this.mix * (0.8 + this.intensity * 0.2) * (1 + audio.energy * 0.25 + audio.transient * 0.52);
 
     this.write("uThreshold", threshold);
     this.write("uKnee", knee);
-    this.write("uGain", Math.min(1.75, gain));
+    this.write("uGain", Math.min(4.5, gain));
     this.write("uMode", this.mode === "poster" ? 0 : this.mode === "neon" ? 1 : 2);
   }
 
