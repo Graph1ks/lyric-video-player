@@ -2,7 +2,7 @@
 
 Project: **E-MO-Engine — Extensive Motion Engine for Enhanced LRC files**
 
-Current candidate: **v0.5 cross-platform application stack**
+Current candidate: **v0.8 visual acceptance + Canvas Tone / dev-start stabilization**
 
 Read in this order before changing architecture or dependencies:
 
@@ -26,4 +26,4 @@ Core invariants:
 8. Required production operation must have a zero-paid-service path.
 9. Do not reintroduce GSAP without reopening the accepted licensing/product-scope decision.
 
-Next engineering gate: merge/accept the React + Electron v0.5 platform candidate, smoke-test a real Windows package, then resume the multi-pass RenderTexture/post-FX engine.
+Next engineering gate: verify the Canvas Tone + integrated dev-start candidate, then continue real-track visual acceptance across the Step 4 worlds and narrow/mobile compositions.

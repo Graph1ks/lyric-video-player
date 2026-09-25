@@ -29,6 +29,7 @@ Frame-critical motion remains outside React. PixiJS, Web Audio and the E-MO cloc
 - OKLCH palette director with Split Complement, Analogous, Complement, Triad, Tetrad and Monochrome harmonies
 - lyric mood palettes: Tender, Heartbreak, Longing, Euphoria, Rage, Dream, Tension and Calm
 - slow deterministic Rainbow Drift for accent/glow hue movement
+- canvas tone director with Dark / Light / Color / Auto luminance regimes and contrast-safe lyric inversion
 - central attention-field composition with collision-aware readable word placement
 - background presets: Cinematic, Nebula, Grid, Starfield, Rays, Vortex, Liquid, Spectrum, Sparks, Recursive Lyrics, Minimal, Editorial, Print, Architecture and Aurora
 - Poster / Neon / Vortex visual families
@@ -103,6 +104,7 @@ See `docs/PLATFORM_ARCHITECTURE.md` and `docs/DECISIONS.md`.
 | `C` | cycle OKLCH color harmony |
 | `E` | cycle lyric color mood |
 | `R` | toggle slow Rainbow Drift |
+| `K` | cycle canvas tone: Auto / Dark / Light / Color |
 | `,` / `.` | lyric sync -/+ 50 ms |
 | `Esc` | restore hidden HUD |
 
@@ -116,6 +118,16 @@ npm run typecheck
 npm run build
 npm test
 ```
+
+## Development
+
+The default dev command starts or reuses the Node project runtime, waits for `/api/runtime` to become ready, and only then starts Vite. This prevents transient Vite proxy `ECONNREFUSED 127.0.0.1:3040` errors during normal startup.
+
+```bash
+npm run dev
+```
+
+Use `npm run dev:web` only when you intentionally manage the backend separately.
 
 ## Hosted project-root mode
 

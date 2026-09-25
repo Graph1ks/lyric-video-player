@@ -121,7 +121,20 @@ The darkest background role is intentionally near-neutral and very low chroma. T
 
 Primary lyric text must retain the existing contrast floor.
 
-### 6. Rainbow means slow spectrum drift, not rainbow soup
+### 6. Canvas tone is a separate luminance axis
+
+Mood and harmony are not sufficient visual variation if every scene remains light typography on a near-black field. E-MO therefore treats canvas luminance as an independent semantic axis:
+
+- **Dark** — restrained near-black field with light lyric roles;
+- **Light** — high-lightness field with contrast-checked dark lyric roles;
+- **Color** — materially chromatic mid-dark field with light lyric roles;
+- **Auto** — deterministic scene-specific rotation, held for three consecutive lyric cues before changing to avoid rapid black/white flashing.
+
+Canvas tone does not change lyric timing, composition, harmony, mood or background-world selection. Text roles are regenerated against the resulting background and still target primary contrast >= 7:1 and secondary contrast >= 4.5:1.
+
+The lower-level `createVisualPalette()` API preserves the historical Dark regime when `tone` is omitted. Product surfaces explicitly default Canvas Tone to Auto.
+
+### 7. Rainbow means slow spectrum drift, not rainbow soup
 
 Rainbow Drift:
 
@@ -134,6 +147,6 @@ Rainbow Drift:
 
 Current baseline rate: **2.4 degrees/second** (about 150 seconds for a full hue rotation).
 
-### 7. AUTO remains deterministic
+### 8. AUTO remains deterministic
 
 Mood, harmony, composition and motion AUTO routing must be reproducible from scene/cue/time state. No history-dependent random layout or color decisions are permitted.

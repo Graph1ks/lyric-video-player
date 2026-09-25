@@ -31,6 +31,7 @@ Manifest mode is the stable path for projects that use nested media, multiple au
     "colorHarmony": "split-complement",
     "colorMood": "heartbreak",
     "colorFlow": "static",
+    "canvasTone": "auto",
     "intensity": 1.15,
     "quality": "cinema",
     "syncMs": 40
@@ -56,7 +57,8 @@ Manifest mode is the stable path for projects that use nested media, multiple au
 - `defaults.backgroundPreset`: `auto`, `cinematic`, `nebula`, `grid`, `starfield`, `rays`, `vortex`, `liquid`, `spectrum`, `sparks`, `lyrics`, `minimal`, `editorial`, `print`, `architecture` or `aurora`.
 - `defaults.colorHarmony`: `auto`, `split-complement`, `analogous`, `complement`, `triad`, `tetrad` or `monochrome`.
 - `defaults.colorMood`: `auto`, `tender`, `heartbreak`, `longing`, `euphoria`, `rage`, `dream`, `tension` or `calm`.
-- `defaults.colorFlow`: `static` or `rainbow`. Rainbow is a slow hue drift; backgrounds remain intentionally low-chroma while accents carry most of the color movement.
+- `defaults.colorFlow`: `static` or `rainbow`. Rainbow is a slow hue drift through the current harmony.
+- `defaults.canvasTone`: `auto`, `dark`, `light` or `color`. AUTO holds one luminance regime for three lyric cues before deterministic rotation; Light automatically switches lyric roles to dark text when required for contrast.
 - `defaults.intensity`: number from `0.2` to `1.8`.
 - `defaults.quality`: `performance` or `cinema`.
 - `defaults.syncMs`: integer-like millisecond trim from `-1500` to `1500`.

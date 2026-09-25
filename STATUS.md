@@ -1,13 +1,13 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `9b9cbedf33193bf156ae2dc33d0dff0a4383144a`  
-**Active candidate:** none  
-**Current phase/milestone:** v0.8 lyric-scene composition + color direction
+**Last known good merged baseline:** `62afc9eefeba86bb78e1ca2abcb5dd21b7859f66`  
+**Active candidate:** `fix/dev-start-canvas-tones-v0.8`  
+**Current phase/milestone:** v0.8 visual acceptance + luminance variation
 
 ## Current objective
 
-Use the merged visual-readability matrix for real-track acceptance and narrow/mobile tuning of the Step 4 art-direction worlds.
+Stabilize the integrated development startup and remove the persistent white-on-black visual bias with an explicit contrast-safe Canvas Tone director.
 
 ## Current state
 
@@ -61,7 +61,9 @@ Use the merged visual-readability matrix for real-track acceptance and narrow/mo
 - Art worlds consume semantic OKLCH palette roles and preserve a quiet central lyric region.
 - Selecting an art world suppresses generic blob/particle/ring/beam layers so the new worlds do not collapse back into the same ambient-particle look.
 - AUTO background routing now gives the new worlds first-class exposure in Poster/Neon/Vortex families.
-- Active QA candidate adds reusable composition assessment (bounds, overflow, collision pairs, overlap ratio) and a viewport stress matrix covering desktop, laptop, portrait and mobile classes.
+- The merged visual-readability matrix adds reusable composition assessment (bounds, overflow, collision pairs, overlap ratio) and a viewport stress matrix covering desktop, laptop, portrait and mobile classes.
+- Current candidate adds deterministic Canvas Tone modes: Dark, Light, Color and Auto. Tone is independent from mood/harmony/background world; Light generates dark lyric roles and all modes retain explicit contrast checks.
+- Current candidate replaces the normal root dev command with a zero-dependency Node orchestrator that builds required workspace output, starts/reuses the project server, waits for `/api/runtime`, then starts Vite. This removes the normal startup race behind transient proxy ECONNREFUSED errors.
 
 ## Last verified checks
 
@@ -79,9 +81,9 @@ Use the merged visual-readability matrix for real-track acceptance and narrow/mo
 
 ## Next concrete action
 
-1. Visually accept Editorial / Print / Architecture / Aurora on real Enhanced LRC tracks using `docs/VISUAL_ACCEPTANCE_MATRIX.md`.
-2. Tune composition/layout/grammar combinations on narrow/mobile viewports.
-3. Add only genuinely distinct next worlds after the first four pass visual acceptance.
+1. Run Linux CI + Windows packaging for the startup/tone candidate.
+2. Real-track visual acceptance across Dark / Light / Color / Auto and the four Step 4 worlds.
+3. Tune composition/layout/grammar combinations on narrow/mobile viewports.
 4. Finish remaining typography primitives and scene-stack serialization.
 
 ## Do not redo

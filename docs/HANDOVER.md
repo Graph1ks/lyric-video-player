@@ -1,13 +1,13 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `9b9cbedf33193bf156ae2dc33d0dff0a4383144a`  
-**Active candidate:** none  
-**Current phase/milestone:** v0.8 lyric-scene composition + color direction
+**Merged baseline:** `62afc9eefeba86bb78e1ca2abcb5dd21b7859f66`  
+**Active candidate:** `fix/dev-start-canvas-tones-v0.8`  
+**Current phase/milestone:** v0.8 visual acceptance + luminance variation
 
 ## Current objective
 
-Use the merged composition/readability QA gate alongside real-track acceptance for the first Step 4 worlds.
+Stabilize the normal development startup path and add a first-class Canvas Tone axis so visual direction can move between dark, light and chromatic canvases without sacrificing lyric contrast.
 
 ## Current implementation state
 
@@ -136,6 +136,15 @@ This does **not** replace real visual acceptance. It catches geometric regressio
 
 Manual acceptance is documented in `docs/VISUAL_ACCEPTANCE_MATRIX.md`.
 
+### Current candidate — dev startup + Canvas Tone director
+
+The candidate addresses two concrete acceptance findings:
+
+- **Dev startup race:** root `npm run dev` runs `scripts/dev.mjs`, builds the required workspace output, starts or reuses the Node runtime, waits until `/api/runtime` responds, then starts Vite. The Vite proxy target follows `EMO_PORT` / `EMO_DEV_SERVER_URL` and uses a strict frontend port.
+- **Persistent white-on-black look:** palette generation has an independent `CanvasToneMode` with `auto | dark | light | color`. AUTO changes in three-cue blocks. Light canvases generate dark text roles; Color canvases allow materially higher background chroma. Primary/secondary contrast guarantees remain intact.
+- Canvas Tone is exposed through React, keyboard `K`, renderer APIs and `emo.project/v1` defaults.
+- Screen-space vignette/grain behavior is softened for Light mode so the DOM finishing layer does not immediately darken the brighter renderer output.
+
 ## Important files / entry points
 
 | Path | Why it matters |
@@ -144,7 +153,8 @@ Manual acceptance is documented in `docs/VISUAL_ACCEPTANCE_MATRIX.md`.
 | `packages/engine-core/src/typographyComposition.ts` | pure word composition planner |
 | `packages/engine-core/src/typographyMotionGrammar.ts` | pure timestamp-driven composition-motion evaluator |
 | `docs/COMPOSITION_MOTION_GRAMMAR.md` | motion grammar contract, transform ownership and tuning notes |
-| `packages/engine-core/src/colorHarmony.ts` | OKLCH conversion + harmony + lyric mood palette director |
+| `packages/engine-core/src/colorHarmony.ts` | OKLCH conversion + harmony + mood + Canvas Tone palette director |
+| `scripts/dev.mjs` | integrated server-readiness → Vite development startup |
 | `docs/VISUAL_READABILITY_COLOR_RULES.md` | source-backed readability/color rules and non-goals |
 | `packages/renderer-pixi/src/effects/typography/KineticLyrics.ts` | composition + glyph-motion consumer |
 | `packages/renderer-pixi/src/effects/backgrounds/CinematicBackground.ts` | background routing / legacy layer coordination |
@@ -178,9 +188,9 @@ Windows packaging remains a separate required gate.
 
 ## Next concrete work
 
-1. Visually accept Editorial / Print / Architecture / Aurora on real Enhanced LRC tracks.
-2. Test dense lyrics at desktop + narrow/mobile sizes.
-3. Add the next distinct world only after identifying a missing visual grammar.
+1. Verify the current candidate in Linux CI and Windows packaging.
+2. Visually accept Dark / Light / Color / Auto with Editorial / Print / Architecture / Aurora on real Enhanced LRC tracks.
+3. Test dense lyrics at desktop + narrow/mobile sizes.
 4. Complete remaining typography primitives and then stabilize scene-stack serialization.
 
 ## Resume instruction
