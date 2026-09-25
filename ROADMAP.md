@@ -82,8 +82,8 @@
 - Hero / Echo Field pure placement grammar + Pixi integration — complete baseline
 - bounded persistent Pixi word cache driven by pure time-derived plan — complete baseline
 - phrase-scoped sequence history + manual AUTO fallback contract — complete baseline
-- Shape Build / frame + ring calligrams — active candidate
-- Ribbon / Path S-curve composition — active candidate
+- Shape Build / frame + ring calligrams — complete baseline
+- Ribbon / Path S-curve composition — complete baseline
 - Elastic Tether / stretch-squeeze — planned
 - continuity-aware camera trajectory / eye-trace handoff — planned
 - section-level tension/release and shot-scale rhythm — planned

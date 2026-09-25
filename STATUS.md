@@ -1,13 +1,13 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `019d5f3630cc8f13a2741bf20d79141142e0c6ea`  
-**Active candidate:** `feat/shape-build-ribbon-path-v0.9` / PR #40  
+**Last known good merged baseline:** `8c907a70b79721fe28c77eadd8b16a205754501e`  
+**Active candidate:** none  
 **Current phase/milestone:** cinematic sequence direction + temporal readability
 
 ## Current objective
 
-Expand the merged persistent cinematic typography system with two additional multi-cue grammars: Shape Build calligrams and Ribbon Path trajectories, while preserving seek safety, rapid-lyric readability and manual override behavior.
+Visually calibrate the four merged persistent cinematic typography grammars — Spiral Depth, Hero/Echo, Shape Build and Ribbon Path — on real Enhanced LRC tracks, then continue with Elastic Tether and continuity-aware camera direction.
 
 ## Current state
 
@@ -16,16 +16,16 @@ Expand the merged persistent cinematic typography system with two additional mul
 - Persistent Pixi sequence rendering, Spiral Depth and Hero/Echo are merged in `019d5f3`.
 - Pixi sequence state is disposable; the pure time-derived plan remains authoritative.
 - Persistent history is phrase-scoped and manual Typography/Layout/Composition-Motion choices still disable sequence AUTO immediately.
-- Active candidate adds **Shape Build** with deterministic Frame/Square and Ring/Circle calligram variants. Stable phrase ordinals keep already-placed words fixed while the shape grows.
-- Active candidate adds **Ribbon Path**, an S-curve trajectory where active/recent/history lyrics share one path and advance continuously across word handoffs.
+- **Shape Build** is merged with deterministic Frame/Square and Ring/Circle calligram variants. Stable phrase ordinals keep already-placed words fixed while the shape grows.
+- **Ribbon Path** is merged as an S-curve trajectory where active/recent/history lyrics share one path and advance continuously across word handoffs.
 - Shape/Ribbon structural geometry is preserved under rapid-lyric readability pressure; active micro-motion and history budgets still adapt.
 - Rotated persistent words now fit against both viewport width and height, improving ring/frame side safety on narrow viewports.
-- Active candidate introduces phrase-level cinematic direction: AUTO typography preset, layout and composition motion are selected as coherent bundles and held across a phrase instead of independently cycling every line.
+- Phrase-level cinematic direction keeps AUTO typography preset, layout and composition motion in coherent phrase-stable bundles instead of independently cycling every line.
 - Phrases expose Establish / Develop / Accent / Release shot roles for the next sequence/camera layer.
-- Active candidate adds kinetic readability pressure from line duration, words/s, chars/s and shortest word duration.
+- Kinetic readability pressure uses line duration, words/s, chars/s and shortest word duration.
 - Rapid/Burst timing reduces long travel, rotation, scale excursion, floating and echo clutter but deliberately keeps nonzero motion and stronger visibility floors.
 - Repeated lyric motifs create phrase boundaries so hook detection remains first-class rather than being swallowed by phrase grouping.
-- Current architectural blocker for Spiral Depth / Hero Echo / Shape Build is explicit: `KineticLyrics` still rebuilds the current lyric scene per line. The next slice is a deterministic persistent multi-cue typography scene graph.
+- Persistent multi-cue typography is now a dedicated seek-safe sequence path; ordinary `KineticLyrics` remains the fallback for non-persistent/manual compositions.
 - Research/design contract is `docs/CINEMATIC_TYPOGRAPHY_DIRECTION.md`.
 - React/Vite web shell, shared Node runtime, Electron desktop foundation and `emo.project/v1` are merged.
 - Compositor baseline is merged: RenderTexture composition, deterministic feedback, displacement, velocity smear, threshold bloom and cinematic post-FX.
@@ -69,7 +69,7 @@ Expand the merged persistent cinematic typography system with two additional mul
 - Color Director adds lyric-oriented mood presets: Tender, Heartbreak, Longing, Euphoria, Rage, Dream, Tension and Calm.
 - Dark background roles are now deliberately near-neutral/low-chroma to prevent persistent muddy brown fields.
 - Optional Rainbow Drift rotates hue slowly from explicit lyric time.
-- Active candidate adds independent **Color Canvas** styles: Night, Paper, Color Field and Poster.
+- **Color Canvas** styles are merged: Night, Paper, Color Field and Poster.
 - Color Canvas AUTO changes only in stable three-line chapters, giving obvious dark/light/chromatic variation without flickering every cue.
 - Paper/Poster use dark colored typography on light/chromatic fields; Night/Color Field use light tinted typography with the same contrast contract.
 - Rainbow Drift becomes canvas-aware: Night stays restrained while Paper/Color Field/Poster can shift the coherent background field itself.
@@ -104,14 +104,17 @@ Expand the merged persistent cinematic typography system with two additional mul
 - Windows Node 24 Dev Launcher (PR #35): Linux validation — passed.
 - Windows Node 24 Dev Launcher (PR #35): Windows launcher smoke on Node 22 — passed.
 - Windows Node 24 Dev Launcher (PR #35): Windows launcher smoke on Node 24 — passed.
+- Persistent Spiral/Hero Rendering (PR #39): Linux validation + Windows build/package/artifacts — passed.
+- Shape Build + Ribbon Path (PR #40): Linux typecheck/build/82 tests/publication audit — passed.
+- Shape Build + Ribbon Path (PR #40): Windows Node 22/24 launcher smokes + full build/NSIS/portable/artifact upload — passed.
 
 ## Next concrete action
 
-1. Get Shape Build + Ribbon Path green in Linux + Windows CI.
-2. Visually calibrate all four persistent grammars — Spiral, Hero/Echo, Shape Build and Ribbon — on real Enhanced LRC tracks and mobile.
-3. Add Elastic Tether / stretch-squeeze.
-4. Add continuity-aware camera trajectory / eye-trace handoff.
-5. Extend the cinematic acceptance matrix with gaze continuity, sequence persistence, calligram integrity and shot-scale variation.
+1. Visually calibrate all four persistent grammars — Spiral, Hero/Echo, Shape Build and Ribbon — on real Enhanced LRC tracks and mobile.
+2. Add Elastic Tether / stretch-squeeze.
+3. Add continuity-aware camera trajectory / eye-trace handoff.
+4. Extend the cinematic acceptance matrix with gaze continuity, sequence persistence, calligram integrity and shot-scale variation.
+5. Stabilize serializable sequence directives only after those cinematic behaviors are visually accepted.
 
 ## Do not redo
 
