@@ -27,6 +27,7 @@ import {
 } from "./directorCatalog";
 import { VisualDirector } from "./VisualDirector";
 import { LowerThirdOverlay } from "./LowerThirdOverlay";
+import { copy } from "./directorI18n";
 import { listenDirectorCommands } from "./directorSync";
 import { useUiStore } from "./store";
 
@@ -51,6 +52,8 @@ export function App() {
   const directorTelemetryRef = useRef(-1);
 
   const hudVisible = useUiStore(state => state.hudVisible);
+  const uiLanguage = useUiStore(state => state.uiLanguage);
+  const t = (en: string, de: string) => copy(uiLanguage, en, de);
   const mode = useUiStore(state => state.mode);
   const intensity = useUiStore(state => state.intensity);
   const quality = useUiStore(state => state.quality);
@@ -621,20 +624,20 @@ export function App() {
             {projectSummary && <span className="runtime-badge">{projectSummary}</span>}
             {runtimeQuery.isSuccess && (
               <button className="project-button" onClick={() => setProjectDrawerOpen(!projectDrawerOpen)}>
-                PROJECTS
+                {t("PROJECTS", "PROJEKTE")}
               </button>
             )}
             {canChooseDirectory && (
               <button className="project-button" onClick={() => void chooseProjectRoot()}>
-                OPEN FOLDER
+                {t("OPEN FOLDER", "ORDNER ÖFFNEN")}
               </button>
             )}
             <button className="project-button director-launch-button" onClick={() => void openDirectorWorkspace()}>
-              DIRECTOR <span>↗</span>
+              {t("DIRECTOR", "DIRECTOR")} <span>↗</span>
             </button>
             <div className="status-pill"><span className="status-dot" /><span>{engineStatus}</span></div>
-            <button className="icon-button" onClick={() => void toggleFullscreen()} title="Fullscreen · F" aria-label="Toggle fullscreen">⛶</button>
-            <button className="icon-button" onClick={() => setHudVisible(false)} title="Hide UI · Ctrl+Shift+H" aria-label="Hide interface">HUD</button>
+            <button className="icon-button" onClick={() => void toggleFullscreen()} title={t("Fullscreen · F", "Vollbild · F")} aria-label={t("Toggle fullscreen", "Vollbild umschalten")}>⛶</button>
+            <button className="icon-button" onClick={() => setHudVisible(false)} title={t("Hide UI · Ctrl+Shift+H", "UI ausblenden · Ctrl+Shift+H")} aria-label={t("Hide interface", "Oberfläche ausblenden")}>HUD</button>
           </div>
         </header>
 
@@ -649,20 +652,20 @@ export function App() {
             >
               <div className="project-drawer__head">
                 <div>
-                  <strong>PROJECT ROOT</strong>
+                  <strong>{t("PROJECT ROOT", "PROJEKTORDNER")}</strong>
                   <span>{projectsQuery.data?.rootLabel || runtimeQuery.data.rootLabel}</span>
                 </div>
-                <button className="micro-button" onClick={() => setProjectDrawerOpen(false)}>CLOSE</button>
+                <button className="micro-button" onClick={() => setProjectDrawerOpen(false)}>{t("CLOSE", "SCHLIESSEN")}</button>
               </div>
-              {canChooseDirectory && <button className="project-button" onClick={() => void chooseProjectRoot()}>CHOOSE DIRECTORY</button>}
+              {canChooseDirectory && <button className="project-button" onClick={() => void chooseProjectRoot()}>{t("CHOOSE DIRECTORY", "ORDNER WÄHLEN")}</button>}
               <div className="project-drawer__list">
                 {projects.map(project => (
                   <button className="project-row" key={project.id} onClick={() => void loadProject(project)}>
                     <strong>{project.name}</strong>
-                    <span>{project.audio?.fileName || "NO AUDIO"} · {project.lyrics?.fileName || "NO LRC"}</span>
+                    <span>{project.audio?.fileName || "{t("NO AUDIO", "KEIN AUDIO")}"} · {project.lyrics?.fileName || "{t("NO LRC", "KEIN LRC")}"}</span>
                   </button>
                 ))}
-                {!projects.length && <div className="director-footnote">No E-MO projects found in this root.</div>}
+                {!projects.length && <div className="director-footnote">{t("No E-MO projects found in this root.", "Keine E-MO-Projekte in diesem Ordner gefunden.")}</div>}
               </div>
             </motion.aside>
           )}
@@ -673,20 +676,23 @@ export function App() {
         </aside>
 
         <section className={`empty-state ${hasContent ? "is-dismissed" : ""}`}>
-          <div className="eyebrow">REALTIME MOTION GRAPHICS</div>
-          <h1>DROP THE TRACK.<br /><span>LET THE LYRICS MOVE.</span></h1>
-          <p>MP3 / M4A + Enhanced LRC · word-sync · reactive camera · deterministic director</p>
+          <div className="eyebrow">{t("REALTIME MOTION GRAPHICS", "ECHTZEIT MOTION GRAPHICS")}</div>
+          <h1>{t("DROP THE TRACK.", "TRACK REIN.")}<br /><span>{t("LET THE LYRICS MOVE.", "LYRICS IN BEWEGUNG.")}</span></h1>
+          <p>{t(
+            "MP3 / M4A + Enhanced LRC · word-sync · reactive camera · deterministic director",
+            "MP3 / M4A + Enhanced LRC · Wort-Sync · reaktive Kamera · deterministische Regie",
+          )}</p>
           <div className="empty-actions">
-            <label className="primary-file">LOAD AUDIO<input type="file" accept="audio/mpeg,audio/mp4,audio/x-m4a,audio/aac,.mp3,.m4a,.aac" onChange={event => {
+            <label className="primary-file">{t("LOAD AUDIO", "AUDIO LADEN")}<input type="file" accept="audio/mpeg,audio/mp4,audio/x-m4a,audio/aac,.mp3,.m4a,.aac" onChange={event => {
               const file = event.target.files?.[0];
               if (file) void loadAudioFile(file);
             }} /></label>
-            <label className="secondary-file">LOAD LRC<input type="file" accept=".lrc,text/plain" onChange={event => {
+            <label className="secondary-file">{t("LOAD LRC", "LRC LADEN")}<input type="file" accept=".lrc,text/plain" onChange={event => {
               const file = event.target.files?.[0];
               if (file) void loadLyricsFile(file);
             }} /></label>
           </div>
-          <div className="drop-hint">or drop both files anywhere</div>
+          <div className="drop-hint">{t("or drop both files anywhere", "oder beide Dateien irgendwo hineinziehen")}</div>
         </section>
 
         <footer className="transport glass-panel">
@@ -694,8 +700,8 @@ export function App() {
             <button className={`play-button ${playing ? "is-playing" : ""}`} onClick={() => void togglePlay()} aria-label="Play or pause">
               <span>{playing ? "❚❚" : "▶"}</span>
             </button>
-            <button className={`mini-button ${muted ? "is-muted" : ""}`} onClick={toggleMute} aria-label="Mute or unmute">{muted ? "MUTED" : "VOL"}</button>
-            <input className="volume" type="range" min="0" max="100" defaultValue="90" aria-label="Volume" onChange={event => {
+            <button className={`mini-button ${muted ? "is-muted" : ""}`} onClick={toggleMute} aria-label="Mute or unmute">{muted ? t("MUTED", "STUMM") : t("VOL", "LAUT")}</button>
+            <input className="volume" type="range" min="0" max="100" defaultValue="90" aria-label={t("Volume", "Lautstärke")} onChange={event => {
               audioRef.current.setVolume(Number(event.target.value) / 100);
               setDirectorVolume(audioRef.current.volume);
               const mutedNow = audioRef.current.muted || audioRef.current.volume < 0.001;
@@ -743,7 +749,7 @@ export function App() {
         </footer>
       </div>
 
-      <button className="ui-restore" onClick={() => setHudVisible(true)} aria-label="Show interface">SHOW HUD · CTRL+SHIFT+H</button>
+      <button className="ui-restore" onClick={() => setHudVisible(true)} aria-label={t("Show interface", "Oberfläche anzeigen")}>{t("SHOW HUD", "HUD ZEIGEN")} · CTRL+SHIFT+H</button>
     </main>
   );
 }
