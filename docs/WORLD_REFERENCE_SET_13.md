@@ -1,6 +1,6 @@
 # Visualizer World Reference Set — 13 Worlds
 
-**Status:** active implementation set — WORLD_01–06 implemented; WORLD_03/04 motion corrected and WORLD_05/06 merged in PR #65  
+**Status:** active implementation set — WORLD_01–08 implemented; WORLD_05/06 projected-3D rebuild merged in PR #67; WORLD_07/08 candidate active  
 **Reference origin:** user-supplied visual references. The reference images are intentionally **not committed** to this public repository because their redistribution/license status is unknown. A local reference ZIP uses the filenames below.
 
 The goal is not literal screenshot recreation. Each reference defines a **rendering identity, depth language, motion grammar, audio-reactive behavior and fidelity floor**.
@@ -35,8 +35,8 @@ Interpretation of controls:
 | 04 | Neon Energy Burst Tunnel | `04_neon_energy_burst_tunnel.png` | Explosive central neon warp tunnel with outward speed streaks and electric scribble lines in magenta/blue/gold. | radial streak density, tunnel ribs, electric filaments, ejecta | transient edge→one-way outward burst; audio never reverses flow | **Implemented — GPU shader, motion-corrected** |
 | 05 | Fractal Hex Spiral Mosaic | `05_fractal_hex_spiral_mosaic.png` | Graphic cellular/hex tessellation recursively spiraling into multiple sinks; thick dark outlines and rainbow cells. | prism population, arm count, z-depth, sink compression | autonomous 3D travel; audio→light/color only | **Rebuilt — projected 3D prism vortex candidate** |
 | 06 | Soft Hex Cell Field | `06_soft_hex_cell_field.png` | Large pastel hex cells over black gaps, soft bevel/shading, foreground/background depth. | packed prism density, relief, camera depth, facet highlights | autonomous field/camera motion; audio→light only | **Rebuilt — projected 3D hex-prism candidate** |
-| 07 | Particle Spiral Vortex | `07_particle_spiral_vortex.png` | Glowing circular particles forming several spiral arms and a clear inward vortex center on black. | particle count, arm count, depth layers | bass→particle size/pull; highs→sparkle; transient→burst density | Planned |
-| 08 | Minimal Rainbow Waveform | `08_minimal_rainbow_waveform.png` | Clean horizontal center waveform with mirrored vertical spikes, rainbow gradient and large negative space. | spectral columns, fine spike density | bass→core glow/amplitude; highs→detail; transient→needle peaks | Spec/starter |
+| 07 | Particle Spiral Vortex | `07_particle_spiral_vortex.png` | Glowing circular particles forming several spiral arms and a clear inward vortex center on black. | projected particle count, arm count, z-depth/funnel density | autonomous inward/depth travel; audio→size/light/sparkle | **Implemented — projected 3D candidate** |
+| 08 | Minimal Rainbow Waveform | `08_minimal_rainbow_waveform.png` | Clean horizontal center waveform with mirrored vertical spikes, rainbow gradient and large negative space. | spectrum sample count, needle density, envelope detail | real FFT→mirrored amplitude; transient→needle peaks | **Implemented — spectrum-driven candidate** |
 | 09 | Neon Equalizer Grid City | `09_neon_equalizer_grid_city.png` | 3D neon equalizer skyline rising from reflective grid floor with bokeh/light-rain depth. | bars, floor cells, bokeh/background columns | bass→bar height/floor glow; highs→secondary detail; transient→peak jumps | Planned |
 | 10 | Holographic Audio Terrain | `10_holographic_audio_terrain.png` | Neon topographic waveform mountains over a grid floor with vertical background streaks. | terrain samples/layers, grid density, streak count | bass→terrain height; highs→edge/streak detail; transient→crest flashes | Planned |
 | 11 | Neon Wave Ribbon | `11_neon_wave_ribbon.png` | Elegant overlapping neon spline/sine ribbons over a gradient field with sparse sparkles. | ribbon count, line subdivisions, particles | bass→amplitude; highs→shimmer/sparkle; transient→crest accents | Planned |
@@ -224,6 +224,66 @@ The rejected v1 shader used two screen-space hex masks and allowed footprint var
 
 The current candidate uses a **true packed axial hex grid** with pointy-top spacing, explicit 3D prism heights, a perspective look-at camera, depth sorting, six side faces per prism, top caps, bevel rings and selective highlights. Footprint variance is deliberately narrow so black channels remain controlled rather than becoming giant holes.
 
+
+## WORLD_07 — Particle Spiral Vortex
+
+### Visual identity
+
+This is a **deep particle whirlpool**, not a flat polar-dot texture.
+
+Required:
+
+- several clearly readable spiral arms;
+- hundreds of glowing circular particles;
+- larger warm particles on the outer arms;
+- denser multicolor particles toward the center;
+- a bright chromatic core rather than a dead black hole;
+- strong black negative space between arms;
+- perspective size/depth variation so the vortex reads as a volume.
+
+### Motion
+
+- particles move continuously inward/deeper along the funnel;
+- geometry motion is autonomous and never driven by raw audio;
+- bass may increase particle apparent size slightly;
+- treble drives sparkle/highlight;
+- transient boosts sparkle/core exposure without reversing motion.
+
+### Current implementation
+
+`packages/renderer-pixi/src/effects/backgrounds/ParticleSpiralVortexWorld.ts`
+
+The candidate uses deterministic 3D particle seeds with real z-depth, perspective projection, multiple spiral arms, depth sorting, autonomous inward/depth travel, warm outer colors and a spectral inner core. It follows the post-WORLD_05 rule: depth-dependent references get explicit world-space geometry rather than a flat screen warp.
+
+## WORLD_08 — Minimal Rainbow Waveform
+
+### Visual identity
+
+This is the **clean/minimal spectrum world**.
+
+Required:
+
+- one horizontal signal centered vertically;
+- mirrored spikes above/below the center line;
+- real rainbow progression from left to right;
+- large black negative space;
+- fine bright needles mixed with the broader waveform;
+- restrained glow rather than a filled equalizer wall.
+
+### Motion / audio
+
+- driven from the real spectrum buffer already supplied to the renderer;
+- each frequency sample uses attack/release smoothing;
+- transients may add deterministic needle peaks;
+- no autonomous camera or decorative geometry;
+- the visual should feel precise and musical rather than noisy/jittery.
+
+### Current implementation
+
+`packages/renderer-pixi/src/effects/backgrounds/MinimalRainbowWaveformWorld.ts`
+
+The candidate resamples the live spectrum to a World Detail / Quality-aware sample count, smooths every bin independently, draws mirrored vertical spectral lines, a segmented rainbow center core, thin top/bottom envelope traces, additive glow and sparse transient needle extensions.
+
 ### Website rendering benchmark used for the rebuild
 
 The user's `Graph1ks/website` repository was inspected before rebuilding WORLD_05/06. Its strongest lesson is architectural rather than stylistic: the website's Circuit Grid does not fake 3D with a screen-space warp. It owns world coordinates, camera projection, relief, depth ordering and independent motion, while the fullscreen shader backgrounds use volumetric/raymarched or layered structural techniques.
@@ -244,7 +304,7 @@ No third-party image asset or code is bundled. The worlds are original procedura
 
 ## Integration status
 
-WORLD_01–06 are registered as first-class `BackgroundPresetId` values:
+WORLD_01–08 are registered as first-class `BackgroundPresetId` values:
 
 - `prism-stage-beams`
 - `laser-canopy-grid`
@@ -252,6 +312,8 @@ WORLD_01–06 are registered as first-class `BackgroundPresetId` values:
 - `neon-energy-burst-tunnel`
 - `fractal-hex-spiral-mosaic`
 - `soft-hex-cell-field`
+- `particle-spiral-vortex`
+- `minimal-rainbow-waveform`
 
 They are:
 
