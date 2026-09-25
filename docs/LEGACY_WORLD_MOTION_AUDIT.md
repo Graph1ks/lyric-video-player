@@ -9,10 +9,10 @@ This audit is the implementation companion to `WORLD_BACKGROUND_REHABILITATION_P
 | Preset | Current renderer | Motion class | Confirmed legacy issue | Rehabilitation action |
 | --- | --- | --- | --- | --- |
 | `cinematic` | shared CinematicBackground layers | mechanical / continuous | shared blob/ring/particle scale and push paths | isolate filmic depth field; keep audio on light/material response |
-| `nebula` | dedicated `LegacyNebulaWorld` | mechanical / continuous | blob scale and shared particle response made cloud mass pump | layered depth cloud masses + filaments + dust; geometry is time-owned, audio affects light only |
-| `grid` | dedicated `LegacyGridWorld` | one-way flow / mechanical | generic particles diluted perspective identity | perspective ground plane + side architecture with monotonic time-owned depth scroll |
-| `starfield` | dedicated `LegacyStarfieldWorld` | one-way flow | global transient push/scale modified all stars | deterministic world-space stars with monotonic z travel and depth streaks; audio only brightness |
-| `rays` | dedicated `LegacyRaysWorld` | mechanical / burst accents | transient expansion and audio-scaled beam geometry | multilayer volumetric shafts with time-owned targeting; transient envelope affects flare/light only |
+| `nebula` | dedicated `LegacyNebulaWorld` | mechanical / continuous | blob scale and shared particle response made cloud mass pump | fullscreen procedural gas volume: domain-warped FBM density, ridged filaments, cavities, folded-volume lighting; audio affects emission only |
+| `grid` | dedicated `LegacyGridWorld` | one-way flow / mechanical | generic particles diluted perspective identity | fullscreen infinite-perspective environment: floor/ceiling grid, horizon atmosphere, procedural side architecture and deterministic energy traffic |
+| `starfield` | dedicated `LegacyStarfieldWorld` | one-way flow | global transient push/scale plus full-frame post FX could read as breathing/reversal | fixed optical axis, deterministic world-space stars, strictly decreasing z travel between wraps and analytic earlier-time streaks; audio only brightness |
+| `rays` | dedicated `LegacyRaysWorld` | mechanical / burst accents | transient expansion and audio-scaled beam geometry | fullscreen participating-media field with broad soft cones, haze/noise occlusion, source bloom and light-only transient response |
 | `vortex` | dedicated `LegacyVortexWorld` | one-way flow | raw energy previously changed shared-particle radius ("breathing") | projected helical ribbons + one-way tracers; audio affects light only |
 | `liquid` | ProceduralLiquidFX | mechanical / continuous deformation | absolute-time speed multiplied by energy; field frequency changed with bass | fixed phase rate; audio only bounded material/warp/highlight response |
 | `spectrum` | shared spectrum Graphics | rhythmic deformation | extra whole-band amplitude multiplies the already musical spectrum | keep spectrum authoritative; smooth envelope only for staging/light |
@@ -31,6 +31,7 @@ This audit is the implementation companion to `WORLD_BACKGROUND_REHABILITATION_P
 - Whole-field raw transient particle push/scale is removed.
 - Legacy blob/ring/beam scale is no longer directly driven by raw bass/transient.
 - Liquid phase speed and field topology no longer multiply absolute time/spatial frequency by audio.
+- Full-frame post-FX barrel/displacement/smear sampling distance is no longer driven by raw bass/transient bands, preventing a correct one-way world from being reintroduced as a global visual pump.
 - `WorldColorContext` is now a pure engine-core contract for representative/title-safe luminance, highlight risk, busyness, polarity hysteresis and outline-support pressure.
 
 ## Dedicated Phase-B fidelity rebuilds now in candidate
@@ -38,10 +39,10 @@ This audit is the implementation companion to `WORLD_BACKGROUND_REHABILITATION_P
 The five worst motion offenders are isolated from the generic shared layer stack:
 
 - `vortex` → `LegacyVortexWorld`: projected helix ribbons, depth hoops and one-way tracers;
-- `rays` → `LegacyRaysWorld`: authored volumetric shafts with slow time-owned targeting and event-only flare response;
-- `starfield` → `LegacyStarfieldWorld`: deterministic world-space star depth with one-way z travel and perspective streaks;
-- `nebula` → `LegacyNebulaWorld`: layered cloud masses, coherent filaments and autonomous dust parallax;
-- `grid` → `LegacyGridWorld`: perspective ground plane, monotonic depth-scroll rows and side wireframe architecture.
+- `rays` → `LegacyRaysWorld`: fullscreen per-pixel participating-media field with broad cones, atmospheric breakup, source bloom and event-only light response;
+- `starfield` → `LegacyStarfieldWorld`: fixed-axis 3D flight volume with deterministic stars, strictly one-way z travel, analytic motion streaks and wrap fading;
+- `nebula` → `LegacyNebulaWorld`: fullscreen domain-warped FBM gas density with ridged filaments, cavities, local folded-volume lighting and sparse depth stars;
+- `grid` → `LegacyGridWorld`: fullscreen infinite floor/ceiling perspective, horizon atmosphere, moving side architecture and deterministic energy traffic.
 
 All five consume semantic `VisualPalette` roles. Their geometry/phase/direction is timestamp-owned; smoothed legacy audio is restricted to light/material emphasis.
 
