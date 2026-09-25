@@ -42,6 +42,9 @@ export interface VisualPaletteInput {
   lineIndex: number;
   baseHue?: number;
   hueShift?: number;
+  allowedHarmonies?: ColorHarmonyId[];
+  allowedMoods?: ColorMoodId[];
+  allowedCanvases?: ColorCanvasId[];
 }
 
 interface MoodProfile {
@@ -203,34 +206,49 @@ export function resolveColorHarmony(
   harmony: ColorHarmonyMode,
   scene: SceneMode,
   lineIndex: number,
+  allowed?: readonly ColorHarmonyId[],
 ): ColorHarmonyId {
   if (harmony !== "auto") return harmony;
-  const options = AUTO_HARMONIES[scene];
+  const preferred = AUTO_HARMONIES[scene];
+  const options = allowed?.length
+    ? preferred.filter(value => allowed.includes(value))
+    : preferred;
+  const source = options.length ? options : allowed?.length ? allowed : preferred;
   const safeLine = Math.max(0, lineIndex);
-  return options[safeLine % options.length];
+  return source[safeLine % source.length];
 }
 
 export function resolveColorMood(
   mood: ColorMoodMode = "auto",
   scene: SceneMode,
   lineIndex: number,
+  allowed?: readonly ColorMoodId[],
 ): ColorMoodId {
   if (mood !== "auto") return mood;
-  const options = AUTO_MOODS[scene];
+  const preferred = AUTO_MOODS[scene];
+  const options = allowed?.length
+    ? preferred.filter(value => allowed.includes(value))
+    : preferred;
+  const source = options.length ? options : allowed?.length ? allowed : preferred;
   const safeLine = Math.max(0, lineIndex);
-  return options[safeLine % options.length];
+  return source[safeLine % source.length];
 }
 
 export function resolveColorCanvas(
   canvas: ColorCanvasMode = "auto",
   scene: SceneMode,
   lineIndex: number,
+  allowed?: readonly ColorCanvasId[],
 ): ColorCanvasId {
   if (canvas !== "auto") return canvas;
-  const options = AUTO_CANVASES[scene];
+  const preferred = AUTO_CANVASES[scene];
+  const options = allowed?.length
+    ? preferred.filter(value => allowed.includes(value))
+    : preferred;
+  const source = options.length ? options : allowed?.length ? allowed : preferred;
   const safeLine = Math.max(0, lineIndex);
   const chapter = Math.floor(safeLine / 3);
-  return options[chapter % options.length];
+  return source[chapter % source.length];
 }
 
 function harmonyHues(baseHue: number, harmony: ColorHarmonyId) {
@@ -243,9 +261,24 @@ function harmonyHues(baseHue: number, harmony: ColorHarmonyId) {
 }
 
 export function createVisualPalette(input: VisualPaletteInput): VisualPalette {
-  const resolvedHarmony = resolveColorHarmony(input.harmony, input.scene, input.lineIndex);
-  const resolvedMood = resolveColorMood(input.mood, input.scene, input.lineIndex);
-  const resolvedCanvas = resolveColorCanvas(input.canvas, input.scene, input.lineIndex);
+  const resolvedHarmony = resolveColorHarmony(
+    input.harmony,
+    input.scene,
+    input.lineIndex,
+    input.allowedHarmonies,
+  );
+  const resolvedMood = resolveColorMood(
+    input.mood,
+    input.scene,
+    input.lineIndex,
+    input.allowedMoods,
+  );
+  const resolvedCanvas = resolveColorCanvas(
+    input.canvas,
+    input.scene,
+    input.lineIndex,
+    input.allowedCanvases,
+  );
   const profile = MOOD_PROFILES[resolvedMood];
   const cueDrift = input.mood && input.mood !== "auto"
     ? ((Math.max(0, input.lineIndex) % 3) - 1) * 2
