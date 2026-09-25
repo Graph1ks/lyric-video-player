@@ -1,13 +1,13 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `019d5f3630cc8f13a2741bf20d79141142e0c6ea`  
-**Active candidate:** `feat/shape-build-ribbon-path-v0.9` / PR #40  
+**Merged baseline:** `8c907a70b79721fe28c77eadd8b16a205754501e`  
+**Active candidate:** none  
 **Current phase/milestone:** cinematic sequence direction + temporal readability
 
 ## Current objective
 
-Add Shape Build and Ribbon Path as first-class persistent phrase grammars on top of the merged Spiral/Hero renderer baseline.
+Visually accept the merged four-grammar persistent typography baseline, then implement Elastic Tether and continuity-aware camera trajectory.
 
 ## Current implementation state
 
@@ -63,7 +63,7 @@ Next, Pixi will diff/cache display objects as a performance layer over this plan
 - Manual Typography/Layout/Composition-Motion choices immediately disable the AUTO sequence grammar; returning all three to AUTO restores it.
 - Sequence styles use the shared semantic palette and bounded viewport fitting.
 
-## Active candidate — Shape Build + Ribbon Path
+## Merged baseline — Shape Build + Ribbon Path
 
 ### Shape Build
 
@@ -301,11 +301,11 @@ Windows packaging remains a separate required gate.
 
 ## Next concrete work
 
-1. Verify Shape Build + Ribbon Path in Linux + Windows CI.
-2. Run real-track browser/Desktop acceptance across Spiral/Hero/Shape/Ribbon, dense lyrics and mobile.
-3. Add Elastic Tether.
-4. Add sequence-owned camera intent / eye-trace handoff.
-5. Extend visual acceptance around gaze continuity, persistent history, calligram integrity and shot-size rhythm.
+1. Run real-track browser/Desktop acceptance across Spiral/Hero/Shape/Ribbon, dense lyrics and mobile.
+2. Add Elastic Tether.
+3. Add sequence-owned camera intent / eye-trace handoff.
+4. Extend visual acceptance around gaze continuity, persistent history, calligram integrity and shot-size rhythm.
+5. Stabilize serialized sequence directives after visual acceptance.
 
 ## Resume instruction
 
