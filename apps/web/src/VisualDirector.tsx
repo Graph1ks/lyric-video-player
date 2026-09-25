@@ -19,9 +19,10 @@ import {
 } from "./directorCatalog";
 import { copy, localizeDirectorItem } from "./directorI18n";
 import { LOWER_THIRD_PRESETS, type LowerThirdPresetInfo } from "./lowerThirds";
+import { isBuiltinPerformancePreset, type PerformancePresetPoolKey } from "./performancePresets";
 import { useUiStore } from "./store";
 
-type DirectorSection = "scene" | "type" | "motion" | "world" | "color" | "titles" | "system";
+type DirectorSection = "presets" | "scene" | "type" | "motion" | "world" | "color" | "titles" | "system";
 
 export function VisualDirector({
   variant = "dock",
@@ -30,12 +31,13 @@ export function VisualDirector({
   variant?: "dock" | "window";
   onPopout?: () => void;
 }) {
-  const [section, setSection] = useState<DirectorSection>("scene");
+  const [section, setSection] = useState<DirectorSection>("presets");
   const state = useUiStore();
   const de = state.uiLanguage === "de";
   const t = (en: string, german: string) => copy(state.uiLanguage, en, german);
 
   const sections: { id: DirectorSection; label: string; hint: string }[] = [
+    { id: "presets", label: t("Presets", "Presets"), hint: t("Curated", "Kuratiert") },
     { id: "scene", label: t("Scene", "Szene"), hint: t("Direction", "Regie") },
     { id: "type", label: t("Type", "Typo"), hint: t("Words", "Wörter") },
     { id: "motion", label: t("Motion", "Motion"), hint: t("Movement", "Bewegung") },
@@ -45,7 +47,9 @@ export function VisualDirector({
     { id: "system", label: t("System", "System"), hint: t("Output", "Ausgabe") },
   ];
 
+  const activePreset = state.performancePresets.find(item => item.id === state.activePerformancePresetId);
   const resolvedStack = [
+    ...(activePreset ? [{ label: t("Preset", "Preset"), value: activePreset.label }] : []),
     { label: t("Scene", "Szene"), value: SCENE_LABELS[state.activeScene] },
     { label: t("Type", "Typo"), value: state.activeTypography.replaceAll("-", " ") },
     { label: t("Sequence", "Sequenz"), value: state.activeSequence.replaceAll("-", " ") },
@@ -112,6 +116,10 @@ export function VisualDirector({
             exit={{ opacity: 0, y: -5, filter: "blur(3px)" }}
             transition={{ duration: 0.16, ease: [0.2, 0.8, 0.2, 1] }}
           >
+            {section === "presets" && (
+              <PerformancePresetDirector />
+            )}
+
             {section === "scene" && (
               <>
                 <SectionHeading
@@ -455,6 +463,159 @@ export function VisualDirector({
   );
 }
 
+function PerformancePresetDirector() {
+  const state = useUiStore();
+  const t = (en: string, german: string) => copy(state.uiLanguage, en, german);
+  const active = state.performancePresets.find(item => item.id === state.activePerformancePresetId);
+
+  const groups: Array<{
+    key: PerformancePresetPoolKey;
+    label: string;
+    items: Array<{ value: string; label: string }>;
+  }> = [
+    { key: "scenes", label: t("SCENES", "SZENEN"), items: VISUAL_MODES.filter(item => item.value !== "auto") },
+    { key: "typographyPresets", label: t("TYPE", "TYPO"), items: TYPOGRAPHY_CATALOG.filter(item => item.value !== "auto") },
+    { key: "sequences", label: t("SEQUENCES", "SEQUENZEN"), items: SEQUENCE_CATALOG.filter(item => item.value !== "auto") },
+    { key: "layouts", label: t("LAYOUTS", "LAYOUTS"), items: LAYOUT_CATALOG.filter(item => item.value !== "auto") },
+    { key: "motions", label: t("MOTION", "MOTION"), items: MOTION_CATALOG.filter(item => item.value !== "auto") },
+    { key: "backgrounds", label: t("WORLDS", "WELTEN"), items: BACKGROUND_CATALOG.filter(item => item.value !== "auto") },
+    { key: "moods", label: t("MOODS", "STIMMUNGEN"), items: COLOR_MOOD_CATALOG.filter(item => item.value !== "auto") },
+    { key: "canvases", label: t("CANVASES", "CANVASES"), items: COLOR_CANVAS_CATALOG.filter(item => item.value !== "auto") },
+    { key: "harmonies", label: t("HARMONIES", "HARMONIEN"), items: COLOR_HARMONY_CATALOG.filter(item => item.value !== "auto") },
+  ];
+
+  return (
+    <>
+      <SectionHeading
+        eyebrow={t("PERFORMANCE PRESETS", "PERFORMANCE-PRESETS")}
+        title={t("Curated AUTO, not everything at once.", "Kuratiertes AUTO statt alles gleichzeitig.")}
+        description={t(
+          "A preset narrows every AUTO pool to a deliberate emotion/pace palette. Activate one, then edit exactly which scenes, effects and colors are allowed.",
+          "Ein Preset begrenzt jeden AUTO-Pool auf eine bewusste Emotions-/Tempo-Palette. Aktivieren und danach exakt festlegen, welche Szenen, Effekte und Farben erlaubt sind.",
+        )}
+        resolved={active?.label ?? t("UNRESTRICTED AUTO", "UNBEGRENZTES AUTO")}
+      />
+
+      <div className="performance-preset-toolbar">
+        <button
+          className={!active ? "is-active" : ""}
+          onClick={() => state.activatePerformancePreset(null)}
+        >
+          {t("UNRESTRICTED AUTO", "UNBEGRENZTES AUTO")}
+        </button>
+        <button onClick={() => state.createPerformancePreset()}>
+          + {t("NEW FROM ACTIVE", "NEU AUS AKTIVEM")}
+        </button>
+      </div>
+
+      <div className="performance-preset-grid">
+        {state.performancePresets.map(preset => (
+          <button
+            key={preset.id}
+            className={state.activePerformancePresetId === preset.id ? "is-active" : ""}
+            onClick={() => state.activatePerformancePreset(preset.id)}
+          >
+            <span>
+              <small>{preset.emotion.toUpperCase()} · {preset.pace.toUpperCase()}</small>
+              <b>{preset.label}</b>
+            </span>
+            <p>{preset.description}</p>
+            <em>{Math.round(preset.intensity * 100)}% · {preset.colorFlow === "rainbow" ? "RAINBOW" : "STATIC"}</em>
+          </button>
+        ))}
+      </div>
+
+      {active && (
+        <div className="performance-preset-editor">
+          <div className="performance-preset-editor__head">
+            <div>
+              <span>{t("ACTIVE PRESET", "AKTIVES PRESET")}</span>
+              {isBuiltinPerformancePreset(active.id) ? (
+                <b>{active.label}</b>
+              ) : (
+                <input
+                  value={active.label}
+                  onChange={event => state.setPerformancePresetLabel(active.id, event.target.value)}
+                  aria-label={t("Preset name", "Preset-Name")}
+                />
+              )}
+            </div>
+            <div>
+              {isBuiltinPerformancePreset(active.id) ? (
+                <button onClick={() => state.resetPerformancePreset(active.id)}>
+                  {t("RESET", "RESET")}
+                </button>
+              ) : (
+                <button className="is-danger" onClick={() => state.deletePerformancePreset(active.id)}>
+                  {t("DELETE", "LÖSCHEN")}
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="performance-preset-meta">
+            <ControlSlider
+              label={t("Preset intensity", "Preset-Intensität")}
+              value={Math.round(active.intensity * 100)}
+              suffix="%"
+              min={20}
+              max={180}
+              step={1}
+              onChange={value => state.setPerformancePresetIntensity(active.id, value / 100)}
+            />
+            <button
+              className={`director-rainbow ${active.colorFlow === "rainbow" ? "is-active" : ""}`}
+              onClick={() => state.setPerformancePresetColorFlow(
+                active.id,
+                active.colorFlow === "rainbow" ? "static" : "rainbow",
+              )}
+            >
+              <span className="director-rainbow__preview" />
+              <span><b>Rainbow Drift</b><small>{t("Allowed by this preset", "Für dieses Preset")}</small></span>
+              <strong>{active.colorFlow === "rainbow" ? "ON" : "OFF"}</strong>
+            </button>
+          </div>
+
+          <div className="performance-preset-pools">
+            {groups.map(group => {
+              const selected = (active.auto[group.key] ?? []) as string[];
+              return (
+                <div className="performance-preset-pool" key={group.key}>
+                  <div>
+                    <b>{group.label}</b>
+                    <small>{selected.length} {t("allowed", "erlaubt")}</small>
+                  </div>
+                  <div className="performance-preset-chips">
+                    {group.items.map(item => {
+                      const enabled = selected.includes(item.value);
+                      return (
+                        <button
+                          key={item.value}
+                          className={enabled ? "is-active" : ""}
+                          onClick={() => state.togglePerformancePresetPool(active.id, group.key, item.value)}
+                        >
+                          {item.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <DirectorNote>
+            {t(
+              "At least one choice per pool is always kept. Manual Director overrides still work; returning that axis to AUTO hands it back to the active preset.",
+              "Pro Pool bleibt immer mindestens eine Auswahl erhalten. Manuelle Director-Overrides funktionieren weiter; sobald eine Achse wieder auf AUTO steht, übernimmt das aktive Preset.",
+            )}
+          </DirectorNote>
+        </div>
+      )}
+    </>
+  );
+}
+
 function LowerThirdDirector() {
   const state = useUiStore();
   const t = (en: string, german: string) => copy(state.uiLanguage, en, german);
@@ -482,8 +643,8 @@ function LowerThirdDirector() {
       <div className="director-segmented director-segmented--three">
         {([
           ["off", t("Off", "Aus")],
-          ["intro", t("Intro only", "Nur Intro")],
-          ["rotate", t("Rotate", "Rotieren")],
+          ["scheduled", t("Scheduled", "Geplant")],
+          ["always", t("Always", "Permanent")],
         ] as const).map(([value, label]) => (
           <button
             key={value}
@@ -491,6 +652,50 @@ function LowerThirdDirector() {
             onClick={() => state.setLowerThirdMode(value)}
           >{label}</button>
         ))}
+      </div>
+
+      <div className="director-form-grid lower-third-schedule">
+        <label>
+          <span>{t("SHOW AT", "EINBLENDEN BEI")}</span>
+          <input
+            type="number"
+            min="0"
+            max="600"
+            step="1"
+            value={state.lowerThirdStartSeconds}
+            onChange={event => state.setLowerThirdStartSeconds(Number(event.target.value))}
+          />
+        </label>
+        <label>
+          <span>{t("VISIBLE FOR", "SICHTBAR FÜR")}</span>
+          <input
+            type="number"
+            min="1"
+            max="60"
+            step="1"
+            value={state.lowerThirdDurationSeconds}
+            onChange={event => state.setLowerThirdDurationSeconds(Number(event.target.value))}
+          />
+        </label>
+        <label>
+          <span>{t("OUTRO LEAD", "OUTRO VOR ENDE")}</span>
+          <input
+            type="number"
+            min="0"
+            max="120"
+            step="1"
+            value={state.lowerThirdOutroLeadSeconds}
+            onChange={event => state.setLowerThirdOutroLeadSeconds(Number(event.target.value))}
+          />
+        </label>
+        <button
+          className={`lower-third-outro-toggle ${state.lowerThirdOutroEnabled ? "is-active" : ""}`}
+          onClick={() => state.setLowerThirdOutroEnabled(!state.lowerThirdOutroEnabled)}
+        >
+          {state.lowerThirdOutroEnabled
+            ? t("OUTRO TRIGGER ON", "OUTRO-TRIGGER AN")
+            : t("OUTRO TRIGGER OFF", "OUTRO-TRIGGER AUS")}
+        </button>
       </div>
 
       <CardGrid>
@@ -552,15 +757,15 @@ function LowerThirdDirector() {
         {state.lowerThirdArtistImage && (
           <button onClick={() => state.setLowerThirdArtistImage("")}>{t("REMOVE IMAGE", "BILD ENTFERNEN")}</button>
         )}
-        <button className="is-primary" onClick={() => state.previewLowerThird()}>
-          {t("SHOW 7s PREVIEW", "7s VORSCHAU")}
+        <button className="is-primary" onClick={() => state.triggerLowerThird()}>
+          {t(`SHOW NOW · ${state.lowerThirdDurationSeconds}s`, `JETZT ZEIGEN · ${state.lowerThirdDurationSeconds}s`)}
         </button>
       </div>
 
       <DirectorNote>
         {t(
-          "AUTO rotates the ten designs on recurring appearances. ROTATE shows a lower third for seven seconds every 45 seconds; INTRO shows only the opening eight seconds.",
-          "AUTO rotiert die zehn Designs bei wiederkehrenden Einblendungen. ROTIEREN zeigt sieben Sekunden alle 45 Sekunden; INTRO nur die ersten acht Sekunden.",
+          "SCHEDULED shows once at the chosen song time and can optionally trigger again before the end. ALWAYS stays visible. SHOW NOW works in every mode.",
+          "GEPLANT blendet einmal zur gewählten Song-Zeit ein und optional erneut vor dem Ende. PERMANENT bleibt sichtbar. JETZT ZEIGEN funktioniert in jedem Modus.",
         )}
       </DirectorNote>
     </>
