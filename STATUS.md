@@ -1,13 +1,13 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `13cd90f2f81e73d7675d6c285ebe80d85d34ec07`  
-**Active candidate:** `feat/shape-fill-manifesto-edge-bleed-v0.11` / PR #48  
-**Current phase/milestone:** operator output + presentation acceptance
+**Last known good merged baseline:** `40a5f29a078f1983285dea984ef468f98efa23ec`  
+**Active candidate:** none  
+**Current phase/milestone:** Shape Fill / Manifesto / edge-safety visual acceptance
 
 ## Current objective
 
-Correct the remaining cinematic-type semantics and edge leaks: replace perimeter-style Shape Build with true packed Shape Fill, add a rigid Manifesto Wall / masonry grammar, and harden post-FX so implementation boundaries never reveal black at the physical output edge.
+Visually accept the merged Shape Fill / Manifesto Wall / v0.11 edge-safety baseline on real Enhanced LRC tracks and the previously failing fullscreen display cases.
 
 ## Current state
 
@@ -16,7 +16,7 @@ Correct the remaining cinematic-type semantics and edge leaks: replace perimeter
 - Persistent Pixi sequence rendering, Spiral Depth and Hero/Echo are merged in `019d5f3`.
 - Pixi sequence state is disposable; the pure time-derived plan remains authoritative.
 - Persistent history is phrase-scoped and manual Typography/Layout/Composition-Motion choices still disable sequence AUTO immediately.
-- **Shape Build** is merged with deterministic Frame/Square and Ring/Circle calligram variants. Stable phrase ordinals keep already-placed words fixed while the shape grows.
+- Legacy **Shape Build** frame/ring behavior remains documented as the earlier baseline, but its UI/AUTO semantic target is superseded by merged v0.11 **Shape Fill** interior silhouettes.
 - **Ribbon Path** is merged as an S-curve trajectory where active/recent/history lyrics share one path and advance continuously across word handoffs.
 - Shape/Ribbon structural geometry is preserved under rapid-lyric readability pressure; active micro-motion and history budgets still adapt.
 - Rotated persistent words now fit against both viewport width and height, improving ring/frame side safety on narrow viewports.
@@ -26,7 +26,7 @@ Correct the remaining cinematic-type semantics and edge leaks: replace perimeter
 - **Cinematic Camera Plan** is merged: Establish/Develop/Accent/Release role + phrase progress + typography focus + persistent grammar + readability pressure determine base pan/scale/rotation and impulse budgets.
 - Ordinary and persistent typography expose deterministic focus points. Current-line focus begins handing off toward the next word near cue end.
 - CameraRig now treats bass/transient drift as bounded micro-response layered over the directed shot rather than the primary framing source.
-- Shape Build deliberately stays wider and follows focus less; Hero/Spiral/Ribbon receive stronger eye-trace following.
+- Shape Fill deliberately stays wider and follows focus less; Manifesto Wall follows active wall focus more strongly while keeping micro-motion bounded.
 - The Visual Director uses preview cards and seven task-oriented sections: Scene, Type, Motion, World, Color, Titles and System.
 - Effect cards expose a semantic miniature, name, short behavioral explanation, selected state and AUTO-resolved LIVE state.
 - The resolved live stack is continuously visible above the Director controls.
@@ -40,15 +40,15 @@ Correct the remaining cinematic-type semantics and edge leaks: replace perimeter
 - Merged PR #46 adds ResizeObserver + fullscreenchange + VisualViewport handling and explicitly resizes Pixi/render targets to the final host bounds.
 - DOM screen FX now overscan beyond the output edge and are clipped by the shell.
 - Primary/persistent lyric Text textures use a minimum 3× internal raster resolution (4× cap) to keep large zooms substantially crisper.
-- Persistent sequences are now manually selectable in the Director: Auto, Off/Classic, Spiral Depth, Hero/Echo, Shape Build and Ribbon Path.
+- Persistent sequences are manually selectable in the Director: Auto, Off/Classic, Spiral Depth, Hero/Echo, Shape Fill, Manifesto Wall and Ribbon Path.
 - When the detached Director is open, the player becomes a clean output monitor; transport/file/fullscreen controls move to the Director topbar and command the main AudioEngine/Clock.
 - Director UI has a DE/EN language switch and a professional readability pass replacing micro-font-heavy controls.
 - Lower Thirds are a separate screen-space layer with ten visual presets, Intro/Rotate scheduling, metadata overrides and optional linked/uploaded artist image.
 - Output/operator contract is `docs/OPERATOR_OUTPUT_LOWER_THIRDS.md`.
-- Active candidate adds **Shape Fill**: phrase-stable packed silhouettes using Tree, Star and Human/Figure masks. Words occupy interior slots rather than tracing a border.
+- Merged PR #48 adds **Shape Fill**: phrase-stable packed silhouettes using Tree, Star and Human/Figure masks. Words occupy interior slots rather than tracing a border.
 - Shape Fill slots expose explicit text-fit boxes so Pixi can respect actual font metrics while the layout remains pure and deterministic.
 - Legacy `shape-build` remains an internal compatibility alias, but Director/AUTO use `shape-fill`.
-- Active candidate adds **Manifesto Wall**: phrase-wide deterministic masonry subdivision, variable anchor blocks, 90° bracket columns and rigid snap-in arrivals.
+- Merged PR #48 adds **Manifesto Wall**: phrase-wide deterministic masonry subdivision, variable anchor blocks, 90° bracket columns and rigid snap-in arrivals.
 - Manifesto Wall suppresses elastic/bass pulse behavior after landing; camera follows active wall focus with heavily bounded micro-motion.
 - Poster AUTO direction now exposes Hero/Echo, Manifesto Wall, Shape Fill and classic outline-panel families.
 - Edge safety v0.11 adds 12% opaque world bleed, shader edge guards for displacement/smear/barrel/chroma and opaque final post-FX output.
@@ -147,12 +147,14 @@ Correct the remaining cinematic-type semantics and edge leaks: replace perimeter
 - Visual Director Workspace (PR #44): Windows Node 22/24 launcher smokes + full build/NSIS/portable/artifact upload — passed.
 - Operator Output + Lower Thirds (PR #46): Linux typecheck/build/tests/publication audit — passed.
 - Operator Output + Lower Thirds (PR #46): Windows Node 22/24 launcher smokes + full build/NSIS/portable/artifact upload — passed.
+- Shape Fill + Manifesto Wall + Edge Safety (PR #48): Linux typecheck/build/tests/publication audit — passed.
+- Shape Fill + Manifesto Wall + Edge Safety (PR #48): Windows Node 22/24 launcher smokes + full build/NSIS/portable/artifact upload — passed.
 
 ## Next concrete action
 
-1. Get PR #48 green in Linux and Windows packaging.
-2. Visually verify edge guards under the previously failing fullscreen/CRT/smear cases.
-3. Visually accept Tree/Star/Figure Shape Fill and Manifesto Wall on real Enhanced LRC tracks, including Rapid/Burst passages.
+1. Visually verify edge guards under the previously failing fullscreen/CRT/smear cases.
+2. Visually accept Tree/Star/Figure Shape Fill and Manifesto Wall on real Enhanced LRC tracks, including Rapid/Burst passages.
+3. Check Manifesto anchor-size hierarchy, 90° brackets and camera reading flow at 1080p/1440p/4K.
 4. Continue section-level tension/release + shot-size sequencing after the new persistent grammars are accepted.
 5. Attach Director PLAN + Lower Third persistence/runtime execution to serialized scene/project directives, then map that contract per song when playlist support lands.
 

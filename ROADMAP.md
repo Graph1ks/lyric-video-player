@@ -82,7 +82,7 @@
 - Hero / Echo Field pure placement grammar + Pixi integration — complete baseline
 - bounded persistent Pixi word cache driven by pure time-derived plan — complete baseline
 - phrase-scoped sequence history + manual AUTO fallback contract — complete baseline
-- Shape Build / frame + ring calligrams — complete baseline
+- Shape Build / frame + ring calligrams — historical baseline; superseded by v0.11 Shape Fill semantics
 - Ribbon / Path S-curve composition — complete baseline
 - Elastic Tether / directional stretch-squeeze + overshoot/settle — complete baseline
 - continuity-aware camera trajectory / eye-trace handoff — complete baseline
@@ -148,7 +148,7 @@ See `docs/VISUAL_DIRECTOR_WORKSPACE.md`.
 - host/fullscreen/VisualViewport render-target reflow — complete baseline
 - screen-FX overscan / no visible effect boundaries — complete baseline
 - high-resolution Pixi text raster baseline for hero zooms — complete baseline
-- explicit Spiral / Hero-Echo / Shape Build / Ribbon Path Director controls — complete baseline
+- explicit Spiral / Hero-Echo / Shape Fill / Manifesto Wall / Ribbon Path Director controls — complete baseline
 - detached Director owns player transport while open — complete baseline
 - clean-output player mode while Director is detached — complete baseline
 - professional readable Director type scale — complete baseline
@@ -161,21 +161,21 @@ See `docs/VISUAL_DIRECTOR_WORKSPACE.md`.
 
 See `docs/OPERATOR_OUTPUT_LOWER_THIRDS.md`.
 
-## Cross-cutting v0.11 — Shape Fill + Manifesto Wall + Edge Safety — active
+## Cross-cutting v0.11 — Shape Fill + Manifesto Wall + Edge Safety — complete baseline
 
-- replace perimeter Shape Build semantics with packed interior Shape Fill — active candidate
-- Tree / Star / Human-Figure silhouette packers — active candidate
-- stable phrase-scope text-fit slots using real renderer font metrics — active candidate
-- legacy shape-build compatibility alias — active candidate
-- Manifesto Wall phrase-wide masonry subdivision — active candidate
-- rigid snap/slotted word arrival — active candidate
-- 90° bracket/column word slots — active candidate
-- variable anchor / connector block hierarchy — active candidate
-- Manifesto-aware camera following with bounded micro-motion — active candidate
-- 12% opaque background/liquid source bleed — active candidate
-- displacement/smear/post-FX physical-edge guards — active candidate
-- opaque final post-FX output — active candidate
-- DOM bloom/scanline/grain edge fade — active candidate
+- replace perimeter Shape Build semantics with packed interior Shape Fill — complete baseline
+- Tree / Star / Human-Figure silhouette packers — complete baseline
+- stable phrase-scope text-fit slots using real renderer font metrics — complete baseline
+- legacy shape-build compatibility alias — complete baseline
+- Manifesto Wall phrase-wide masonry subdivision — complete baseline
+- rigid snap/slotted word arrival — complete baseline
+- 90° bracket/column word slots — complete baseline
+- variable anchor / connector block hierarchy — complete baseline
+- Manifesto-aware camera following with bounded micro-motion — complete baseline
+- 12% opaque background/liquid source bleed — complete baseline
+- displacement/smear/post-FX physical-edge guards — complete baseline
+- opaque final post-FX output — complete baseline
+- DOM bloom/scanline/grain edge fade — complete baseline
 - custom uploaded SVG/PNG silhouette masks — future
 - dedicated guillotine/slice word fracture accent — future after Manifesto visual acceptance
 

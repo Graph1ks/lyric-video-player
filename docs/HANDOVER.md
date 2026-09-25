@@ -1,13 +1,13 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `13cd90f2f81e73d7675d6c285ebe80d85d34ec07`  
-**Active candidate:** `feat/shape-fill-manifesto-edge-bleed-v0.11` / PR #48  
-**Current phase/milestone:** operator output + presentation acceptance
+**Merged baseline:** `40a5f29a078f1983285dea984ef468f98efa23ec`  
+**Active candidate:** none  
+**Current phase/milestone:** Shape Fill / Manifesto / edge-safety visual acceptance
 
 ## Current objective
 
-Land the corrected filled-silhouette grammar, the new Manifesto Wall architectural grammar and a final edge-safety layer without compromising deterministic seek-safe sequence planning.
+Use merged PR #48 as the deterministic sequence/output baseline and visually acceptance-test the new packed silhouettes, masonry wall grammar and physical-edge guards on real tracks/displays.
 
 ## Current implementation state
 
@@ -345,7 +345,7 @@ See `docs/VISUAL_DIRECTOR_WORKSPACE.md`.
 
 See `docs/OPERATOR_OUTPUT_LOWER_THIRDS.md`.
 
-## Active candidate — Shape Fill + Manifesto Wall + edge guards
+## Merged baseline — Shape Fill + Manifesto Wall + edge guards
 
 **Shape semantics**
 
@@ -421,10 +421,10 @@ Windows packaging remains a separate required gate.
 
 ## Next concrete work
 
-1. Verify PR #48 Linux/Windows CI and packaging.
-2. Re-test the exact real-display edge failures that motivated this slice.
-3. Visually validate Shape Fill silhouette recognition and Manifesto Wall architectural rhythm on real tracks.
-4. Resume section-level tension/release and shot-size sequencing.
+1. Re-test the exact real-display edge failures that motivated PR #48.
+2. Visually validate Shape Fill silhouette recognition and Manifesto Wall architectural rhythm on real tracks.
+3. Check Rapid/Burst readability, anchor hierarchy, vertical brackets and camera reading flow.
+4. Resume section-level tension/release and shot-size sequencing after visual acceptance.
 5. Integrate PLAN/Lower Third persistence with serialized sequence directives; playlist support should reference the same per-song plan contract.
 
 ## Resume instruction
