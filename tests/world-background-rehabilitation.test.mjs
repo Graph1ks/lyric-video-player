@@ -264,7 +264,9 @@ test("spectrum and sparks meet the dedicated fidelity floor", async () => {
     source("packages/renderer-pixi/src/effects/backgrounds/LegacySparksWorld.ts"),
   ]);
 
-  assert.match(background, /"cinematic",\s*\n\s*"liquid",\s*\n\s*"spectrum",\s*\n\s*"sparks",\s*\n\s*"vortex"/);
+  for (const id of ["cinematic", "liquid", "spectrum", "sparks"]) {
+    assert.match(background, new RegExp(`"${id}"`));
+  }
   assert.match(background, /legacySpectrum\.container\.visible = this\.resolvedPreset === "spectrum"/);
   assert.match(background, /legacySparks\.container\.visible = this\.resolvedPreset === "sparks"/);
   assert.match(background, /legacySpectrum\.update\(time, legacyAudio, spectrum\)/);
@@ -295,6 +297,54 @@ test("spectrum and sparks meet the dedicated fidelity floor", async () => {
   assert.ok(motionStart >= 0);
   const motionSource = sparks.slice(motionStart);
   assert.doesNotMatch(motionSource, /audio\.|transientEnvelope/);
+});
+
+
+test("lyrics and minimal use dedicated identity systems with time-owned motion", async () => {
+  const [background, lyrics, minimal] = await Promise.all([
+    source("packages/renderer-pixi/src/effects/backgrounds/CinematicBackground.ts"),
+    source("packages/renderer-pixi/src/effects/backgrounds/LegacyLyricsWorld.ts"),
+    source("packages/renderer-pixi/src/effects/backgrounds/LegacyMinimalWorld.ts"),
+  ]);
+
+  for (const id of ["lyrics", "minimal"]) {
+    assert.match(background, new RegExp(`"${id}"`));
+  }
+  assert.match(background, /legacyLyrics\.container\.visible = this\.resolvedPreset === "lyrics"/);
+  assert.match(background, /legacyMinimal\.container\.visible = this\.resolvedPreset === "minimal"/);
+  assert.match(background, /legacyLyrics\.update\(time, legacyAudio\)/);
+  assert.match(background, /legacyMinimal\.update\(time, legacyAudio\)/);
+  assert.match(background, /this\.lyricBackdropLayer\.visible = false/);
+  assert.match(background, /const shouldBuild = false/);
+
+  // Lyrics: actual perspective typography corridor with analytic one-way z travel.
+  assert.match(lyrics, /Perspective typography architecture/);
+  assert.match(lyrics, /const phase = fract\(seed - time \* speed\)/);
+  assert.match(lyrics, /const depth = near \+ phase \* \(far - near\)/);
+  assert.match(lyrics, /Oversized cropped fragments create editorial depth/);
+  assert.match(lyrics, /item\.destroy\(\{ style: true \}\)/);
+  assert.match(lyrics, /setPalette\(palette: VisualPalette\)/);
+  assert.doesNotMatch(lyrics, /Math\.random\(/);
+
+  const lyricMotionStart = lyrics.indexOf("// One-way z travel");
+  const lyricMotionEnd = lyrics.indexOf("// Oversized cropped fragments");
+  assert.ok(lyricMotionStart >= 0 && lyricMotionEnd > lyricMotionStart);
+  const lyricMotion = lyrics.slice(lyricMotionStart, lyricMotionEnd);
+  assert.doesNotMatch(lyricMotion, /audio\./);
+
+  // Minimal: fullscreen precision material, not "one blob plus fewer particles".
+  assert.match(minimal, /GlProgram\.from/);
+  assert.match(minimal, /Precision composition: negative space/);
+  assert.match(minimal, /float sdBox\(/);
+  assert.match(minimal, /float slitCore=/);
+  assert.match(minimal, /setPalette\(p:VisualPalette\)/);
+  assert.doesNotMatch(minimal, /Math\.random\(/);
+
+  const minimalGeometryStart = minimal.indexOf("// Precision composition");
+  const minimalLightStart = minimal.indexOf("float light=");
+  assert.ok(minimalGeometryStart >= 0 && minimalLightStart > minimalGeometryStart);
+  const minimalGeometry = minimal.slice(minimalGeometryStart, minimalLightStart);
+  assert.doesNotMatch(minimalGeometry, /u(?:Energy|Treble)/);
 });
 
 
