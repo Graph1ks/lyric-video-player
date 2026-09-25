@@ -64,6 +64,8 @@ Git history remains the complete technical history. This file records meaningful
 - Lower Third scheduling with Off / Scheduled / Always modes, configurable start/duration, optional pre-outro trigger and an immediate Director trigger.
 - Professional web-player and detached-Director control surfaces with persistent transport, large playhead counters, session readouts and monitoring controls.
 - Explicit Visual FX Rack for camera motion, impact/pulse, displacement, smear, bloom, temporal feedback, cinematic post FX, world power/detail and DOM screen finishing.
+- **Prism Stage Beams** world with a visible central fixture hub, multi-layer volumetric rainbow/RGB beams, haze, hot cores and audio-reactive flare.
+- **Laser Canopy Grid** world with an overhead rig, crisp red/cyan/mint laser architecture, floor hit-points and audio-reactive canopy sweeps.
 
 ### Changed
 

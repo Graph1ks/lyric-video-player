@@ -11,6 +11,8 @@ import type {
 import { hash01, seeded } from "@graph1ks/emo-engine-core";
 import { ArtDirectionWorlds } from "./ArtDirectionWorlds.js";
 import { ProceduralLiquidFX } from "./ProceduralLiquidFX.js";
+import { PrismStageBeamsWorld } from "./PrismStageBeamsWorld.js";
+import { LaserCanopyGridWorld } from "./LaserCanopyGridWorld.js";
 
 const EMPTY_SPECTRUM = new Float32Array(0);
 
@@ -35,8 +37,8 @@ interface Blob {
 
 const AUTO_BACKGROUND_PRESETS: Record<SceneMode, BackgroundPresetId[]> = {
   poster: ["editorial", "print", "lyrics", "architecture", "cinematic", "spectrum", "minimal"],
-  neon: ["aurora", "architecture", "liquid", "spectrum", "nebula", "editorial", "starfield", "rays"],
-  vortex: ["architecture", "print", "vortex", "aurora", "starfield", "lyrics", "liquid", "sparks"],
+  neon: ["prism-stage-beams", "laser-canopy-grid", "aurora", "architecture", "liquid", "spectrum", "nebula", "editorial", "starfield", "rays"],
+  vortex: ["laser-canopy-grid", "architecture", "print", "vortex", "aurora", "starfield", "lyrics", "liquid", "sparks"],
 };
 
 const ART_DIRECTION_PRESETS = new Set<BackgroundPresetId>([
@@ -46,11 +48,18 @@ const ART_DIRECTION_PRESETS = new Set<BackgroundPresetId>([
   "aurora",
 ]);
 
+const SPECIALIZED_WORLD_PRESETS = new Set<BackgroundPresetId>([
+  "prism-stage-beams",
+  "laser-canopy-grid",
+]);
+
 export class CinematicBackground {
   readonly container = new Container();
 
   private base = new Graphics();
   private artDirection = new ArtDirectionWorlds();
+  private prismStageBeams = new PrismStageBeamsWorld();
+  private laserCanopyGrid = new LaserCanopyGridWorld();
   private liquidSurface = new Graphics();
   private liquidFX = new ProceduralLiquidFX();
   private geometry = new Graphics();
@@ -89,6 +98,8 @@ export class CinematicBackground {
     this.container.addChild(
       this.base,
       this.artDirection.container,
+      this.prismStageBeams.container,
+      this.laserCanopyGrid.container,
       this.liquidSurface,
       this.lyricBackdropLayer,
       this.blobLayer,
@@ -202,6 +213,8 @@ export class CinematicBackground {
   setWorldDetail(value: number) {
     this.worldDetail = Math.max(0, Math.min(3, value));
     this.artDirection.setDetail(this.worldDetail);
+    this.prismStageBeams.setDetail(this.worldDetail);
+    this.laserCanopyGrid.setDetail(this.worldDetail);
     this.applyPresetVisibility();
     this.rebuildLyricBackdrop();
   }
@@ -210,12 +223,18 @@ export class CinematicBackground {
     const power = this.intensity * this.worldIntensity;
     this.artDirection.setIntensity(power);
     this.artDirection.setDetail(this.worldDetail);
+    this.prismStageBeams.setIntensity(power);
+    this.prismStageBeams.setDetail(this.worldDetail);
+    this.laserCanopyGrid.setIntensity(power);
+    this.laserCanopyGrid.setDetail(this.worldDetail);
     this.liquidFX.setIntensity(power);
   }
 
   setQuality(value: QualityMode) {
     this.quality = value;
     this.artDirection.setQuality(value);
+    this.prismStageBeams.setQuality(value);
+    this.laserCanopyGrid.setQuality(value);
     this.liquidFX.setQuality(value);
     this.applyPresetVisibility();
   }
@@ -224,6 +243,8 @@ export class CinematicBackground {
     this.w = w;
     this.h = h;
     this.artDirection.resize(w, h);
+    this.prismStageBeams.resize(w, h);
+    this.laserCanopyGrid.resize(w, h);
     this.redrawBase();
     this.redrawLiquidSurface();
     this.liquidFX.resize(w, h);
@@ -248,6 +269,8 @@ export class CinematicBackground {
     this.beamLayer.alpha = layerAlpha;
 
     this.artDirection.update(time, audio);
+    this.prismStageBeams.update(time, audio);
+    this.laserCanopyGrid.update(time, audio);
     if (this.liquidSurface.visible) this.liquidFX.update(time, audio);
     this.updateGeometry(time, audio);
     this.updateLyricBackdrop(time, audio);
@@ -294,7 +317,10 @@ export class CinematicBackground {
   private applyPresetVisibility() {
     const cinema = this.quality === "cinema";
     const artWorld = ART_DIRECTION_PRESETS.has(this.resolvedPreset);
+    const specializedWorld = SPECIALIZED_WORLD_PRESETS.has(this.resolvedPreset);
     this.artDirection.setPreset(this.resolvedPreset);
+    this.prismStageBeams.container.visible = this.resolvedPreset === "prism-stage-beams";
+    this.laserCanopyGrid.container.visible = this.resolvedPreset === "laser-canopy-grid";
     this.artDirection.setLineIndex(this.lineIndex);
     this.liquidSurface.visible = this.resolvedPreset === "liquid";
     this.lyricBackdropLayer.visible = this.resolvedPreset === "lyrics";
@@ -318,10 +344,10 @@ export class CinematicBackground {
 
     const detailStride = Math.max(1, Math.round(particleStride / Math.max(0.35, this.worldDetail)));
     this.particles.forEach((particle, index) => {
-      particle.g.visible = !artWorld && index % detailStride === 0;
+      particle.g.visible = !artWorld && !specializedWorld && index % detailStride === 0;
     });
 
-    const blobLimit = artWorld
+    const blobLimit = artWorld || specializedWorld
       ? 0
       : this.resolvedPreset === "nebula"
       ? cinema ? 6 : 4
@@ -337,7 +363,7 @@ export class CinematicBackground {
       blob.g.visible = index < detailedBlobLimit;
     });
 
-    const ringsVisible = !artWorld && (
+    const ringsVisible = !artWorld && !specializedWorld && (
       this.resolvedPreset === "vortex"
       || this.resolvedPreset === "rays"
       || this.resolvedPreset === "cinematic"
@@ -346,7 +372,7 @@ export class CinematicBackground {
       ring.visible = ringsVisible && (cinema || index % 2 === 0);
     });
 
-    const beamsVisible = !artWorld && (
+    const beamsVisible = !artWorld && !specializedWorld && (
       this.resolvedPreset === "rays"
       || this.resolvedPreset === "cinematic"
       || this.resolvedPreset === "nebula"
@@ -909,6 +935,7 @@ export class CinematicBackground {
 
     if (
       ART_DIRECTION_PRESETS.has(this.resolvedPreset)
+      || SPECIALIZED_WORLD_PRESETS.has(this.resolvedPreset)
       || this.resolvedPreset === "liquid"
       || this.resolvedPreset === "spectrum"
       || this.resolvedPreset === "sparks"

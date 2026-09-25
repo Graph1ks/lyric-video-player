@@ -1,13 +1,13 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `94e34e6609c180c07445246c69d46cc0ef9021ef`  
-**Active candidate:** none  
-**Current phase/milestone:** v0.13 pro control surface + FX rack visual acceptance
+**Merged baseline:** `4029b45616cef9e577fbfa98b71d1dd9dd6840ce`  
+**Active candidate:** `feat/worlds-prism-laser` / PR #59  
+**Current phase/milestone:** 13-world visualizer expansion — first two worlds
 
 ## Current objective
 
-Visually verify merged PR #57's operator contract: the detached playhead must remain live independently of Pixi RAF throttling, Lower Third schedules must follow authoritative playback time, every major renderer effect must be directly controllable, and world/preset dynamics must span restrained through deliberately extreme.
+Complete PR #59 and visually verify WORLD_01 Prism Stage Beams and WORLD_02 Laser Canopy Grid against the supplied references. These two worlds establish the fidelity bar for the remaining 11-world roadmap.
 
 ## Merged baseline — Resource lifetime + physical-edge safety v0.11.2
 
@@ -88,6 +88,28 @@ World Power now affects visibility/amplitude/audio response while World Detail a
 **UI research/design**
 
 The player and Director were rebuilt around current DAW/post-production control-surface patterns: persistent transport/counter, strong hierarchy, direct controls, modular panels and restrained chrome. See `docs/PRO_CONTROL_SURFACE_FX_RACK.md`.
+
+## Active candidate — 13-world reference expansion
+
+The user supplied 13 visual reference images. Their durable interpretation is recorded in `docs/WORLD_REFERENCE_SET_13.md`; the binary reference images are not committed to this public repository because redistribution/license status is unknown.
+
+PR #59 implements the first two as dedicated specialized worlds:
+
+- `packages/renderer-pixi/src/effects/backgrounds/PrismStageBeamsWorld.ts`
+  - central visible fixture hub;
+  - broad multi-layer volumetric RGB/rainbow shafts;
+  - additive inner hot cores, haze and transient flare;
+  - bass/energy/transient/treble response;
+  - quality-aware and World Power/Detail-aware density.
+
+- `packages/renderer-pixi/src/effects/backgrounds/LaserCanopyGridWorld.ts`
+  - overhead light rig;
+  - crisp thin red/cyan/mint/white laser cores with low-alpha glow duplicate;
+  - geometric canopy sweeps and floor landing points;
+  - sparse floor constellation and subtle haze;
+  - quality-aware and World Power/Detail-aware density.
+
+Integration is in `CinematicBackground.ts`. Specialized worlds suppress generic particles/blobs/rings/beams so their identity is not diluted. Director catalog/CSS previews and energetic Performance Presets expose the two worlds.
 
 ## Current implementation state
 
