@@ -1,4 +1,4 @@
-export type LowerThirdMode = "off" | "intro" | "rotate";
+export type LowerThirdMode = "off" | "always" | "scheduled";
 
 export type LowerThirdPresetId =
   | "clean-broadcast"
@@ -19,6 +19,18 @@ export interface LowerThirdPresetInfo {
   label: string;
   description: string;
   preview: string;
+}
+
+export interface LowerThirdScheduleInput {
+  mode: LowerThirdMode;
+  playbackSeconds: number;
+  trackDurationSeconds: number;
+  manualUntil: number;
+  startSeconds: number;
+  visibleSeconds: number;
+  outroEnabled: boolean;
+  outroLeadSeconds: number;
+  now?: number;
 }
 
 export const LOWER_THIRD_PRESETS: LowerThirdPresetInfo[] = [
@@ -46,15 +58,22 @@ export function resolveLowerThirdPreset(
   return options[Math.max(0, Math.floor(playbackSeconds / 45)) % options.length];
 }
 
-export function shouldShowLowerThird(
-  mode: LowerThirdMode,
-  playbackSeconds: number,
-  previewUntil: number,
-  now = Date.now(),
-) {
-  if (previewUntil > now) return true;
-  if (mode === "off") return false;
-  if (mode === "intro") return playbackSeconds >= 0 && playbackSeconds < 8;
-  const cycle = playbackSeconds % 45;
-  return cycle >= 0 && cycle < 7;
+export function shouldShowLowerThird(input: LowerThirdScheduleInput) {
+  const now = input.now ?? Date.now();
+  if (input.manualUntil > now) return true;
+  if (input.mode === "off") return false;
+  if (input.mode === "always") return true;
+
+  const playback = Math.max(0, input.playbackSeconds);
+  const start = Math.max(0, input.startSeconds);
+  const visible = Math.max(0.5, input.visibleSeconds);
+  const openingWindow = playback >= start && playback < start + visible;
+  if (openingWindow) return true;
+
+  if (!input.outroEnabled || input.trackDurationSeconds <= 0) return false;
+  const outroStart = Math.max(0, input.trackDurationSeconds - Math.max(0, input.outroLeadSeconds));
+  return playback >= outroStart && playback < Math.min(
+    input.trackDurationSeconds,
+    outroStart + visible,
+  );
 }
