@@ -1,9 +1,9 @@
 import { spawn } from "node:child_process";
+import { resolveNpmInvocation } from "./dev-process.mjs";
 
 const host = process.env.EMO_HOST || "127.0.0.1";
 const port = Number.parseInt(process.env.EMO_PORT || "3040", 10);
 const runtimeUrl = `http://${host}:${port}/api/runtime`;
-const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 const children = new Set();
 
 function delay(ms) {
@@ -71,11 +71,13 @@ if (await runtimeReady()) {
   console.log("[dev] Runtime ready; starting Vite.");
 }
 
-const web = run(
-  npmCommand,
-  ["--workspace", "@graph1ks/emo-web", "run", "dev"],
-  "web",
-);
+const npm = resolveNpmInvocation([
+  "--workspace",
+  "@graph1ks/emo-web",
+  "run",
+  "dev",
+]);
+const web = run(npm.command, npm.args, "web");
 
 web.once("exit", code => {
   if (server && server.exitCode === null) server.kill();

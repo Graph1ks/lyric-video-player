@@ -2,12 +2,12 @@
 
 **Last updated:** 2026-09-25  
 **Merged baseline:** `b17be7bbee7839fd842cf8a29b07fc4dd77c1b69`  
-**Active candidate:** none  
+**Active candidate:** `fix/windows-node24-dev-spawn`  
 **Current phase/milestone:** v0.8 lyric-scene composition + color direction
 
 ## Current objective
 
-Use the merged dev-runtime + Color Canvas baseline for real-track acceptance, then continue the remaining typography and scene-stack work.
+Close the Windows Node 24 dev-launcher regression, then resume real-track Color Canvas / Step 4 acceptance and the remaining typography work.
 
 ## Current implementation state
 
@@ -163,6 +163,18 @@ The candidate changes root development orchestration:
 `npm run dev:web` remains intentionally web-only for split-process debugging. The default `projects/` root is created automatically when no explicit root is configured.
 
 See `docs/DEVELOPMENT_RUNTIME.md`.
+
+### Active Windows Node 24 launcher fix
+
+The runtime readiness gate itself is correct: server startup reaches `/api/runtime` successfully. The regression occurs one step later when the launcher tries to start Vite.
+
+Directly spawning `npm.cmd` with `shell: false` is not a valid portable Windows child-process contract and manifests as `spawn EINVAL` on the reported Node 24 environment. The active candidate:
+
+- prefers `npm_execpath` and launches npm's JavaScript CLI through `process.execPath`;
+- falls back to explicit `cmd.exe` invocation when the script is run directly and `npm_execpath` is unavailable;
+- keeps `shell: false` for the actual child spawn;
+- adds an executable npm-child smoke test;
+- runs that smoke on Windows Node 22 and Node 24.
 
 ## Important files / entry points
 
