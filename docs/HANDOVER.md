@@ -1,85 +1,79 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `6bde1cca0db795c8b7f6faae6772eeb4ae899520`  
-**Current phase/milestone:** compositor baseline complete / typography selector foundation next
+**Merged baseline:** `34e75eb43a1eba6498dd3a3fc777072acc7e1e64`  
+**Active candidate:** `feature/background-presets-v0.7`  
+**Current phase/milestone:** v0.7 visualization-engine expansion
 
 ## Current objective
 
-Keep the merged compositor stable and begin the reusable glyph-selector architecture that will power higher-end kinetic typography without adding a second animation clock.
+Complete the graphics/lyrics visualization primitive set before scene-editor work. Typography is now selector-driven; the active work generalizes backgrounds into independent deterministic presets.
 
 ## Current implementation state
 
-### Platform/runtime
+### Typography
 
-- React 19 / Vite 8 application shell is merged.
-- Node `EmoServer` is shared by hosted and Electron loopback modes.
-- `emo.project/v1` is merged.
-- Hosted HTTP integration covers the compiled server and range-capable media path.
-- Windows NSIS and portable x64 packaging is exercised in CI.
+Merged:
 
-### Renderer
+- glyph-level selector context;
+- range selector;
+- ordered/random stagger selector;
+- wave selector;
+- deterministic interpolated wiggle;
+- deterministic random weighting;
+- audio weighting;
+- selector blend helpers;
+- Impact / Cascade / Wave / Scatter / Elastic / Outline / Tunnel / Glitch presets;
+- React preset control;
+- renderer preset API/listener;
+- `emo.project/v1` typography default;
+- keyboard `T` cycling.
 
-Current merged frame path:
+All primary typography motion remains a deterministic function of supplied lyric/audio time.
 
-```text
-Audio/LRC clock
-    |
-    v
-Background + KineticLyrics + centered CameraRig
-    |
-    v
-Scene RenderTexture
-    |
-    v
-Cinema feedback ping-pong (Performance bypasses)
-    |
-    +--> sharp layer:
-    |      displacement
-    |      velocity smear
-    |      cinematic RGB/glow/grain/vignette
-    |
-    +--> bloom layer:
-           reactive bright-pass threshold
-           blur
-           additive composite
-    |
-    v
-Canvas
-```
+### Background candidate
 
-The Pixi automatic ticker is disabled. `EngineRenderer.update()` evaluates and presents exactly one frame for the supplied playback time.
+The current branch generalizes `CinematicBackground` into seven selectable families without adding another clock:
 
-### Compositor status
+- Cinematic — existing scene-family baseline;
+- Nebula — blob/particle-heavy drifting field;
+- Grid — perspective grid with restrained particles;
+- Starfield — depth-like radial hyperspace motion;
+- Rays — radial geometry, beams and rings;
+- Vortex — spiral particles/rings and radial spokes;
+- Minimal — sparse dark motion field.
 
-- RenderTexture scene composition — merged.
-- Deterministic feedback ping-pong — merged.
-- Scene-aware displacement — merged.
-- Dedicated velocity smear — merged.
-- Reactive threshold bloom — merged and CI-verified.
-- Performance/Cinema budgets exist across feedback and post-FX.
+AUTO selects from a scene-compatible preset table using cue index. Manual background selection overrides AUTO.
+
+The candidate also adds:
+
+- renderer background preset API/listener;
+- React Visual Director background grid;
+- keyboard `B` cycling;
+- `emo.project/v1` background default + validation;
+- quality-aware particle/blob/ring/beam visibility budgets.
 
 ## Important files / entry points
 
 | Path | Why it matters |
 |---|---|
-| `packages/renderer-pixi/src/render/SceneRenderGraph.ts` | scene capture, feedback, sharp/bloom presentation |
-| `packages/renderer-pixi/src/render/ReactiveDisplacementFX.ts` | scene-aware displacement |
-| `packages/renderer-pixi/src/render/ReactiveVelocitySmearFX.ts` | dedicated motion-smear pass |
-| `packages/renderer-pixi/src/render/ReactiveBloomThresholdFX.ts` | bright-pass bloom extraction |
-| `packages/renderer-pixi/src/render/CinematicPostFX.ts` | final cinematic shader |
-| `packages/renderer-pixi/src/render/EngineRenderer.ts` | explicit frame orchestration |
-| `packages/renderer-pixi/src/effects/typography/KineticLyrics.ts` | current glyph engine; next refactor target |
-| `apps/web/src/App.tsx` | audio-clock-driven renderer update path |
+| `packages/engine-core/src/types.ts` | typography/background preset contracts |
+| `packages/engine-core/src/typographySelectors.ts` | deterministic selector math |
+| `packages/renderer-pixi/src/effects/typography/KineticLyrics.ts` | multi-preset glyph engine |
+| `packages/renderer-pixi/src/effects/backgrounds/CinematicBackground.ts` | active background preset engine |
+| `packages/renderer-pixi/src/render/EngineRenderer.ts` | visual preset orchestration |
+| `apps/web/src/App.tsx` | Visual Director controls |
+| `packages/platform-node/src/index.ts` | manifest preset validation |
+| `docs/PROJECT_FORMAT.md` | project defaults contract |
 
 ## Known risks / pending acceptance
 
-- The full compositor stack still needs human visual tuning on real tracks.
-- Current typography behaviors remain hard-coded by scene family.
-- There is no general range/stagger/wiggle selector system yet.
-- Electron artifacts are mechanically packaged but still need a human runtime/visual smoke test on Windows.
-- Root legacy UI remains until React acceptance.
-- Safari/M4A remains real-device work.
+- Background families require human visual tuning against real tracks after build validation.
+- Starfield is currently a deterministic 2.5D illusion, not true 3D geometry.
+- Procedural liquid/noise, waveform ribbons, recursive text backgrounds and sparks/trails are still pending.
+- Soft-3D/inflate, handwritten stroke reveal and particle dissolve typography are still pending.
+- Electron artifacts remain mechanically tested; human Windows visual smoke testing is still valuable.
+- Root legacy UI remains pending React acceptance.
 
 ## Verification
 
@@ -93,24 +87,25 @@ npm test
 python scripts/repo_audit.py
 ```
 
-Visual compositor acceptance should verify:
+Windows gate:
 
-- no ticker drift or duplicate frame evaluation;
-- seek resets remove stale feedback trails;
-- Poster remains crisp;
-- Neon bloom is visible but not washed out;
-- Vortex feedback does not run away in brightness;
-- Performance mode materially reduces temporal/post-FX cost;
-- fullscreen and `Ctrl + Shift + H` remain unchanged.
+```text
+npm install
+npm run build
+npm --workspace @graph1ks/emo-desktop run dist
+```
+
+Visual acceptance should explicitly cycle `T` and `B` while testing seek, scene AUTO and Performance/Cinema modes.
 
 ## Next concrete work
 
-1. Add reusable selector weights for glyph ranges.
-2. Add deterministic stagger ordering.
-3. Add deterministic wiggle/noise selector weights.
-4. Apply selector outputs to glyph position, scale, rotation, opacity and color.
-5. Build outline-stack and recursive/tunnel typography presets using selectors.
+1. Merge background presets after Linux + Windows gates.
+2. Add procedural liquid/noise GPU background pass.
+3. Add spectrum/waveform ribbons driven by audio-band data.
+4. Add sparks/trails and recursive background lyric layers.
+5. Add soft-3D/stroke/dissolve typography primitives.
+6. Stabilize scene-stack JSON before building timeline/editor UI.
 
 ## Resume instruction
 
-Read `AGENTS.md`, `PROJECT.md`, `STATUS.md`, this file, `docs/PLATFORM_ARCHITECTURE.md`, `docs/PROJECT_FORMAT.md`, and `docs/DECISIONS.md`. Then inspect main/current CI before changing clock, render-target or platform ownership.
+Read `AGENTS.md`, `PROJECT.md`, `STATUS.md`, this file, `ROADMAP.md`, `docs/PROJECT_FORMAT.md`, `docs/PLATFORM_ARCHITECTURE.md` and `docs/DECISIONS.md`. Then inspect current main/branch CI before changing render timing or project contracts.

@@ -2,7 +2,7 @@
 
 E-MO-Engine is a realtime motion-graphics player/engine for MP3/M4A/AAC audio synchronized to Enhanced LRC. It combines deterministic lyric timing with PixiJS typography, camera motion, audio-reactive backgrounds and GPU post-processing.
 
-## Current status — v0.5 alpha
+## Current status — v0.7 alpha
 
 The project now has three product surfaces backed by the same engine:
 
@@ -16,11 +16,15 @@ Frame-critical motion remains outside React. PixiJS, Web Audio and the E-MO cloc
 
 - MP3 / M4A / AAC playback
 - local drag-and-drop audio + Enhanced LRC
-- server/Desktop project loading from a configured directory\n- optional `emo.project/v1` manifest with nested media/assets and reproducible visual defaults
+- server/Desktop project loading from a configured directory
+- optional `emo.project/v1` manifest with nested media/assets and reproducible visual defaults
 - Enhanced LRC line timestamps, word timestamps, offsets and line-only fallback timing
 - manual live lyric-sync trim
 - bass / mid / treble / energy / transient analysis
 - deterministic timestamp-driven glyph/word motion
+- deterministic typography selector engine: range, stagger, wave, wiggle, random and audio weighting
+- eight typography presets: Impact, Cascade, Wave, Scatter, Elastic, Outline, Tunnel and Glitch
+- seven background presets: Cinematic, Nebula, Grid, Starfield, Rays, Vortex and Minimal
 - Poster / Neon / Vortex visual families
 - deterministic Auto Director
 - virtual camera impulses
@@ -86,6 +90,8 @@ See `docs/PLATFORM_ARCHITECTURE.md` and `docs/DECISIONS.md`.
 | `Shift + ←` / `Shift + →` | seek 15 seconds |
 | `0` | Auto Director |
 | `1` / `2` / `3` | Poster / Neon / Vortex |
+| `T` | cycle typography preset |
+| `B` | cycle background preset |
 | `,` / `.` | lyric sync -/+ 50 ms |
 | `Esc` | restore hidden HUD |
 
@@ -141,14 +147,13 @@ The desktop renderer has no Node integration. Native directory selection is expo
 
 ## Near-term work
 
-1. visual/browser acceptance of the React cutover
-2. real Windows NSIS + portable packaging smoke test
-3. retire the temporary root legacy UI
-4. multi-pass RenderTexture compositor and ping-pong feedback
-5. displacement, velocity smear and stronger bloom/glow
-6. selector-driven typography system
-7. timeline/editor surfaces on top of the new `emo.project/v1` project schema
-8. offline fixed-frame rendering/export architecture
+1. complete the remaining visualization-engine families: liquid/procedural backgrounds, spectrum ribbons, recursive typography backgrounds and dissolve exits
+2. add scene-stack serialization and per-section visual directives
+3. visually tune typography/background preset combinations on real tracks
+4. retire the temporary root legacy UI after React acceptance
+5. optional true-3D layer only where a concrete scene requires it
+6. timeline/editor surfaces on top of the stable visualization contracts
+7. offline fixed-frame rendering/export architecture
 
 ## Licensing
 
