@@ -26,7 +26,8 @@ const DE_ITEMS: Record<string, ItemTranslation> = {
   "sequence-off": { label: "Klassische Zeile", description: "Persistente Sequenzen aus; normale aktuelle Zeilenkomposition" },
   "sequence-spiral": { description: "Neuestes Wort groß, ältere Wörter ziehen kontinuierlich in die Spiraltiefe" },
   "sequence-hero": { description: "Ein dominantes Wort führt, Lyric-Historie wird zur Hintergrundstruktur" },
-  "sequence-shape": { description: "Wörter bauen Rahmen- und Ring-Calligrams ohne alte Slots neu zu sortieren" },
+  "sequence-shape-fill": { label: "Shape Fill", description: "Wörter packen sich in eine echte Silhouette – Baum, Stern oder Figur – statt nur deren Rand nachzuzeichnen" },
+  "sequence-manifesto": { label: "Manifesto Wall", description: "Starre Wörter schlagen in einen verzahnten Mauerblock ein – mit riesigen Ankern und 90°-Bracket-Slots" },
   "sequence-ribbon": { description: "Aktive und ältere Wörter laufen gemeinsam auf einer S-Kurve" },
 
   "layout-auto": { description: "Die Regie wählt die passende Wortkomposition" },

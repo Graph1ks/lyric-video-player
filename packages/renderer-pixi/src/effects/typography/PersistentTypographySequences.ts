@@ -117,16 +117,20 @@ export class PersistentTypographySequences {
         })
       : undefined;
     const echoBudget = readability?.motion.echoScale ?? 1;
-    const structuralShape = this.grammar === "shape-build";
-    const historySeconds = structuralShape
+    const structuralShape = this.grammar === "shape-fill" || this.grammar === "shape-build";
+    const architecturalWall = this.grammar === "manifesto-wall";
+    const persistentStructure = structuralShape || architecturalWall;
+    const historySeconds = persistentStructure
       ? (cinema ? 24 : 16)
       : (cinema ? 7.5 : 4.5) * (0.48 + echoBudget * 0.52);
     const maxWords = structuralShape
-      ? (cinema ? 64 : 40)
-      : Math.max(
-          8,
-          Math.round((cinema ? 42 : 24) * (0.42 + echoBudget * 0.58)),
-        );
+      ? (cinema ? 72 : 48)
+      : architecturalWall
+        ? (cinema ? 48 : 32)
+        : Math.max(
+            8,
+            Math.round((cinema ? 42 : 24) * (0.42 + echoBudget * 0.58)),
+          );
     const window = deriveTypographySequenceWindow(this.lines, time, {
       historySeconds,
       recentSeconds: Math.min(historySeconds, cinema ? 1.55 : 1.15),
@@ -165,23 +169,34 @@ export class PersistentTypographySequences {
         ? clamp((time - ref.start) / Math.max(0.04, ref.end - ref.start))
         : 0;
       const focusPulse = ref.role === "active" ? Math.sin(progress * Math.PI) : 0;
-      const activeLift = 1 + focusPulse * 0.055 * this.intensity + audio.bass * 0.018 * this.intensity;
-      const maxWidthRatio = this.grammar === "shape-build"
-        ? 0.34
-        : this.grammar === "ribbon-path"
-          ? 0.46
-          : placement.id === plan.heroId
-            ? (this.grammar === "hero-echo" ? 0.62 : 0.72)
-            : 0.72;
-      const structuralGeometry = this.grammar === "shape-build"
+      const structuralGeometry = structuralShape
+        || architecturalWall
         || this.grammar === "ribbon-path";
+      const activeLift = architecturalWall
+        ? 1
+        : structuralShape
+          ? 1 + focusPulse * 0.012 * this.intensity
+          : 1 + focusPulse * 0.055 * this.intensity + audio.bass * 0.018 * this.intensity;
+      const maxWidthRatio = structuralShape
+        ? 0.72
+        : architecturalWall
+          ? 0.82
+          : this.grammar === "ribbon-path"
+            ? 0.46
+            : placement.id === plan.heroId
+              ? (this.grammar === "hero-echo" ? 0.62 : 0.72)
+              : 0.72;
       const travelScale = structuralGeometry
         ? 1
         : readability
           ? 0.7 + readability.motion.travelScale * 0.3
           : 1;
-      const rotationScale = readability?.motion.rotationScale ?? 1;
-      const scaleExcursion = readability?.motion.scaleExcursion ?? 1;
+      const rotationScale = structuralGeometry
+        ? 1
+        : readability?.motion.rotationScale ?? 1;
+      const scaleExcursion = structuralGeometry
+        ? 1
+        : readability?.motion.scaleExcursion ?? 1;
       const directedScale = 1 + (placement.scale - 1) * scaleExcursion;
       const desiredScale = directedScale * activeLift;
       const baseWidth = Math.max(1, node.width * desiredScale);
@@ -190,18 +205,24 @@ export class PersistentTypographySequences {
       const sin = Math.abs(Math.sin(placement.rotation));
       const rotatedWidth = baseWidth * cos + baseHeight * sin;
       const rotatedHeight = baseWidth * sin + baseHeight * cos;
-      const maxHeightRatio = this.grammar === "shape-build"
-        ? 0.28
-        : this.grammar === "ribbon-path"
-          ? 0.42
-          : 0.72;
-      const fitScale = Math.min(
-        1,
-        (this.w * maxWidthRatio) / rotatedWidth,
-        (this.h * maxHeightRatio) / rotatedHeight,
+      const maxHeightRatio = structuralShape
+        ? 0.72
+        : architecturalWall
+          ? 0.72
+          : this.grammar === "ribbon-path"
+            ? 0.42
+            : 0.72;
+      const targetWidth = placement.maxWidth ?? this.w * maxWidthRatio;
+      const targetHeight = placement.maxHeight ?? this.h * maxHeightRatio;
+      const rawFitScale = Math.min(
+        targetWidth / rotatedWidth,
+        targetHeight / rotatedHeight,
       );
+      const fitScale = placement.maxWidth && placement.maxHeight
+        ? clamp(rawFitScale, 0.08, 3.6)
+        : Math.min(1, rawFitScale);
       const finalScale = Math.max(0.08, desiredScale * fitScale);
-      const focusLift = structuralGeometry ? 0.005 : 0.012;
+      const focusLift = structuralGeometry ? 0 : 0.012;
 
       node.position.set(
         this.w * 0.5 + placement.x * travelScale,
