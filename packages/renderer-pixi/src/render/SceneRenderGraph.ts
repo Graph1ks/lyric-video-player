@@ -1,5 +1,5 @@
 import { BlurFilter, Container, RenderTexture, Sprite } from "pixi.js";
-import type { QualityMode } from "@graph1ks/emo-engine-core";
+import type { QualityMode, SceneMode } from "@graph1ks/emo-engine-core";
 import { CinematicPostFX } from "./CinematicPostFX";
 
 interface RenderLike {
@@ -14,13 +14,26 @@ export class SceneRenderGraph {
   readonly output = new Container();
 
   private sceneTexture?: RenderTexture;
+  private feedbackA?: RenderTexture;
+  private feedbackB?: RenderTexture;
+  private feedbackRead?: RenderTexture;
+  private feedbackWrite?: RenderTexture;
+
   private sharp?: Sprite;
   private bloom?: Sprite;
+  private currentFrame?: Sprite;
+  private previousFrame?: Sprite;
+  private readonly feedbackStage = new Container();
+
   private quality: QualityMode = "cinema";
+  private mode: SceneMode = "neon";
   private intensity = 1;
   private width = 1;
   private height = 1;
   private resolution = 1;
+  private feedbackPrimed = false;
+  private lastFeedbackTime?: number;
+
   private readonly bloomFilter = new BlurFilter({
     strength: 18,
     quality: 2,
@@ -48,68 +61,189 @@ export class SceneRenderGraph {
     this.height = nextHeight;
     this.resolution = nextResolution;
 
-    const texture = RenderTexture.create({
-      width: nextWidth,
-      height: nextHeight,
-      resolution: nextResolution,
-      antialias: true,
-      label: "E-MO Scene Composite",
-    });
+    const oldTextures = [this.sceneTexture, this.feedbackA, this.feedbackB].filter(Boolean) as RenderTexture[];
 
-    const previous = this.sceneTexture;
-    this.sceneTexture = texture;
+    this.sceneTexture = this.createTarget("E-MO Scene");
+    this.feedbackA = this.createTarget("E-MO Feedback A");
+    this.feedbackB = this.createTarget("E-MO Feedback B");
+    this.feedbackRead = this.feedbackA;
+    this.feedbackWrite = this.feedbackB;
+
+    if (!this.currentFrame) {
+      this.currentFrame = new Sprite(this.sceneTexture);
+      this.feedbackStage.addChild(this.currentFrame);
+    } else {
+      this.currentFrame.texture = this.sceneTexture;
+    }
+
+    if (!this.previousFrame) {
+      this.previousFrame = new Sprite(this.feedbackRead);
+      this.previousFrame.anchor.set(0.5);
+      this.previousFrame.blendMode = "add";
+      this.feedbackStage.addChild(this.previousFrame);
+    } else {
+      this.previousFrame.texture = this.feedbackRead;
+    }
 
     if (!this.bloom) {
-      this.bloom = new Sprite(texture);
+      this.bloom = new Sprite(this.sceneTexture);
       this.bloom.blendMode = "add";
       this.bloom.filters = [this.bloomFilter];
       this.output.addChild(this.bloom);
     } else {
-      this.bloom.texture = texture;
+      this.bloom.texture = this.sceneTexture;
     }
 
     if (!this.sharp) {
-      this.sharp = new Sprite(texture);
+      this.sharp = new Sprite(this.sceneTexture);
       this.sharp.filters = [this.postFX.filter];
       this.output.addChild(this.sharp);
     } else {
-      this.sharp.texture = texture;
+      this.sharp.texture = this.sceneTexture;
     }
 
+    this.resetFeedback();
     this.applyPresentation();
-    previous?.destroy(true);
+    oldTextures.forEach(texture => texture.destroy(true));
   }
 
   setQuality(quality: QualityMode) {
+    if (this.quality === quality) return;
     this.quality = quality;
+    this.resetFeedback();
     this.applyPresentation();
+  }
+
+  setMode(mode: SceneMode) {
+    if (this.mode === mode) return;
+    this.mode = mode;
+    this.resetFeedback();
+    this.applyFeedbackTransform();
   }
 
   setIntensity(value: number) {
-    this.intensity = Math.max(0.2, Math.min(1.8, value));
+    const next = Math.max(0.2, Math.min(1.8, value));
+    if (Math.abs(this.intensity - next) < 0.001) return;
+    this.intensity = next;
     this.applyPresentation();
+    this.applyFeedbackTransform();
   }
 
-  capture(renderer: RenderLike, scene: Container) {
+  resetFeedback() {
+    this.feedbackPrimed = false;
+    this.lastFeedbackTime = undefined;
+    if (this.previousFrame) this.previousFrame.visible = false;
+  }
+
+  capture(renderer: RenderLike, scene: Container, time: number) {
     if (!this.sceneTexture) return;
+
     renderer.render({
       container: scene,
       target: this.sceneTexture,
       clear: true,
     });
+
+    if (
+      this.quality !== "cinema" ||
+      !this.feedbackRead ||
+      !this.feedbackWrite ||
+      !this.currentFrame ||
+      !this.previousFrame
+    ) {
+      this.present(this.sceneTexture);
+      this.lastFeedbackTime = time;
+      return;
+    }
+
+    const delta = this.lastFeedbackTime === undefined ? undefined : time - this.lastFeedbackTime;
+    const discontinuity = delta !== undefined && (delta < -0.01 || delta > 0.35);
+    if (discontinuity) this.feedbackPrimed = false;
+
+    const shouldAdvance = !this.feedbackPrimed || delta === undefined || delta > 1 / 240;
+
+    if (shouldAdvance) {
+      this.currentFrame.texture = this.sceneTexture;
+      this.previousFrame.texture = this.feedbackRead;
+      this.previousFrame.visible = this.feedbackPrimed;
+      this.applyFeedbackTransform();
+
+      renderer.render({
+        container: this.feedbackStage,
+        target: this.feedbackWrite,
+        clear: true,
+      });
+
+      const presented = this.feedbackWrite;
+      const oldRead = this.feedbackRead;
+      this.feedbackRead = presented;
+      this.feedbackWrite = oldRead;
+      this.feedbackPrimed = true;
+      this.present(presented);
+    } else if (this.feedbackPrimed) {
+      this.present(this.feedbackRead);
+    } else {
+      this.present(this.sceneTexture);
+    }
+
+    this.lastFeedbackTime = time;
   }
 
   destroy() {
     this.output.removeChildren();
+    this.feedbackStage.removeChildren();
     this.sceneTexture?.destroy(true);
+    this.feedbackA?.destroy(true);
+    this.feedbackB?.destroy(true);
     this.sceneTexture = undefined;
+    this.feedbackA = undefined;
+    this.feedbackB = undefined;
+    this.feedbackRead = undefined;
+    this.feedbackWrite = undefined;
     this.sharp = undefined;
     this.bloom = undefined;
+    this.currentFrame = undefined;
+    this.previousFrame = undefined;
+  }
+
+  private createTarget(label: string) {
+    return RenderTexture.create({
+      width: this.width,
+      height: this.height,
+      resolution: this.resolution,
+      antialias: true,
+      label,
+    });
+  }
+
+  private present(texture: RenderTexture) {
+    if (this.sharp) this.sharp.texture = texture;
+    if (this.bloom) this.bloom.texture = texture;
   }
 
   private applyPresentation() {
     if (!this.bloom) return;
     const qualityScale = this.quality === "cinema" ? 1 : 0.45;
     this.bloom.alpha = Math.min(0.5, (0.16 + this.intensity * 0.1) * qualityScale);
+  }
+
+  private applyFeedbackTransform() {
+    if (!this.previousFrame) return;
+
+    const baseAlpha = this.mode === "vortex"
+      ? 0.11
+      : this.mode === "poster"
+        ? 0.055
+        : 0.075;
+    const scaleLift = this.mode === "vortex"
+      ? 0.012
+      : this.mode === "poster"
+        ? 0.0035
+        : 0.006;
+
+    this.previousFrame.position.set(this.width * 0.5, this.height * 0.5);
+    this.previousFrame.alpha = Math.min(0.18, baseAlpha * this.intensity);
+    this.previousFrame.scale.set(1 + scaleLift * this.intensity);
+    this.previousFrame.rotation = this.mode === "vortex" ? 0.0025 * this.intensity : 0;
   }
 }
