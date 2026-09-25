@@ -73,8 +73,8 @@
 - semantic background/text/accent/glow roles
 - lyric/background contrast guarantees
 - React controls + project defaults
-- composition-level motion grammar — active candidate
-- Handoff / Conveyor / Anchor Build / Collapse / Takeover / Flip / Camera Handoff / Portal / Panel — active candidate
+- composition-level motion grammar — complete baseline
+- Handoff / Conveyor / Anchor Build / Collapse / Takeover / Flip / Camera Handoff / Portal / Panel — complete baseline
 - next after merge: distinct art-direction worlds
 
 ## Milestone 0.7 — Scene project format

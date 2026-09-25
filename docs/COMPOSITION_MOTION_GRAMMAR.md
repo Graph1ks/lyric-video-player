@@ -1,6 +1,6 @@
 # Composition Motion Grammar
 
-**Status:** baseline implementation in `feature/composition-motion-v0.8`  
+**Status:** merged baseline  
 **Owner:** engine-core / renderer-pixi  
 **Determinism:** required
 
