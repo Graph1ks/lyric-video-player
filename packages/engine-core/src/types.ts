@@ -77,6 +77,17 @@ export type ColorHarmonyId =
   | "tetrad"
   | "monochrome";
 export type ColorHarmonyMode = "auto" | ColorHarmonyId;
+export type ColorMoodId =
+  | "tender"
+  | "heartbreak"
+  | "longing"
+  | "euphoria"
+  | "rage"
+  | "dream"
+  | "tension"
+  | "calm";
+export type ColorMoodMode = "auto" | ColorMoodId;
+export type ColorFlowMode = "static" | "rainbow";
 
 export interface VisualSettings {
   mode: VisualMode;
@@ -87,6 +98,8 @@ export interface VisualSettings {
   compositionMotion?: CompositionMotionPreset;
   backgroundPreset?: BackgroundPreset;
   colorHarmony?: ColorHarmonyMode;
+  colorMood?: ColorMoodMode;
+  colorFlow?: ColorFlowMode;
 }
 
 export interface AudioBands {

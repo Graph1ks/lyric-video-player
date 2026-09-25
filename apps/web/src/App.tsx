@@ -11,6 +11,8 @@ import {
   type BackgroundPresetId,
   type ColorHarmonyId,
   type ColorHarmonyMode,
+  type ColorMoodId,
+  type ColorMoodMode,
   type CompositionMotionId,
   type CompositionMotionPreset,
   type ParsedLyrics,
@@ -70,6 +72,18 @@ const COMPOSITION_MOTIONS: CompositionMotionPreset[] = [
   "panel",
 ];
 
+const COLOR_MOODS: ColorMoodMode[] = [
+  "auto",
+  "tender",
+  "heartbreak",
+  "longing",
+  "euphoria",
+  "rage",
+  "dream",
+  "tension",
+  "calm",
+];
+
 const COLOR_HARMONIES: ColorHarmonyMode[] = [
   "auto",
   "split-complement",
@@ -124,6 +138,8 @@ export function App() {
   const compositionMotion = useUiStore(state => state.compositionMotion);
   const backgroundPreset = useUiStore(state => state.backgroundPreset);
   const colorHarmony = useUiStore(state => state.colorHarmony);
+  const colorMood = useUiStore(state => state.colorMood);
+  const colorFlow = useUiStore(state => state.colorFlow);
   const syncMs = useUiStore(state => state.syncMs);
   const projectDrawerOpen = useUiStore(state => state.projectDrawerOpen);
   const setHudVisible = useUiStore(state => state.setHudVisible);
@@ -135,6 +151,8 @@ export function App() {
   const setCompositionMotion = useUiStore(state => state.setCompositionMotion);
   const setBackgroundPreset = useUiStore(state => state.setBackgroundPreset);
   const setColorHarmony = useUiStore(state => state.setColorHarmony);
+  const setColorMood = useUiStore(state => state.setColorMood);
+  const setColorFlow = useUiStore(state => state.setColorFlow);
   const setSyncMs = useUiStore(state => state.setSyncMs);
   const setProjectDrawerOpen = useUiStore(state => state.setProjectDrawerOpen);
 
@@ -145,6 +163,7 @@ export function App() {
   const [activeMotion, setActiveMotion] = useState<CompositionMotionId>("handoff");
   const [activeBackground, setActiveBackground] = useState<BackgroundPresetId>("nebula");
   const [activeHarmony, setActiveHarmony] = useState<ColorHarmonyId>("split-complement");
+  const [activeMood, setActiveMood] = useState<ColorMoodId>("dream");
   const [activePalette, setActivePalette] = useState<VisualPalette | null>(null);
   const [hasContent, setHasContent] = useState(false);
   const [playing, setPlaying] = useState(false);
@@ -199,6 +218,7 @@ export function App() {
     const offPalette = renderer.onPaletteChange(palette => {
       if (disposed) return;
       setActiveHarmony(palette.resolvedHarmony);
+      setActiveMood(palette.resolvedMood);
       setActivePalette(palette);
     });
 
@@ -253,6 +273,8 @@ export function App() {
       renderer.setCompositionMotion(useUiStore.getState().compositionMotion);
       renderer.setBackgroundPreset(useUiStore.getState().backgroundPreset);
       renderer.setColorHarmony(useUiStore.getState().colorHarmony);
+      renderer.setColorMood(useUiStore.getState().colorMood);
+      renderer.setColorFlow(useUiStore.getState().colorFlow);
       renderer.setIntensity(useUiStore.getState().intensity);
       renderer.setQuality(useUiStore.getState().quality);
       clock.start();
@@ -304,6 +326,14 @@ export function App() {
   useEffect(() => {
     rendererRef.current?.setColorHarmony(colorHarmony);
   }, [colorHarmony]);
+
+  useEffect(() => {
+    rendererRef.current?.setColorMood(colorMood);
+  }, [colorMood]);
+
+  useEffect(() => {
+    rendererRef.current?.setColorFlow(colorFlow);
+  }, [colorFlow]);
 
   useEffect(() => {
     rendererRef.current?.setIntensity(intensity);
@@ -365,13 +395,20 @@ export function App() {
         const current = useUiStore.getState().colorHarmony;
         const index = COLOR_HARMONIES.indexOf(current);
         setColorHarmony(COLOR_HARMONIES[(index + 1) % COLOR_HARMONIES.length]);
+      } else if (event.code === "KeyE") {
+        const current = useUiStore.getState().colorMood;
+        const index = COLOR_MOODS.indexOf(current);
+        setColorMood(COLOR_MOODS[(index + 1) % COLOR_MOODS.length]);
+      } else if (event.code === "KeyR") {
+        const current = useUiStore.getState().colorFlow;
+        setColorFlow(current === "rainbow" ? "static" : "rainbow");
       } else if (event.code === "Comma") adjustSync(-50);
       else if (event.code === "Period") adjustSync(50);
     };
 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [setBackgroundPreset, setColorHarmony, setCompositionMotion, setHudVisible, setMode, setSyncMs, setTypographyLayout, setTypographyPreset]);
+  }, [setBackgroundPreset, setColorFlow, setColorHarmony, setColorMood, setCompositionMotion, setHudVisible, setMode, setSyncMs, setTypographyLayout, setTypographyPreset]);
 
   useEffect(() => {
     const onDragEnter = (event: DragEvent) => {
@@ -505,6 +542,8 @@ export function App() {
       if (defaults?.compositionMotion !== undefined) setCompositionMotion(defaults.compositionMotion);
       if (defaults?.backgroundPreset !== undefined) setBackgroundPreset(defaults.backgroundPreset);
       if (defaults?.colorHarmony !== undefined) setColorHarmony(defaults.colorHarmony);
+      if (defaults?.colorMood !== undefined) setColorMood(defaults.colorMood);
+      if (defaults?.colorFlow !== undefined) setColorFlow(defaults.colorFlow);
       if (defaults?.syncMs !== undefined) {
         syncRef.current = defaults.syncMs;
         setSyncMs(defaults.syncMs);
@@ -685,6 +724,33 @@ export function App() {
             </div>
           </div>
 
+          <div className="mood-control">
+            <div className="control-heading">
+              <span>LYRIC MOOD</span>
+              <b>{activeMood.toUpperCase()}</b>
+            </div>
+            <div className="mood-grid" role="group" aria-label="Lyric color mood">
+              {COLOR_MOODS.map(value => (
+                <button
+                  key={value}
+                  className={`mood-button ${colorMood === value ? "is-active" : ""}`}
+                  onClick={() => setColorMood(value)}
+                  title={value === "auto" ? "Auto lyric mood · E" : `${value} color direction`}
+                >
+                  {value.toUpperCase()}
+                </button>
+              ))}
+            </div>
+            <button
+              className={`rainbow-button ${colorFlow === "rainbow" ? "is-active" : ""}`}
+              onClick={() => setColorFlow(colorFlow === "rainbow" ? "static" : "rainbow")}
+              title="Slow spectrum drift · R"
+            >
+              <span>RAINBOW DRIFT</span>
+              <b>{colorFlow === "rainbow" ? "ON" : "OFF"}</b>
+            </button>
+          </div>
+
           <div className="harmony-control">
             <div className="control-heading">
               <span>COLOR HARMONY</span>
@@ -787,7 +853,7 @@ export function App() {
             ))}
           </div>
 
-          <div className="director-footnote">Scene AUTO directs the visual family. Typography, Composition, Motion, Background and OKLCH Harmony can AUTO-direct per line. T/L/G/B/C cycle them.</div>
+          <div className="director-footnote">Scene AUTO directs the visual family. Typography, Composition, Motion, Background, Lyric Mood and OKLCH Harmony can AUTO-direct per line. T/L/G/B/E/C cycle them; R toggles slow Rainbow Drift.</div>
         </aside>
 
         <section className={`empty-state ${hasContent ? "is-dismissed" : ""}`}>

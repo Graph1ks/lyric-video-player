@@ -4,7 +4,10 @@ import { createVisualPalette, SceneDirector } from "@graph1ks/emo-engine-core";
 import type {
   BackgroundPreset,
   BackgroundPresetId,
+  ColorFlowMode,
   ColorHarmonyId,
+  ColorMoodId,
+  ColorMoodMode,
   CompositionMotionId,
   CompositionMotionPreset,
   ColorHarmonyMode,
@@ -51,6 +54,8 @@ export class EngineRenderer {
   private activeMode: SceneMode = "neon";
   private quality: QualityMode = "cinema";
   private colorHarmony: ColorHarmonyMode = "auto";
+  private colorMood: ColorMoodMode = "auto";
+  private colorFlow: ColorFlowMode = "static";
   private lastLineIndex = -1;
   private intensity = 1;
   private host?: HTMLElement;
@@ -67,6 +72,8 @@ export class EngineRenderer {
   private lastPaletteKey = "";
   private sceneTransition = 0;
   private previousTime = 0;
+  private lastLyricTime = 0;
+  private lastPaletteFlowTick = -1;
   private resizeListener?: () => void;
 
   constructor() {
@@ -141,9 +148,44 @@ export class EngineRenderer {
   getResolvedColorHarmony(): ColorHarmonyId {
     return createVisualPalette({
       harmony: this.colorHarmony,
+      mood: this.colorMood,
       scene: this.activeMode,
       lineIndex: this.lastLineIndex,
+      hueShift: this.colorFlow === "rainbow" ? this.lastLyricTime * 2.4 : 0,
     }).resolvedHarmony;
+  }
+
+  setColorMood(mood: ColorMoodMode) {
+    if (this.colorMood === mood) return;
+    this.colorMood = mood;
+    this.renderGraph.resetFeedback();
+    this.refreshPalette(this.lastLyricTime);
+  }
+
+  getColorMood() {
+    return this.colorMood;
+  }
+
+  getResolvedColorMood(): ColorMoodId {
+    return createVisualPalette({
+      harmony: this.colorHarmony,
+      mood: this.colorMood,
+      scene: this.activeMode,
+      lineIndex: this.lastLineIndex,
+      hueShift: this.colorFlow === "rainbow" ? this.lastLyricTime * 2.4 : 0,
+    }).resolvedMood;
+  }
+
+  setColorFlow(flow: ColorFlowMode) {
+    if (this.colorFlow === flow) return;
+    this.colorFlow = flow;
+    this.lastPaletteFlowTick = -1;
+    this.renderGraph.resetFeedback();
+    this.refreshPalette(this.lastLyricTime);
+  }
+
+  getColorFlow() {
+    return this.colorFlow;
   }
 
   setBackgroundPreset(preset: BackgroundPreset) {
@@ -295,6 +337,15 @@ export class EngineRenderer {
     const rootScale = 1 + this.sceneTransition * 0.045;
     this.root.scale.set(rootScale);
 
+    this.lastLyricTime = lyricTime;
+    if (this.colorFlow === "rainbow") {
+      const paletteTick = Math.floor(lyricTime * 4);
+      if (paletteTick !== this.lastPaletteFlowTick) {
+        this.lastPaletteFlowTick = paletteTick;
+        this.refreshPalette(lyricTime, true);
+      }
+    }
+
     this.displacementFX.update(time, audio);
     this.velocitySmearFX.update(time, audio);
     this.bloomThresholdFX.update(time, audio);
@@ -343,18 +394,23 @@ export class EngineRenderer {
     for (const listener of this.modeListeners) listener(mode);
   }
 
-  private refreshPalette() {
+  private refreshPalette(time = this.lastLyricTime, dynamic = false) {
     const palette = createVisualPalette({
       harmony: this.colorHarmony,
+      mood: this.colorMood,
       scene: this.activeMode,
       lineIndex: this.lastLineIndex,
+      hueShift: this.colorFlow === "rainbow" ? time * 2.4 : 0,
     });
-    this.background.setPalette(palette);
-    this.lyrics.setPalette(palette);
+    this.background.setPalette(palette, !dynamic);
+    this.lyrics.setPalette(palette, !dynamic);
     this.host?.setAttribute("data-harmony", palette.resolvedHarmony);
+    this.host?.setAttribute("data-mood", palette.resolvedMood);
+    this.host?.setAttribute("data-color-flow", this.colorFlow);
 
     const key = [
       palette.resolvedHarmony,
+      palette.resolvedMood,
       Math.round(palette.baseHue * 10),
       palette.background,
       palette.textPrimary,

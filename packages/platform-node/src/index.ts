@@ -8,7 +8,9 @@ import type {
   ProjectAssetKind,
   ProjectDescriptor,
   ProjectBackgroundPreset,
+  ProjectColorFlow,
   ProjectColorHarmony,
+  ProjectColorMood,
   ProjectCompositionMotion,
   ProjectQualityMode,
   ProjectTypographyLayout,
@@ -53,6 +55,18 @@ const COMPOSITION_MOTIONS = new Set<ProjectCompositionMotion>([
   "portal",
   "panel",
 ]);
+const COLOR_MOODS = new Set<ProjectColorMood>([
+  "auto",
+  "tender",
+  "heartbreak",
+  "longing",
+  "euphoria",
+  "rage",
+  "dream",
+  "tension",
+  "calm",
+]);
+const COLOR_FLOWS = new Set<ProjectColorFlow>(["static", "rainbow"]);
 const COLOR_HARMONIES = new Set<ProjectColorHarmony>([
   "auto",
   "split-complement",
@@ -193,6 +207,26 @@ function parseDefaults(value: unknown): EmoProjectDefaults | undefined {
       throw new Error("E-MO manifest defaults.colorHarmony is invalid");
     }
     defaults.colorHarmony = input.colorHarmony as ProjectColorHarmony;
+  }
+
+  if (input.colorMood !== undefined) {
+    if (
+      typeof input.colorMood !== "string"
+      || !COLOR_MOODS.has(input.colorMood as ProjectColorMood)
+    ) {
+      throw new Error("E-MO manifest defaults.colorMood is invalid");
+    }
+    defaults.colorMood = input.colorMood as ProjectColorMood;
+  }
+
+  if (input.colorFlow !== undefined) {
+    if (
+      typeof input.colorFlow !== "string"
+      || !COLOR_FLOWS.has(input.colorFlow as ProjectColorFlow)
+    ) {
+      throw new Error("E-MO manifest defaults.colorFlow is invalid");
+    }
+    defaults.colorFlow = input.colorFlow as ProjectColorFlow;
   }
 
   if (input.intensity !== undefined) {

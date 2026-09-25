@@ -27,6 +27,9 @@ Frame-critical motion remains outside React. PixiJS, Web Audio and the E-MO cloc
 - word-level typography compositions: Center Stack, Directional Stage, Editorial, Vertical Accent, Split Stage and Crossword
 - composition motion grammar: Handoff, Conveyor, Anchor Build, Collapse, Takeover, Flip, Camera Handoff, Portal and Panel
 - OKLCH palette director with Split Complement, Analogous, Complement, Triad, Tetrad and Monochrome harmonies
+- lyric mood palettes: Tender, Heartbreak, Longing, Euphoria, Rage, Dream, Tension and Calm
+- slow deterministic Rainbow Drift for accent/glow hue movement
+- central attention-field composition with collision-aware readable word placement
 - background presets: Cinematic, Nebula, Grid, Starfield, Rays, Vortex, Liquid, Spectrum, Sparks, Recursive Lyrics and Minimal
 - Poster / Neon / Vortex visual families
 - deterministic Auto Director
@@ -98,6 +101,8 @@ See `docs/PLATFORM_ARCHITECTURE.md` and `docs/DECISIONS.md`.
 | `G` | cycle composition motion grammar |
 | `B` | cycle background preset |
 | `C` | cycle OKLCH color harmony |
+| `E` | cycle lyric color mood |
+| `R` | toggle slow Rainbow Drift |
 | `,` / `.` | lyric sync -/+ 50 ms |
 | `Esc` | restore hidden HUD |
 
@@ -153,14 +158,15 @@ The desktop renderer has no Node integration. Native directory selection is expo
 
 ## Near-term work
 
-1. expand distinct art-direction/background worlds on the OKLCH palette-role contract
-2. complete the remaining typography families: soft-3D/inflate, brush/stroke reveal and dissolve/smear exits
-3. add scene-stack serialization and per-section visual directives
-3. visually tune typography/background preset combinations on real tracks
-4. retire the temporary root legacy UI after React acceptance
-5. optional true-3D layer only where a concrete scene requires it
-6. timeline/editor surfaces on top of the stable visualization contracts
-7. offline fixed-frame rendering/export architecture
+1. visually validate collision-safe composition + mood/rainbow color direction on real tracks
+2. expand distinct art-direction/background worlds on the OKLCH palette-role contract
+3. complete the remaining typography families: soft-3D/inflate, brush/stroke reveal and dissolve/smear exits
+4. add scene-stack serialization and per-section visual directives
+5. visually tune typography/background preset combinations on real tracks
+6. retire the temporary root legacy UI after React acceptance
+7. optional true-3D layer only where a concrete scene requires it
+8. timeline/editor surfaces on top of the stable visualization contracts
+9. offline fixed-frame rendering/export architecture
 
 ## Licensing
 
