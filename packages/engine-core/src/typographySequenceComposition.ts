@@ -266,7 +266,9 @@ function planShapeFill(input: TypographySequencePlanInput): TypographySequencePl
       role: word.role,
       x: slot?.x ?? 0,
       y: slot?.y ?? 0,
-      scale: baseScale * (isActive ? 1.025 : recent ? 1.01 : 1),
+      // Shape geometry is the composition: never grow a packed word beyond
+      // its collision-solved slot just because it becomes active.
+      scale: baseScale,
       rotation: slot?.rotation ?? 0,
       alpha: isActive
         ? 1
@@ -332,7 +334,9 @@ function planManifestoWall(input: TypographySequencePlanInput): TypographySequen
       role: word.role,
       x: lerp(finalX + entryX, finalX, snap),
       y: lerp(finalY + entryY, finalY, snap),
-      scale: finalScale * lerp(1.08, 1, snap),
+      // Stamp from slightly smaller into the reserved page slot. Scaling above
+      // the solved slot would create a transient collision with neighboring type.
+      scale: finalScale * lerp(0.92, 1, snap),
       rotation: lerp(entryRotation, finalRotation, snap),
       alpha: incoming ? 0 : isActive ? clamp(snap * 1.8) : 0.9,
       zIndex: isActive ? input.window.scopeWordCount + 20 : word.scopeOrdinal + 1,
