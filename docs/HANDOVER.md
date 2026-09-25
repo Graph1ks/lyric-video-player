@@ -1,13 +1,13 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `947d2c28c46c6898a6ca0e0b87eb154d971d8c7c`  
-**Active candidate:** `feat/director-performance-presets`  
-**Current phase/milestone:** curated AUTO Performance Presets + operator-control cleanup
+**Merged baseline:** `f359c94c24b7d0d9fe30fbe833c9e618af97c953`  
+**Active candidate:** none  
+**Current phase/milestone:** v0.12 Director Performance Preset visual acceptance
 
 ## Current objective
 
-Complete and verify the Performance Preset candidate: AUTO should draw only from the active preset's allowed visual/color pools, Lower Third scheduling must support permanent/scheduled/manual/outro use, and the detached Director transport/HUD controls must remain ergonomically correct.
+Visually verify merged PR #55: AUTO must draw only from the active preset's allowed visual/color pools, Lower Third scheduling must support permanent/scheduled/manual/outro use, and the detached Director transport/HUD controls must remain ergonomically correct.
 
 ## Merged baseline — Resource lifetime + physical-edge safety v0.11.2
 
@@ -28,9 +28,9 @@ The remaining physical-edge failure is compositor-level rather than world-geomet
 
 Regression source-contract tests cover explicit text destruction, zero full-frame filter padding, the fallback presentation plane and opaque Liquid output.
 
-## Active candidate — Director Performance Presets
+## Merged baseline — Director Performance Presets
 
-The candidate adds `VisualAutoProfile` to engine-core. It is a set of allowed AUTO domains rather than a frozen scene snapshot.
+PR #55 adds `VisualAutoProfile` to engine-core. It is a set of allowed AUTO domains rather than a frozen scene snapshot.
 
 Runtime ownership:
 
