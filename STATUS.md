@@ -1,8 +1,8 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `120c247de32316ece937d0f2abe1bb374f3dc196`  
-**Active candidate:** `feat/legacy-world-rehab-phase-a` — draft PR #74  
+**Last known good merged baseline:** `d46776cb35e881839abc139fc0075d487c970de6`  
+**Active candidate:** `feat/legacy-world-rehab-spectrum-sparks` — draft PR #76  
 **Current phase/milestone:** legacy world/background rehabilitation
 
 ## Current objective
@@ -11,13 +11,13 @@ Rehabilitate all 15 legacy Background presets before WORLD_09/10: remove raw-aud
 
 ## Current state
 
-- **Draft PR #74 starts Phase A in runtime code:** `WorldAudioReactivity` now provides seek/discontinuity-safe attack/release bands, rising-edge transient events, a positive decay envelope and long-energy smoothing for the legacy stack.
+- **Merged PR #74 established the rehabilitation foundation:** `WorldAudioReactivity` provides seek/discontinuity-safe attack/release bands, rising-edge transient events, a positive decay envelope and long-energy smoothing for the legacy stack.\n- **Merged PR #75 raises the remaining-world fidelity floor and rebuilds `cinematic` + `liquid`:** Cinematic is now a dedicated fullscreen atmospheric/lens-light shader world; Liquid is a semantic-palette raymarched smooth-min implicit surface with real normals/Fresnel/specular lighting. Both are isolated from generic fallback blobs/rings/beams/particles and keep geometry time-owned.\n- **Draft PR #76 rebuilds `spectrum` + `sparks`:** Spectrum becomes a real-FFT projected 3D frequency topography; Sparks becomes deterministic analytic ballistic trajectories with history-derived trails and transient response restricted to fresh emission/accent.
 - The first systemic corrections remove raw bass/transient whole-geometry pumping from shared blobs, particles, rings, beams, editorial/architecture geometry and liquid absolute-time phase/topology.
 - `WorldColorContext` now exists as the pure engine-core contract for representative/title-safe luminance, highlight risk, chroma/busyness pressure, polarity hysteresis and outline-support pressure; renderer-to-typography wiring is still pending.
 - **The five worst legacy motion offenders are now dedicated fidelity worlds:** `LegacyVortexWorld`, `LegacyRaysWorld`, `LegacyStarfieldWorld`, `LegacyNebulaWorld` and `LegacyGridWorld` replace the shared generic stack for those preset IDs.
 - Vortex uses projected-depth helical ribbons/hoops + one-way tracers. Rays is now a fullscreen participating-media shader with broad soft cones, atmospheric breakup and source bloom. Starfield is fixed-axis 3D forward flight with strictly decreasing z between wraps and analytic streak history. Nebula is a fullscreen domain-warped FBM gas field with ridged filaments/cavities/folded lighting. Grid is a fullscreen infinite-perspective environment with floor/ceiling structure, horizon atmosphere, moving side architecture and deterministic energy traffic.
 - All five are isolated from generic blobs/particles/rings/beams, consume semantic `VisualPalette` roles, and keep geometry/phase/direction timestamp-owned. Audio is restricted to smoothed light/material emphasis; Rays uses the positive transient envelope for light only. Full-frame barrel/displacement/smear sampling distance is also time-owned now so global post FX cannot reintroduce bass-driven scene breathing.
-- Automated source/motion contracts now lock the shader/3D fidelity architecture as well as one-way motion ownership, but **real browser/Desktop visual acceptance at 1080p/1440p/4K is still pending**. The PR remains draft for that reason.
+- Automated source/motion contracts now lock the shader/3D fidelity architecture as well as one-way motion ownership, but **real browser/Desktop visual acceptance at 1080p/1440p/4K remains a separate mandatory user-side gate**.
 - Full 15-preset motion audit: `docs/LEGACY_WORLD_MOTION_AUDIT.md`.
 
 - **Merged PR #61 repairs a real post-FX regression:** the CinematicPostFX shader's final true-bypass blend referenced an undefined `source` sample. The shader now explicitly samples the untouched frame before processing.
@@ -38,7 +38,7 @@ Rehabilitate all 15 legacy Background presets before WORLD_09/10: remove raw-aud
 - WORLD_07 Particle Spiral Vortex is merged in PR #68 and uses projected 3D particles moving autonomously inward/deeper along several spiral arms.
 - WORLD_08 Minimal Rainbow Waveform is merged in PR #68 and consumes the real renderer spectrum buffer, applies per-bin smoothing and draws mirrored rainbow spikes with restrained glow.
 - **Legacy rehabilitation is the next runtime milestone:** all pre-reference-set presets (`cinematic`, `nebula`, `grid`, `starfield`, `rays`, `vortex`, `liquid`, `spectrum`, `sparks`, `lyrics`, `minimal`, `editorial`, `print`, `architecture`, `aurora`) must be audited/rebuilt before WORLD_09/10.
-- The merged baseline confirmed the failure is systemic: shared legacy layers directly mapped raw bass/energy/transient into blob scale, vortex breathing, ray expansion, particle push/scale and art-world pulse geometry. Draft PR #74 removes the first global mappings and isolates/rebuilds Vortex, Rays, Starfield, Nebula and Grid as dedicated worlds.
+- The merged baseline confirmed the failure is systemic: shared legacy layers directly mapped raw bass/energy/transient into blob scale, vortex breathing, ray expansion, particle push/scale and art-world pulse geometry. Merged PR #74 removed the first global mappings and isolated/rebuilt Vortex, Rays, Starfield, Nebula and Grid as dedicated worlds; merged PR #75 then added dedicated Cinematic plus the raymarched Liquid rebuild.
 - The fidelity target is not merely smoothing: generic shared blobs/particles/rings/beams must be replaced or isolated where they prevent each preset from having a strong paused-frame identity and authored motion grammar.
 - Color becomes two-way: OKLCH `VisualPalette` drives world materials, while each world exposes a cheap smoothed readability/color context so typography can maintain its existing contrast floors against the **actual world tone**, not only `palette.background`.
 - Durable plan: `docs/WORLD_BACKGROUND_REHABILITATION_PLAN.md`.
