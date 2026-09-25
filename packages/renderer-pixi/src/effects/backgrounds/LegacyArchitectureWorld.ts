@@ -70,7 +70,7 @@ void main(void){
 
     // Side pillars have visible thickness and stronger near-field presence.
     float pillar=lineMask(abs(p.x)-halfW,.0020+.0016*scale)
-      * smoothstep(halfH+.02,halfH-.03,abs(py));
+      * (1.-smoothstep(halfH-.03,halfH+.02,abs(py)));
     pillarGlow+=pillar*enabled*(.55+.45*scale);
 
     // Pointed/arched crown gives the space an authored architectural silhouette.
