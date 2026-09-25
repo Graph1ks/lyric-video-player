@@ -6,7 +6,7 @@ function source(relativePath) {
   return readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
 }
 
-test("WORLD_01 through WORLD_06 are first-class selectable background presets", async () => {
+test("WORLD_01 through WORLD_08 are first-class selectable background presets", async () => {
   const [types, catalog, background] = await Promise.all([
     source("packages/engine-core/src/types.ts"),
     source("apps/web/src/directorCatalog.ts"),
@@ -20,6 +20,8 @@ test("WORLD_01 through WORLD_06 are first-class selectable background presets", 
     "neon-energy-burst-tunnel",
     "fractal-hex-spiral-mosaic",
     "soft-hex-cell-field",
+    "particle-spiral-vortex",
+    "minimal-rainbow-waveform",
   ]) {
     assert.match(types, new RegExp(`\\| "${id}"`));
     assert.match(catalog, new RegExp(`value: "${id}"`));
@@ -37,6 +39,9 @@ test("specialized stage and laser worlds suppress generic background layers", as
   assert.match(background, /neonEnergyBurstTunnel\.container\.visible = this\.resolvedPreset === "neon-energy-burst-tunnel"/);
   assert.match(background, /fractalHexSpiralMosaic\.container\.visible = this\.resolvedPreset === "fractal-hex-spiral-mosaic"/);
   assert.match(background, /softHexCellField\.container\.visible = this\.resolvedPreset === "soft-hex-cell-field"/);
+  assert.match(background, /particleSpiralVortex\.container\.visible = this\.resolvedPreset === "particle-spiral-vortex"/);
+  assert.match(background, /minimalRainbowWaveform\.container\.visible = this\.resolvedPreset === "minimal-rainbow-waveform"/);
+  assert.match(background, /minimalRainbowWaveform\.update\(time, audio, spectrum\)/);
   assert.match(background, /!artWorld && !specializedWorld/);
 });
 
@@ -133,6 +138,29 @@ test("Soft Hex Cell Field is a correctly packed projected 3D hex-prism surface",
   assert.doesNotMatch(softHex, /renderHexLayer/);
 });
 
+test("Particle Spiral Vortex uses projected 3D particle depth instead of a flat polar mask", async () => {
+  const vortex = await source("packages/renderer-pixi/src/effects/backgrounds/ParticleSpiralVortexWorld.ts");
+
+  assert.match(vortex, /Genuine 3D funnel/);
+  assert.match(vortex, /const z = 0\.18 \+ eased \* 8\.7/);
+  assert.match(vortex, /project\(/);
+  assert.match(vortex, /rendered\.sort\(\(a, b\) => b\.depth - a\.depth\)/);
+  assert.match(vortex, /Geometry is autonomous; audio cannot reverse or jitter it/);
+  assert.match(vortex, /Bright multicolor whirlpool core/);
+});
+
+test("Minimal Rainbow Waveform is spectrum-driven, mirrored and per-bin smoothed", async () => {
+  const waveform = await source("packages/renderer-pixi/src/effects/backgrounds/MinimalRainbowWaveformWorld.ts");
+
+  assert.match(waveform, /spectrum: Float32Array/);
+  assert.match(waveform, /Per-bin attack\/release/);
+  assert.match(waveform, /centerY - height/);
+  assert.match(waveform, /centerY \+ height/);
+  assert.match(waveform, /Horizontal luminous core is segmented/);
+  assert.match(waveform, /large negative space/i);
+  assert.match(waveform, /updateSpectrum\(spectrum, audio/);
+});
+
 test("13-world reference roadmap remains durable in repository documentation", async () => {
   const docs = await source("docs/WORLD_REFERENCE_SET_13.md");
 
@@ -145,5 +173,7 @@ test("13-world reference roadmap remains durable in repository documentation", a
   assert.match(docs, /WORLD_04 — Neon Energy Burst Tunnel/);
   assert.match(docs, /WORLD_05 — Fractal Hex Spiral Mosaic/);
   assert.match(docs, /WORLD_06 — Soft Hex Cell Field/);
+  assert.match(docs, /WORLD_07 — Particle Spiral Vortex/);
+  assert.match(docs, /WORLD_08 — Minimal Rainbow Waveform/);
   assert.match(docs, /reference images are intentionally \*\*not committed\*\*/i);
 });
