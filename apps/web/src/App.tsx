@@ -662,7 +662,10 @@ export function App() {
                 {projects.map(project => (
                   <button className="project-row" key={project.id} onClick={() => void loadProject(project)}>
                     <strong>{project.name}</strong>
-                    <span>{project.audio?.fileName || "{t("NO AUDIO", "KEIN AUDIO")}"} · {project.lyrics?.fileName || "{t("NO LRC", "KEIN LRC")}"}</span>
+                    <span>
+                      {project.audio?.fileName || t("NO AUDIO", "KEIN AUDIO")} ·{" "}
+                      {project.lyrics?.fileName || t("NO LRC", "KEIN LRC")}
+                    </span>
                   </button>
                 ))}
                 {!projects.length && <div className="director-footnote">{t("No E-MO projects found in this root.", "Keine E-MO-Projekte in diesem Ordner gefunden.")}</div>}
@@ -697,10 +700,10 @@ export function App() {
 
         <footer className="transport glass-panel">
           <div className="transport-left">
-            <button className={`play-button ${playing ? "is-playing" : ""}`} onClick={() => void togglePlay()} aria-label="Play or pause">
+            <button className={`play-button ${playing ? "is-playing" : ""}`} onClick={() => void togglePlay()} aria-label={t("Play or pause", "Abspielen oder pausieren")}>
               <span>{playing ? "❚❚" : "▶"}</span>
             </button>
-            <button className={`mini-button ${muted ? "is-muted" : ""}`} onClick={toggleMute} aria-label="Mute or unmute">{muted ? t("MUTED", "STUMM") : t("VOL", "LAUT")}</button>
+            <button className={`mini-button ${muted ? "is-muted" : ""}`} onClick={toggleMute} aria-label={t("Mute or unmute", "Stummschalten ein/aus")}>{muted ? t("MUTED", "STUMM") : t("VOL", "LAUT")}</button>
             <input className="volume" type="range" min="0" max="100" defaultValue="90" aria-label={t("Volume", "Lautstärke")} onChange={event => {
               audioRef.current.setVolume(Number(event.target.value) / 100);
               setDirectorVolume(audioRef.current.volume);
@@ -725,7 +728,7 @@ export function App() {
               min="0"
               max="1000"
               defaultValue="0"
-              aria-label="Playback position"
+              aria-label={t("Playback position", "Wiedergabeposition")}
               onPointerDown={() => { seekingRef.current = true; }}
               onPointerUp={event => {
                 seekingRef.current = false;
