@@ -68,6 +68,8 @@ Git history remains the complete technical history. This file records meaningful
 - **Laser Canopy Grid** world with an overhead rig, crisp red/cyan/mint laser architecture, floor hit-points and audio-reactive canopy sweeps.
 - **Disco Mirrorball Room** shader world with spherical mirror facets, metallic/specular response and dense moving room reflections.
 - **Neon Energy Burst Tunnel** shader world with logarithmic tunnel depth, dense radial streaks, electric filaments, arc sparks and central energy bloom.
+- **Fractal Hex Spiral Mosaic** shader world with recursive multi-sink hex warping, rainbow graphic cells, black outlines and inset-cell detail.
+- **Soft Hex Cell Field** shader world with layered variable-size pastel cells, black gaps, bevel depth and selective facet highlights.
 - User-authored-only Performance Presets; the previously shipped emotion/pace preset library is removed.
 - FX Rack factory reset that restores the original pre-exposure renderer/compositor balance.
 
@@ -118,6 +120,8 @@ Git history remains the complete technical history. This file records meaningful
 - FX exposure no longer reduces the default cinematic look: factory values match the original authored 1.0 strength, background Impact/Pulse is no longer applied twice, and DOM screen FX retain their original audio-reactive behavior.
 - CinematicPostFX restores its missing source sample before the true-bypass blend, preventing the post shader from compiling with an undefined variable at runtime.
 - Performance Preset deletion now requires an explicit second click instead of deleting on the first action.
+- Disco Mirrorball Room no longer maps raw music energy into ball radius/rotation speed; its motor motion is constant and audio drives smoothed lighting/specular response only.
+- Neon Energy Burst Tunnel no longer multiplies absolute phase time by raw bass. Travel is monotonic/outward and transient rising edges trigger a decaying outward burst shock instead of expand/retract oscillation.
 
 ### Security / Privacy
 
