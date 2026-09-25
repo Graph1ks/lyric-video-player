@@ -126,16 +126,16 @@ See `docs/CINEMATIC_TYPOGRAPHY_DIRECTION.md`.
 - 3D text planes
 - star worlds / geometric scenes
 
-## Cross-cutting v0.10 — Visual Director Workspace — active
+## Cross-cutting v0.10 — Visual Director Workspace — complete baseline
 
-- semantic effect cards with visual mini-previews — active candidate
-- task-based Scene / Type / Motion / World / Color / System navigation — active candidate
-- selected vs AUTO-resolved LIVE state — active candidate
-- shared docked/detached Director component — active candidate
-- browser second-window Director — active candidate
-- Electron native Director BrowserWindow — active candidate
-- BroadcastChannel live state/telemetry synchronization — active candidate
-- session cue-plan capture + live recall — active candidate
+- semantic effect cards with visual mini-previews — complete baseline
+- task-based Scene / Type / Motion / World / Color / System navigation — complete baseline
+- selected vs AUTO-resolved LIVE state — complete baseline
+- shared docked/detached Director component — complete baseline
+- browser second-window Director — complete baseline
+- Electron native Director BrowserWindow — complete baseline
+- BroadcastChannel live state/telemetry synchronization — complete baseline
+- session cue-plan capture + live recall — complete baseline
 - cue plan automatic playback execution — planned with serialized scene directives
 - per-project/per-song plan persistence — planned with scene/project format
 - playlist-to-song Director plan mapping — planned after playlist support

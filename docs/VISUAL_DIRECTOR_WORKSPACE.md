@@ -1,6 +1,6 @@
 # Visual Director Workspace
 
-**Status:** active candidate  
+**Status:** complete baseline  
 **Started:** 2026-09-25  
 **Scope:** effect discoverability, live visual control, second-screen operation, and future cue/playlist planning.
 

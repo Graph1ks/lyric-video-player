@@ -1,8 +1,8 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `0370659e5807c290414959cd32a44f15068054a8`  
-**Active candidate:** `feat/director-workspace-v0.10` / PR #44  
+**Merged baseline:** `da1def09667a4c87a91240bfcf996705e2b424ef`  
+**Active candidate:** none  
 **Current phase/milestone:** cinematic sequence direction + temporal readability
 
 ## Current objective
@@ -275,7 +275,7 @@ Directly spawning `npm.cmd` with `shell: false` is not a valid portable Windows 
 - Shape Build deliberately follows focus less and stays wider so its calligram framing is not destroyed;
 - Hero/Spiral/Ribbon can follow the active eye-trace more strongly.
 
-## Active candidate — Visual Director workspace
+## Merged baseline — Visual Director workspace
 
 PR #44 changes the control plane, not the renderer contract.
 
@@ -353,8 +353,8 @@ Windows packaging remains a separate required gate.
 
 ## Next concrete work
 
-1. Verify PR #44 Linux/Windows CI and desktop packaging.
-2. Visually review docked + detached Director at common desktop sizes and multi-monitor use.
+1. Visually review docked + detached Director at common desktop sizes and multi-monitor use.
+2. Verify live sync, popout reopen/focus and browser fallback behavior manually.
 3. Resume cinematic real-track acceptance.
 4. Add section-level tension/release sequencing.
 5. Integrate PLAN persistence/execution with serialized sequence directives; playlist support should reference the same per-song plan contract.
