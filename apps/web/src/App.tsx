@@ -26,6 +26,7 @@ import {
   TYPOGRAPHY_SEQUENCES,
 } from "./directorCatalog";
 import { VisualDirector } from "./VisualDirector";
+import { LowerThirdOverlay } from "./LowerThirdOverlay";
 import { listenDirectorCommands } from "./directorSync";
 import { useUiStore } from "./store";
 
@@ -484,7 +485,7 @@ export function App() {
     const meta = parts.join(" · ") || "Ready";
     setTrackTitle(title);
     setTrackMeta(meta);
-    setDirectorTrack(title, meta);
+    setDirectorTrack(title, meta, lyrics.meta.artist?.trim() || "");
   }
 
   async function loadAudioFile(file: File) {
@@ -596,6 +597,8 @@ export function App() {
         <div className="screen-fx__grain" />
         <div className="screen-fx__vignette" />
       </div>
+
+      <LowerThirdOverlay />
 
       <div className={`drop-overlay ${dropVisible ? "is-visible" : ""}`} aria-hidden={!dropVisible}>
         <div className="drop-card">

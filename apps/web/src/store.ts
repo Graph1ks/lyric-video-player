@@ -27,6 +27,7 @@ import {
   type DirectorControlSnapshot,
   type DirectorCueDraft,
 } from "./directorPlanning";
+import type { LowerThirdMode, LowerThirdPreset } from "./lowerThirds";
 
 let cueCounter = 0;
 
@@ -64,6 +65,13 @@ export interface UiState {
 
   directorTrackTitle: string;
   directorTrackMeta: string;
+  directorArtist: string;
+  lowerThirdMode: LowerThirdMode;
+  lowerThirdPreset: LowerThirdPreset;
+  lowerThirdArtistOverride: string;
+  lowerThirdTitleOverride: string;
+  lowerThirdArtistImage: string;
+  lowerThirdPreviewUntil: number;
   directorPlaybackSeconds: number;
   directorDurationSeconds: number;
   directorPlaying: boolean;
@@ -98,7 +106,13 @@ export interface UiState {
   setActiveBackground(value: BackgroundPresetId): void;
   setActivePalette(value: VisualPalette): void;
 
-  setDirectorTrack(title: string, meta?: string): void;
+  setDirectorTrack(title: string, meta?: string, artist?: string): void;
+  setLowerThirdMode(value: LowerThirdMode): void;
+  setLowerThirdPreset(value: LowerThirdPreset): void;
+  setLowerThirdArtistOverride(value: string): void;
+  setLowerThirdTitleOverride(value: string): void;
+  setLowerThirdArtistImage(value: string): void;
+  previewLowerThird(): void;
   setDirectorPlayback(seconds: number, duration: number): void;
   setDirectorPlaying(value: boolean): void;
   setDirectorMuted(value: boolean): void;
@@ -142,6 +156,13 @@ export const useUiStore = create<UiState>((set, get) => ({
 
   directorTrackTitle: "NO TRACK LOADED",
   directorTrackMeta: "Load an audio file + Enhanced LRC",
+  directorArtist: "",
+  lowerThirdMode: "intro",
+  lowerThirdPreset: "auto",
+  lowerThirdArtistOverride: "",
+  lowerThirdTitleOverride: "",
+  lowerThirdArtistImage: "",
+  lowerThirdPreviewUntil: 0,
   directorPlaybackSeconds: 0,
   directorDurationSeconds: 0,
   directorPlaying: false,
@@ -181,10 +202,17 @@ export const useUiStore = create<UiState>((set, get) => ({
     activeCanvas: activePalette.resolvedCanvas,
   }),
 
-  setDirectorTrack: (directorTrackTitle, directorTrackMeta = "") => set({
+  setDirectorTrack: (directorTrackTitle, directorTrackMeta = "", directorArtist = "") => set({
     directorTrackTitle,
     directorTrackMeta,
+    directorArtist,
   }),
+  setLowerThirdMode: lowerThirdMode => set({ lowerThirdMode }),
+  setLowerThirdPreset: lowerThirdPreset => set({ lowerThirdPreset }),
+  setLowerThirdArtistOverride: lowerThirdArtistOverride => set({ lowerThirdArtistOverride }),
+  setLowerThirdTitleOverride: lowerThirdTitleOverride => set({ lowerThirdTitleOverride }),
+  setLowerThirdArtistImage: lowerThirdArtistImage => set({ lowerThirdArtistImage }),
+  previewLowerThird: () => set({ lowerThirdPreviewUntil: Date.now() + 7000 }),
   setDirectorPlayback: (directorPlaybackSeconds, directorDurationSeconds) => set({
     directorPlaybackSeconds,
     directorDurationSeconds,
@@ -244,6 +272,13 @@ export type DirectorSharedState = Pick<
   | "activePalette"
   | "directorTrackTitle"
   | "directorTrackMeta"
+  | "directorArtist"
+  | "lowerThirdMode"
+  | "lowerThirdPreset"
+  | "lowerThirdArtistOverride"
+  | "lowerThirdTitleOverride"
+  | "lowerThirdArtistImage"
+  | "lowerThirdPreviewUntil"
   | "directorPlaybackSeconds"
   | "directorDurationSeconds"
   | "directorPlaying"
@@ -281,6 +316,13 @@ export function directorSharedState(state: UiState): DirectorSharedState {
     activePalette: state.activePalette,
     directorTrackTitle: state.directorTrackTitle,
     directorTrackMeta: state.directorTrackMeta,
+    directorArtist: state.directorArtist,
+    lowerThirdMode: state.lowerThirdMode,
+    lowerThirdPreset: state.lowerThirdPreset,
+    lowerThirdArtistOverride: state.lowerThirdArtistOverride,
+    lowerThirdTitleOverride: state.lowerThirdTitleOverride,
+    lowerThirdArtistImage: state.lowerThirdArtistImage,
+    lowerThirdPreviewUntil: state.lowerThirdPreviewUntil,
     directorPlaybackSeconds: state.directorPlaybackSeconds,
     directorDurationSeconds: state.directorDurationSeconds,
     directorPlaying: state.directorPlaying,
