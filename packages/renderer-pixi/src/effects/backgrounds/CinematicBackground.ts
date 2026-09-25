@@ -21,6 +21,10 @@ import { SoftHexCellFieldWorld } from "./SoftHexCellFieldWorld.js";
 import { ParticleSpiralVortexWorld } from "./ParticleSpiralVortexWorld.js";
 import { MinimalRainbowWaveformWorld } from "./MinimalRainbowWaveformWorld.js";
 import { LegacyVortexWorld } from "./LegacyVortexWorld.js";
+import { LegacyRaysWorld } from "./LegacyRaysWorld.js";
+import { LegacyStarfieldWorld } from "./LegacyStarfieldWorld.js";
+import { LegacyNebulaWorld } from "./LegacyNebulaWorld.js";
+import { LegacyGridWorld } from "./LegacyGridWorld.js";
 
 const EMPTY_SPECTRUM = new Float32Array(0);
 
@@ -58,6 +62,10 @@ const ART_DIRECTION_PRESETS = new Set<BackgroundPresetId>([
 
 const SPECIALIZED_WORLD_PRESETS = new Set<BackgroundPresetId>([
   "vortex",
+  "rays",
+  "starfield",
+  "nebula",
+  "grid",
   "prism-stage-beams",
   "laser-canopy-grid",
   "disco-mirrorball-room",
@@ -82,6 +90,10 @@ export class CinematicBackground {
   private particleSpiralVortex = new ParticleSpiralVortexWorld();
   private minimalRainbowWaveform = new MinimalRainbowWaveformWorld();
   private legacyVortex = new LegacyVortexWorld();
+  private legacyRays = new LegacyRaysWorld();
+  private legacyStarfield = new LegacyStarfieldWorld();
+  private legacyNebula = new LegacyNebulaWorld();
+  private legacyGrid = new LegacyGridWorld();
   private liquidSurface = new Graphics();
   private liquidFX = new ProceduralLiquidFX();
   private geometry = new Graphics();
@@ -129,6 +141,10 @@ export class CinematicBackground {
       this.particleSpiralVortex.container,
       this.minimalRainbowWaveform.container,
       this.legacyVortex.container,
+      this.legacyRays.container,
+      this.legacyStarfield.container,
+      this.legacyNebula.container,
+      this.legacyGrid.container,
       this.liquidSurface,
       this.lyricBackdropLayer,
       this.blobLayer,
@@ -221,6 +237,10 @@ export class CinematicBackground {
     this.palette = palette;
     this.artDirection.setPalette(palette);
     this.legacyVortex.setPalette(palette);
+    this.legacyRays.setPalette(palette);
+    this.legacyStarfield.setPalette(palette);
+    this.legacyNebula.setPalette(palette);
+    this.legacyGrid.setPalette(palette);
     this.applyModePalette();
     if (refreshStatic) this.rebuildLyricBackdrop();
   }
@@ -252,6 +272,10 @@ export class CinematicBackground {
     this.particleSpiralVortex.setDetail(this.worldDetail);
     this.minimalRainbowWaveform.setDetail(this.worldDetail);
     this.legacyVortex.setDetail(this.worldDetail);
+    this.legacyRays.setDetail(this.worldDetail);
+    this.legacyStarfield.setDetail(this.worldDetail);
+    this.legacyNebula.setDetail(this.worldDetail);
+    this.legacyGrid.setDetail(this.worldDetail);
     this.applyPresetVisibility();
     this.rebuildLyricBackdrop();
   }
@@ -278,6 +302,14 @@ export class CinematicBackground {
     this.minimalRainbowWaveform.setDetail(this.worldDetail);
     this.legacyVortex.setIntensity(power);
     this.legacyVortex.setDetail(this.worldDetail);
+    this.legacyRays.setIntensity(power);
+    this.legacyRays.setDetail(this.worldDetail);
+    this.legacyStarfield.setIntensity(power);
+    this.legacyStarfield.setDetail(this.worldDetail);
+    this.legacyNebula.setIntensity(power);
+    this.legacyNebula.setDetail(this.worldDetail);
+    this.legacyGrid.setIntensity(power);
+    this.legacyGrid.setDetail(this.worldDetail);
     this.liquidFX.setIntensity(power);
   }
 
@@ -293,6 +325,10 @@ export class CinematicBackground {
     this.particleSpiralVortex.setQuality(value);
     this.minimalRainbowWaveform.setQuality(value);
     this.legacyVortex.setQuality(value);
+    this.legacyRays.setQuality(value);
+    this.legacyStarfield.setQuality(value);
+    this.legacyNebula.setQuality(value);
+    this.legacyGrid.setQuality(value);
     this.liquidFX.setQuality(value);
     this.applyPresetVisibility();
   }
@@ -310,6 +346,10 @@ export class CinematicBackground {
     this.particleSpiralVortex.resize(w, h);
     this.minimalRainbowWaveform.resize(w, h);
     this.legacyVortex.resize(w, h);
+    this.legacyRays.resize(w, h);
+    this.legacyStarfield.resize(w, h);
+    this.legacyNebula.resize(w, h);
+    this.legacyGrid.resize(w, h);
     this.redrawBase();
     this.redrawLiquidSurface();
     this.liquidFX.resize(w, h);
@@ -346,6 +386,10 @@ export class CinematicBackground {
     this.particleSpiralVortex.update(time, audio);
     this.minimalRainbowWaveform.update(time, audio, spectrum);
     this.legacyVortex.update(time, legacyAudio);
+    this.legacyRays.update(time, legacyAudio, legacyFrame.transientEnvelope);
+    this.legacyStarfield.update(time, legacyAudio);
+    this.legacyNebula.update(time, legacyAudio);
+    this.legacyGrid.update(time, legacyAudio);
     if (this.liquidSurface.visible) this.liquidFX.update(time, legacyAudio);
     this.updateGeometry(time, legacyAudio);
     this.updateLyricBackdrop(time, legacyAudio);
@@ -399,6 +443,10 @@ export class CinematicBackground {
     this.particleSpiralVortex.container.visible = this.resolvedPreset === "particle-spiral-vortex";
     this.minimalRainbowWaveform.container.visible = this.resolvedPreset === "minimal-rainbow-waveform";
     this.legacyVortex.container.visible = this.resolvedPreset === "vortex";
+    this.legacyRays.container.visible = this.resolvedPreset === "rays";
+    this.legacyStarfield.container.visible = this.resolvedPreset === "starfield";
+    this.legacyNebula.container.visible = this.resolvedPreset === "nebula";
+    this.legacyGrid.container.visible = this.resolvedPreset === "grid";
     this.artDirection.setLineIndex(this.lineIndex);
     this.liquidSurface.visible = this.resolvedPreset === "liquid";
     this.lyricBackdropLayer.visible = this.resolvedPreset === "lyrics";
