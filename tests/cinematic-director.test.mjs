@@ -99,19 +99,33 @@ test("cinematic bundles expose persistent sequence grammars selectively", () => 
 });
 
 
-test("AUTO routes compact second phrase into Shape Build", () => {
+test("AUTO routes compact second phrase into Manifesto Wall", () => {
   const director = new SceneDirector();
   director.load([
     line(0, 1.2, "first hit", 2),
     line(1.2, 2.4, "keeps phrase", 2),
     line(3.4, 4.6, "second phrase", 2),
-    line(4.6, 5.8, "builds shape", 2),
+    line(4.6, 5.8, "builds wall", 2),
   ]);
 
   const second = director.sceneFor(2);
   assert.equal(second.phraseIndex, 1);
   assert.equal(second.mode, "poster");
-  assert.equal(second.typography.sequenceGrammar, "shape-build");
+  assert.equal(second.typography.sequenceGrammar, "manifesto-wall");
+});
+
+test("AUTO exposes Shape Fill on the next compact poster phrase", () => {
+  const director = new SceneDirector();
+  director.load([
+    line(0, 1.1, "first phrase", 2),
+    line(2.0, 3.1, "second phrase", 2),
+    line(4.0, 5.1, "third phrase", 2),
+  ]);
+
+  const third = director.sceneFor(2);
+  assert.equal(third.phraseIndex, 2);
+  assert.equal(third.mode, "poster");
+  assert.equal(third.typography.sequenceGrammar, "shape-fill");
 });
 
 test("AUTO exposes Ribbon Path on Neon phrase family", () => {

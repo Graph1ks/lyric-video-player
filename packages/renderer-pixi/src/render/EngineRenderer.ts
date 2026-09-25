@@ -542,7 +542,7 @@ export class EngineRenderer {
     this.cameraRig.setCinematicPlan(evaluateCinematicCameraPlan({
       mode: direction.mode,
       shotRole: direction.shotRole,
-      sequenceGrammar: persistent ? direction.typography.sequenceGrammar : undefined,
+      sequenceGrammar: persistent ? this.sequenceLyrics.getGrammar() : undefined,
       phraseProgress,
       focus,
       readabilityPressure: readability?.pressure ?? 0,

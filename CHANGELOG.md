@@ -54,6 +54,8 @@ Git history remains the complete technical history. This file records meaningful
 - Detached-Director operator transport for playback, seek, volume, loading and player fullscreen.
 - English/German Director and player-shell localization.
 - Ten-style Lower Third system with artist/title metadata overrides and optional artist portrait URL/upload.
+- Shape Fill persistent grammar with Tree, Star and Human/Figure packed word silhouettes.
+- Manifesto Wall persistent grammar with deterministic masonry blocks, rigid snap-ins and vertical bracket words.
 
 ### Changed
 
@@ -79,6 +81,9 @@ Git history remains the complete technical history. This file records meaningful
 - Screen FX use output overscan and primary lyric textures use elevated raster resolution for cleaner edges.
 - The main player becomes a clean output monitor while the detached Director is present.
 - Director typography sizing is raised for professional readability instead of micro-label density.
+- Shape Build UI/AUTO semantics are corrected from frame/ring paths to true interior Shape Fill; legacy `shape-build` remains an internal alias.
+- Background/filter edge safety now combines source bleed, shader edge guards, opaque final output and DOM overlay edge fades.
+- Cinematic camera consumes the actually resolved/manual persistent grammar instead of the AUTO bundle's nominated grammar.
 - GSAP remains excluded because the planned visual-editor direction could intersect its visual-animation-builder restriction.
 
 ### Security / Privacy

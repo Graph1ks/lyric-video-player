@@ -573,17 +573,25 @@ export class CinematicBackground {
                 ? 0x070305
                 : 0x03090d;
 
-    this.base.clear().rect(0, 0, this.w, this.h).fill({
-      color: this.palette?.background ?? baseColor,
-      alpha: 1,
-    });
-    this.flash.clear().rect(0, 0, this.w, this.h).fill({ color: 0xffffff, alpha: 1 });
+    const bleed = Math.max(this.w, this.h) * 0.12;
+    this.base
+      .clear()
+      .rect(-bleed, -bleed, this.w + bleed * 2, this.h + bleed * 2)
+      .fill({
+        color: this.palette?.background ?? baseColor,
+        alpha: 1,
+      });
+    this.flash
+      .clear()
+      .rect(-bleed, -bleed, this.w + bleed * 2, this.h + bleed * 2)
+      .fill({ color: 0xffffff, alpha: 1 });
   }
 
   private redrawLiquidSurface() {
+    const bleed = Math.max(this.w, this.h) * 0.12;
     this.liquidSurface
       .clear()
-      .rect(0, 0, this.w, this.h)
+      .rect(-bleed, -bleed, this.w + bleed * 2, this.h + bleed * 2)
       .fill({ color: 0xffffff, alpha: 1 });
   }
 

@@ -50,6 +50,8 @@ void main(void) {
     vec2 centered = uv - 0.5;
     vec2 warp = vec2(0.0);
     float quality = mix(0.62, 1.0, uQuality);
+    float edgeDistance = min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y));
+    float edgeGuard = smoothstep(0.0, 0.055, edgeDistance);
 
     if (uMode < 0.5) {
         float band = floor(uv.y * 28.0 + uTime * 2.0);
@@ -73,8 +75,10 @@ void main(void) {
         warp += normalize(centered + vec2(0.00001)) * ripple * uAmount;
     }
 
+    warp *= edgeGuard;
     vec2 sampleUv = clamp(uv + warp, vec2(0.001), vec2(0.999));
-    gl_FragColor = texture2D(uTexture, sampleUv);
+    vec4 source = texture2D(uTexture, sampleUv);
+    gl_FragColor = vec4(source.rgb, 1.0);
 }
 `;
 

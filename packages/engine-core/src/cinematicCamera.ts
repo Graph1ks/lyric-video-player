@@ -65,10 +65,18 @@ export function evaluateCinematicCameraPlan(
     scale += 0.035;
     follow += 0.14;
     microMotionScale = 0.28;
-  } else if (input.sequenceGrammar === "shape-build") {
-    scale -= 0.035;
-    follow *= 0.45;
-    microMotionScale = 0.2;
+  } else if (
+    input.sequenceGrammar === "shape-fill"
+    || input.sequenceGrammar === "shape-build"
+  ) {
+    scale -= 0.045;
+    follow *= 0.3;
+    microMotionScale = 0.14;
+  } else if (input.sequenceGrammar === "manifesto-wall") {
+    scale += 0.022;
+    follow += 0.18;
+    rotation += focusY * 0.0025;
+    microMotionScale = 0.12;
   } else if (input.sequenceGrammar === "ribbon-path") {
     scale += 0.012;
     follow += 0.08;

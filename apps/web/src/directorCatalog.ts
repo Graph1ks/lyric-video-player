@@ -43,7 +43,8 @@ export const SEQUENCE_CATALOG: DirectorCatalogItem<TypographySequenceMode>[] = [
   { value: "off", label: "Classic Line", description: "Disable persistent sequence scenes and use the current-line composition", preview: "sequence-off" },
   { value: "spiral-depth", label: "Spiral Depth", description: "Newest lyric stays large while older words recede through a continuous spiral", preview: "sequence-spiral" },
   { value: "hero-echo", label: "Hero / Echo", description: "One dominant word leads while lyric history becomes a graphic background structure", preview: "sequence-hero" },
-  { value: "shape-build", label: "Shape Build", description: "Words accumulate into frame and ring calligrams without reflowing old slots", preview: "sequence-shape" },
+  { value: "shape-fill", label: "Shape Fill", description: "Words pack inside a real silhouette — tree, star or human figure — instead of tracing its border", preview: "sequence-shape-fill" },
+  { value: "manifesto-wall", label: "Manifesto Wall", description: "Rigid words stamp into an interlocking masonry block with giant anchors and 90° bracket slots", preview: "sequence-manifesto" },
   { value: "ribbon-path", label: "Ribbon Path", description: "Active and previous words travel together along one continuous S-curve", preview: "sequence-ribbon" },
 ];
 

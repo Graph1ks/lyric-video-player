@@ -2,12 +2,12 @@
 
 **Last updated:** 2026-09-25  
 **Last known good merged baseline:** `13cd90f2f81e73d7675d6c285ebe80d85d34ec07`  
-**Active candidate:** none  
+**Active candidate:** `feat/shape-fill-manifesto-edge-bleed-v0.11` / PR #48  
 **Current phase/milestone:** operator output + presentation acceptance
 
 ## Current objective
 
-Visually accept the merged operator-output baseline on real displays/tracks: fullscreen edge safety, large-type fidelity, detached Director transport, explicit persistent sequences, bilingual controls and all ten Lower Third looks.
+Correct the remaining cinematic-type semantics and edge leaks: replace perimeter-style Shape Build with true packed Shape Fill, add a rigid Manifesto Wall / masonry grammar, and harden post-FX so implementation boundaries never reveal black at the physical output edge.
 
 ## Current state
 
@@ -45,6 +45,15 @@ Visually accept the merged operator-output baseline on real displays/tracks: ful
 - Director UI has a DE/EN language switch and a professional readability pass replacing micro-font-heavy controls.
 - Lower Thirds are a separate screen-space layer with ten visual presets, Intro/Rotate scheduling, metadata overrides and optional linked/uploaded artist image.
 - Output/operator contract is `docs/OPERATOR_OUTPUT_LOWER_THIRDS.md`.
+- Active candidate adds **Shape Fill**: phrase-stable packed silhouettes using Tree, Star and Human/Figure masks. Words occupy interior slots rather than tracing a border.
+- Shape Fill slots expose explicit text-fit boxes so Pixi can respect actual font metrics while the layout remains pure and deterministic.
+- Legacy `shape-build` remains an internal compatibility alias, but Director/AUTO use `shape-fill`.
+- Active candidate adds **Manifesto Wall**: phrase-wide deterministic masonry subdivision, variable anchor blocks, 90° bracket columns and rigid snap-in arrivals.
+- Manifesto Wall suppresses elastic/bass pulse behavior after landing; camera follows active wall focus with heavily bounded micro-motion.
+- Poster AUTO direction now exposes Hero/Echo, Manifesto Wall, Shape Fill and classic outline-panel families.
+- Edge safety v0.11 adds 12% opaque world bleed, shader edge guards for displacement/smear/barrel/chroma and opaque final post-FX output.
+- DOM bloom/scanline/grain treatment now fades before the physical output edge while remaining overscanned.
+- Design/implementation contract is `docs/SHAPE_FILL_MANIFESTO_EDGE_SAFETY.md`.
 - Phrase-level cinematic direction keeps AUTO typography preset, layout and composition motion in coherent phrase-stable bundles instead of independently cycling every line.
 - Phrases expose Establish / Develop / Accent / Release shot roles for the next sequence/camera layer.
 - Kinetic readability pressure uses line duration, words/s, chars/s and shortest word duration.
@@ -141,10 +150,10 @@ Visually accept the merged operator-output baseline on real displays/tracks: ful
 
 ## Next concrete action
 
-1. Manually verify fullscreen/edge safety, high-zoom type fidelity and Director operator mode at 1080p/1440p/4K.
-2. Visually accept all ten Lower Third presets and manual Spiral/Hero/Shape/Ribbon controls.
-3. Run multi-monitor/Desktop acceptance of Director reopen/focus and live transport synchronization.
-4. Return to real-track cinematic acceptance and section-level tension/release + shot-size sequencing.
+1. Get PR #48 green in Linux and Windows packaging.
+2. Visually verify edge guards under the previously failing fullscreen/CRT/smear cases.
+3. Visually accept Tree/Star/Figure Shape Fill and Manifesto Wall on real Enhanced LRC tracks, including Rapid/Burst passages.
+4. Continue section-level tension/release + shot-size sequencing after the new persistent grammars are accepted.
 5. Attach Director PLAN + Lower Third persistence/runtime execution to serialized scene/project directives, then map that contract per song when playlist support lands.
 
 ## Do not redo

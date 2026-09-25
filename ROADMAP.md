@@ -161,6 +161,26 @@ See `docs/VISUAL_DIRECTOR_WORKSPACE.md`.
 
 See `docs/OPERATOR_OUTPUT_LOWER_THIRDS.md`.
 
+## Cross-cutting v0.11 — Shape Fill + Manifesto Wall + Edge Safety — active
+
+- replace perimeter Shape Build semantics with packed interior Shape Fill — active candidate
+- Tree / Star / Human-Figure silhouette packers — active candidate
+- stable phrase-scope text-fit slots using real renderer font metrics — active candidate
+- legacy shape-build compatibility alias — active candidate
+- Manifesto Wall phrase-wide masonry subdivision — active candidate
+- rigid snap/slotted word arrival — active candidate
+- 90° bracket/column word slots — active candidate
+- variable anchor / connector block hierarchy — active candidate
+- Manifesto-aware camera following with bounded micro-motion — active candidate
+- 12% opaque background/liquid source bleed — active candidate
+- displacement/smear/post-FX physical-edge guards — active candidate
+- opaque final post-FX output — active candidate
+- DOM bloom/scanline/grain edge fade — active candidate
+- custom uploaded SVG/PNG silhouette masks — future
+- dedicated guillotine/slice word fracture accent — future after Manifesto visual acceptance
+
+See `docs/SHAPE_FILL_MANIFESTO_EDGE_SAFETY.md`.
+
 ## Milestone 0.9 — Editor
 - scene browser
 - effect inspector
