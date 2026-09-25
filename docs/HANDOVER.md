@@ -2,12 +2,12 @@
 
 **Last updated:** 2026-09-25  
 **Merged baseline:** `13cd90f2f81e73d7675d6c285ebe80d85d34ec07`  
-**Active candidate:** none  
+**Active candidate:** `feat/shape-fill-manifesto-edge-bleed-v0.11` / PR #48  
 **Current phase/milestone:** operator output + presentation acceptance
 
 ## Current objective
 
-Use the merged PR #46 operator-output baseline for real-display/real-track acceptance, then continue cinematic sequencing and serialization work without reopening the settled rendering/control ownership decisions.
+Land the corrected filled-silhouette grammar, the new Manifesto Wall architectural grammar and a final edge-safety layer without compromising deterministic seek-safe sequence planning.
 
 ## Current implementation state
 
@@ -345,6 +345,35 @@ See `docs/VISUAL_DIRECTOR_WORKSPACE.md`.
 
 See `docs/OPERATOR_OUTPUT_LOWER_THIRDS.md`.
 
+## Active candidate — Shape Fill + Manifesto Wall + edge guards
+
+**Shape semantics**
+
+- old Shape Build frame/ring behavior was the wrong semantic target for the supplied references;
+- new `shape-fill` uses the interior of Tree / Star / Figure silhouettes;
+- phrase-scope ordinals map to deterministic packing slots with explicit fit boxes;
+- Pixi fits measured text into those boxes;
+- history stays solid so the aggregate mass reads as a shape;
+- `shape-build` remains an internal alias only.
+
+**Manifesto Wall**
+
+- new `manifesto-wall` planner recursively subdivides one phrase-wide rectangle into stable masonry slots;
+- narrow/tall cells rotate ±90°;
+- slot-size variation creates headline anchors and connector words;
+- active words use a short rigid snap-in then remain fixed;
+- renderer disables normal active bounce/bass lift for this grammar;
+- camera uses the actually active manual/resolved grammar rather than the AUTO direction's nominated grammar.
+
+**Edge safety**
+
+- background/flash/liquid surfaces receive 12% source bleed;
+- displacement/smear/post FX use gradual edge guards;
+- final post FX is opaque;
+- DOM bloom/scanline/grain overlays fade before the physical output edge.
+
+See `docs/SHAPE_FILL_MANIFESTO_EDGE_SAFETY.md`.
+
 ## Important files / entry points
 
 | Path | Why it matters |
@@ -392,10 +421,10 @@ Windows packaging remains a separate required gate.
 
 ## Next concrete work
 
-1. Manually acceptance-test fullscreen, edge safety, large type zooms, Director transport and DE/EN.
-2. Review all Lower Third looks and persistent sequence controls at real output sizes.
-3. Run multi-monitor/Desktop acceptance for detached Director reopen/focus and transport synchronization.
-4. Resume cinematic real-track acceptance and section-level tension/release sequencing.
+1. Verify PR #48 Linux/Windows CI and packaging.
+2. Re-test the exact real-display edge failures that motivated this slice.
+3. Visually validate Shape Fill silhouette recognition and Manifesto Wall architectural rhythm on real tracks.
+4. Resume section-level tension/release and shot-size sequencing.
 5. Integrate PLAN/Lower Third persistence with serialized sequence directives; playlist support should reference the same per-song plan contract.
 
 ## Resume instruction
