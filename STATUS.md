@@ -215,6 +215,10 @@ Rehabilitate all 15 legacy Background presets before WORLD_09/10: remove raw-aud
 - Spatial Typography + Progressive Manifesto (PR #51): Linux typecheck/build/tests/publication audit — passed.
 - Spatial Typography + Progressive Manifesto (PR #51): Windows Node 22/24 launcher smokes + full build/NSIS/portable/artifact upload — passed.
 
+- Legacy Rehabilitation Phase A/B (PR #74 runtime through `445c85d`): Linux install/typecheck/build/tests/publication audit — passed.
+- Legacy Rehabilitation Phase A/B (PR #74 runtime through `445c85d`): Windows Node 22/24 launcher smokes + full build/NSIS/portable/artifact upload — passed.
+- Real-display fidelity acceptance for the five dedicated legacy worlds remains pending; CI does not count as visual acceptance.
+
 ## Next concrete action
 
 1. Visually accept/reject `vortex`, `rays`, `starfield`, `nebula` and `grid` at 1080p/1440p/4K, Performance/Cinema and representative 0–300% World Power/Detail values; source/CI success is not visual acceptance.
