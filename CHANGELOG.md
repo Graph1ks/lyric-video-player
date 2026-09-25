@@ -26,7 +26,11 @@ Git history remains the complete technical history. This file records meaningful
 - Deterministic Cinema-mode ping-pong frame feedback with reset semantics.
 - Scene-aware audio-reactive displacement.
 - Dedicated seven-tap velocity smear.
-- Reactive threshold bright-pass bloom candidate.
+- Reactive threshold bright-pass bloom.
+- Deterministic typography selector engine and eight typography preset families.
+- Independent deterministic background preset engine.
+- Reusable logarithmic FFT spectrum resampling for graphics.
+- Procedural GPU liquid background and mirrored spectrum-ribbon background candidate.
 
 ### Changed
 
@@ -35,6 +39,7 @@ Git history remains the complete technical history. This file records meaningful
 - Manifest-backed projects select media explicitly and can apply visual/sync defaults on load.
 - Virtual-camera rotation and zoom pivot around viewport center.
 - Primary lyric entry and word-punch motion remains evaluated analytically from lyric timestamps.
+- Manual typography/background preset changes reset temporal feedback to prevent stale visual history.
 - GSAP remains excluded because the planned visual-editor direction could intersect its visual-animation-builder restriction.
 
 ### Security / Privacy

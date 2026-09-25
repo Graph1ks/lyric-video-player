@@ -19,6 +19,8 @@ export type ProjectBackgroundPreset =
   | "starfield"
   | "rays"
   | "vortex"
+  | "liquid"
+  | "spectrum"
   | "minimal";
 
 export interface EmoProjectDefaults {

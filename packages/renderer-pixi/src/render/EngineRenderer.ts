@@ -20,6 +20,8 @@ import { ReactiveDisplacementFX } from "./ReactiveDisplacementFX";
 import { ReactiveVelocitySmearFX } from "./ReactiveVelocitySmearFX";
 import { ReactiveBloomThresholdFX } from "./ReactiveBloomThresholdFX";
 
+const EMPTY_SPECTRUM = new Float32Array(0);
+
 export class EngineRenderer {
   readonly app = new Application();
   readonly root = new Container();
@@ -108,6 +110,7 @@ export class EngineRenderer {
 
   setBackgroundPreset(preset: BackgroundPreset) {
     this.background.setPreset(preset);
+    this.renderGraph.resetFeedback();
     this.emitBackgroundPreset();
   }
 
@@ -126,6 +129,7 @@ export class EngineRenderer {
 
   setTypographyPreset(preset: TypographyPreset) {
     this.lyrics.setPreset(preset);
+    this.renderGraph.resetFeedback();
     this.emitTypographyPreset();
   }
 
@@ -196,7 +200,12 @@ export class EngineRenderer {
     }
   }
 
-  update(time: number, audio: AudioBands, lyricTime = time) {
+  update(
+    time: number,
+    audio: AudioBands,
+    lyricTime = time,
+    spectrum: Float32Array = EMPTY_SPECTRUM,
+  ) {
     if (!this.app.renderer) return;
 
     const rawDt = this.previousTime ? time - this.previousTime : 1 / 60;
@@ -211,7 +220,7 @@ export class EngineRenderer {
     this.velocitySmearFX.update(time, audio);
     this.bloomThresholdFX.update(time, audio);
     this.postFX.update(time, audio);
-    this.background.update(time, audio);
+    this.background.update(time, audio, spectrum);
     this.lyrics.update(lyricTime, audio);
     this.cameraRig.update(time, audio);
 

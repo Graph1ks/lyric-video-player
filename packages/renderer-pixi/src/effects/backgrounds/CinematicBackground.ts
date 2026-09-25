@@ -7,6 +7,9 @@ import type {
   SceneMode,
 } from "@graph1ks/emo-engine-core";
 import { seeded } from "@graph1ks/emo-engine-core";
+import { ProceduralLiquidFX } from "./ProceduralLiquidFX.js";
+
+const EMPTY_SPECTRUM = new Float32Array(0);
 
 interface Particle {
   g: Graphics;
@@ -28,16 +31,19 @@ interface Blob {
 }
 
 const AUTO_BACKGROUND_PRESETS: Record<SceneMode, BackgroundPresetId[]> = {
-  poster: ["cinematic", "grid", "minimal", "rays"],
-  neon: ["nebula", "grid", "starfield", "rays"],
-  vortex: ["vortex", "starfield", "nebula", "cinematic"],
+  poster: ["cinematic", "grid", "spectrum", "minimal", "rays"],
+  neon: ["nebula", "liquid", "spectrum", "starfield", "grid", "rays"],
+  vortex: ["vortex", "starfield", "liquid", "spectrum", "nebula", "cinematic"],
 };
 
 export class CinematicBackground {
   readonly container = new Container();
 
   private base = new Graphics();
+  private liquidSurface = new Graphics();
+  private liquidFX = new ProceduralLiquidFX();
   private geometry = new Graphics();
+  private spectrumLayer = new Graphics();
   private blobLayer = new Container();
   private particleLayer = new Container();
   private ringLayer = new Container();
@@ -61,13 +67,17 @@ export class CinematicBackground {
   constructor() {
     this.container.addChild(
       this.base,
+      this.liquidSurface,
       this.blobLayer,
       this.geometry,
       this.ringLayer,
       this.beamLayer,
       this.particleLayer,
+      this.spectrumLayer,
       this.flash,
     );
+    this.liquidSurface.filters = [this.liquidFX.filter];
+    this.spectrumLayer.blendMode = "add";
     this.createBlobs();
     this.createParticles();
     this.createRings();
@@ -80,6 +90,7 @@ export class CinematicBackground {
   setMode(mode: SceneMode) {
     if (this.mode === mode) return;
     this.mode = mode;
+    this.liquidFX.setMode(mode);
     const previous = this.resolvedPreset;
     this.resolvePreset();
     this.applyModePalette();
@@ -120,10 +131,12 @@ export class CinematicBackground {
 
   setIntensity(value: number) {
     this.intensity = Math.max(0.2, Math.min(1.8, value));
+    this.liquidFX.setIntensity(this.intensity);
   }
 
   setQuality(value: QualityMode) {
     this.quality = value;
+    this.liquidFX.setQuality(value);
     this.applyPresetVisibility();
   }
 
@@ -131,9 +144,11 @@ export class CinematicBackground {
     this.w = w;
     this.h = h;
     this.redrawBase();
+    this.redrawLiquidSurface();
+    this.liquidFX.resize(w, h);
   }
 
-  update(time: number, audio: AudioBands) {
+  update(time: number, audio: AudioBands, spectrum: Float32Array = EMPTY_SPECTRUM) {
     const cx = this.w * 0.5;
     const cy = this.h * 0.5;
     const intensity = this.intensity;
@@ -141,7 +156,9 @@ export class CinematicBackground {
     const energy = audio.energy * intensity;
     const transient = audio.transient * intensity;
 
+    if (this.liquidSurface.visible) this.liquidFX.update(time, audio);
     this.updateGeometry(time, audio);
+    this.updateSpectrum(time, audio, spectrum);
     this.updateBlobs(time, audio, cx, cy, bass, energy);
     this.updateParticles(time, audio, cx, cy, transient, energy);
     this.updateRings(time, audio, cx, cy, bass, energy);
@@ -171,13 +188,19 @@ export class CinematicBackground {
 
   private applyPresetVisibility() {
     const cinema = this.quality === "cinema";
+    this.liquidSurface.visible = this.resolvedPreset === "liquid";
+    this.spectrumLayer.visible = this.resolvedPreset === "spectrum";
     const particleStride = this.resolvedPreset === "minimal"
       ? cinema ? 4 : 7
-      : this.resolvedPreset === "rays"
-        ? cinema ? 3 : 5
-        : this.resolvedPreset === "grid"
-          ? cinema ? 2 : 4
-          : cinema ? 1 : 2;
+      : this.resolvedPreset === "liquid"
+        ? cinema ? 4 : 7
+        : this.resolvedPreset === "spectrum"
+          ? cinema ? 5 : 8
+          : this.resolvedPreset === "rays"
+            ? cinema ? 3 : 5
+            : this.resolvedPreset === "grid"
+              ? cinema ? 2 : 4
+              : cinema ? 1 : 2;
 
     this.particles.forEach((particle, index) => {
       particle.g.visible = index % particleStride === 0;
@@ -472,7 +495,11 @@ export class CinematicBackground {
   private redrawBase() {
     const baseColor = this.resolvedPreset === "minimal"
       ? 0x010203
-      : this.resolvedPreset === "starfield"
+      : this.resolvedPreset === "liquid"
+        ? 0x010306
+        : this.resolvedPreset === "spectrum"
+          ? this.mode === "vortex" ? 0x090207 : 0x010609
+          : this.resolvedPreset === "starfield"
         ? 0x01040a
         : this.resolvedPreset === "nebula"
           ? this.mode === "vortex" ? 0x080209 : 0x020910
@@ -488,12 +515,85 @@ export class CinematicBackground {
     this.flash.clear().rect(0, 0, this.w, this.h).fill({ color: 0xffffff, alpha: 1 });
   }
 
+  private redrawLiquidSurface() {
+    this.liquidSurface
+      .clear()
+      .rect(0, 0, this.w, this.h)
+      .fill({ color: 0xffffff, alpha: 1 });
+  }
+
+  private updateSpectrum(time: number, audio: AudioBands, spectrum: Float32Array) {
+    this.spectrumLayer.clear();
+    if (!this.spectrumLayer.visible || spectrum.length < 2) return;
+
+    const count = this.quality === "cinema"
+      ? Math.min(64, spectrum.length)
+      : Math.min(36, spectrum.length);
+    const top: number[] = [];
+    const bottom: number[] = [];
+    const area: number[] = [];
+    const cx = this.w * 0.5;
+    const cy = this.h * 0.5;
+    const width = this.w * 0.86;
+    const left = cx - width * 0.5;
+    const amplitude = this.h * (0.11 + audio.energy * 0.08) * this.intensity;
+
+    for (let index = 0; index < count; index++) {
+      const t = index / Math.max(1, count - 1);
+      const sourceIndex = Math.min(
+        spectrum.length - 1,
+        Math.round(t * (spectrum.length - 1)),
+      );
+      const previous = spectrum[Math.max(0, sourceIndex - 1)] ?? 0;
+      const current = spectrum[sourceIndex] ?? 0;
+      const next = spectrum[Math.min(spectrum.length - 1, sourceIndex + 1)] ?? 0;
+      const value = previous * 0.2 + current * 0.6 + next * 0.2;
+      const wave = Math.sin(t * Math.PI * 5 + time * 1.7) * (4 + audio.mid * 13);
+      const height = value * amplitude + wave;
+      const x = left + t * width;
+      top.push(x, cy - height);
+      bottom.push(x, cy + height);
+    }
+
+    area.push(...top);
+    for (let index = bottom.length - 2; index >= 0; index -= 2) {
+      area.push(bottom[index], bottom[index + 1]);
+    }
+
+    const primary = this.mode === "poster"
+      ? 0xff5365
+      : this.mode === "vortex"
+        ? 0xff3c58
+        : 0x64fff1;
+    const secondary = this.mode === "poster"
+      ? 0xffffff
+      : this.mode === "vortex"
+        ? 0xff8b64
+        : 0x8b6cff;
+
+    this.spectrumLayer
+      .poly(area)
+      .fill({ color: primary, alpha: 0.018 + audio.energy * 0.035 });
+    this.spectrumLayer
+      .poly(top)
+      .stroke({ width: 2.2, color: primary, alpha: 0.34 + audio.energy * 0.36 });
+    this.spectrumLayer
+      .poly(bottom)
+      .stroke({ width: 1.4, color: secondary, alpha: 0.2 + audio.treble * 0.3 });
+    this.spectrumLayer
+      .moveTo(left, cy)
+      .lineTo(left + width, cy)
+      .stroke({ width: 1, color: secondary, alpha: 0.045 + audio.energy * 0.05 });
+  }
+
   private updateGeometry(time: number, audio: AudioBands) {
     this.geometry.clear();
     const w = this.w;
     const h = this.h;
     const cx = w * 0.5;
     const cy = h * 0.5;
+
+    if (this.resolvedPreset === "liquid" || this.resolvedPreset === "spectrum") return;
 
     if (this.resolvedPreset === "minimal") {
       for (let index = 0; index < 3; index++) {

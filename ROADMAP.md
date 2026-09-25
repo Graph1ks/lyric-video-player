@@ -52,14 +52,14 @@
 - particle dissolve and smear exits — next
 
 ## Milestone 0.6 — Advanced backgrounds — active
-- preset routing independent from scene family — active candidate
-- Cinematic / Nebula / Grid / Starfield / Rays / Vortex / Minimal families — active candidate
+- preset routing independent from scene family — complete baseline
+- Cinematic / Nebula / Grid / Starfield / Rays / Vortex / Minimal families — complete baseline
 - deterministic particles / dust depth field — complete baseline
 - grids and geometric repeaters — complete baseline
-- starfield / hyperspace scenes — active candidate
-- procedural noise / liquid flow — next
+- starfield / hyperspace scenes — complete baseline
+- procedural noise / liquid flow — active candidate
+- waveform and spectrum ribbons — active candidate
 - sparks / trails — next
-- waveform and spectrum ribbons — next
 - recursive typography backgrounds — next
 
 ## Milestone 0.7 — Scene project format

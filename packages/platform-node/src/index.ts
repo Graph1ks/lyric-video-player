@@ -37,6 +37,8 @@ const BACKGROUND_PRESETS = new Set<ProjectBackgroundPreset>([
   "starfield",
   "rays",
   "vortex",
+  "liquid",
+  "spectrum",
   "minimal",
 ]);
 
