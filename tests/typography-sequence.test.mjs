@@ -157,7 +157,7 @@ test("spiral depth travels continuously across a word handoff", () => {
 });
 
 
-test("Shape Build assigns stable phrase ordinals and builds a frame", () => {
+test("Shape Fill packs stable words inside a silhouette instead of tracing a border", () => {
   const source = lines();
   const earlyWindow = deriveTypographySequenceWindow(source, 1.1, {
     historySeconds: 10,
@@ -170,19 +170,19 @@ test("Shape Build assigns stable phrase ordinals and builds a frame", () => {
     lineEndIndex: 1,
   });
   const early = planTypographySequence({
-    grammar: "shape-build",
+    grammar: "shape-fill",
     window: earlyWindow,
     width: 1280,
     height: 720,
   });
   const later = planTypographySequence({
-    grammar: "shape-build",
+    grammar: "shape-fill",
     window: laterWindow,
     width: 1280,
     height: 720,
   });
 
-  assert.equal(early.variant, "frame");
+  assert.equal(early.variant, "shape-tree");
   assert.equal(earlyWindow.scopeWordCount, 6);
   const stableId = typographyWordId(0, 0);
   const a = early.words.find(word => word.id === stableId);
@@ -190,13 +190,33 @@ test("Shape Build assigns stable phrase ordinals and builds a frame", () => {
   assert.ok(a && b);
   assert.ok(Math.abs(a.x - b.x) < 0.001);
   assert.ok(Math.abs(a.y - b.y) < 0.001);
-  assert.ok(Math.abs(Math.abs(a.y) - 720 * 0.285) < 1);
+  assert.ok(a.maxWidth > 0 && a.maxHeight > 0);
+  assert.equal(a.treatment, "solid");
+  assert.ok(early.words.some(word => Math.abs(word.x) < 1280 * 0.2));
 });
 
-test("Shape Build alternates to a ring for odd phrase scope starts", () => {
-  const window = deriveTypographySequenceWindow(lines(), 2.8, {
+test("Shape Fill rotates through star/figure silhouette families by phrase scope", () => {
+  const starWindow = deriveTypographySequenceWindow(lines(), 2.8, {
     historySeconds: 10,
     lineStartIndex: 1,
+    lineEndIndex: 1,
+  });
+  const star = planTypographySequence({
+    grammar: "shape-fill",
+    window: starWindow,
+    width: 1280,
+    height: 720,
+  });
+
+  assert.equal(star.variant, "shape-star");
+  assert.ok(star.words.length >= 2);
+  assert.ok(star.words.every(word => word.maxWidth > 0 && word.maxHeight > 0));
+});
+
+test("legacy Shape Build id resolves through the new filled-silhouette planner", () => {
+  const window = deriveTypographySequenceWindow(lines(), 1.3, {
+    historySeconds: 10,
+    lineStartIndex: 0,
     lineEndIndex: 1,
   });
   const plan = planTypographySequence({
@@ -206,9 +226,61 @@ test("Shape Build alternates to a ring for odd phrase scope starts", () => {
     height: 720,
   });
 
-  assert.equal(plan.variant, "ring");
-  assert.ok(plan.words.length >= 2);
-  assert.ok(plan.words.every(word => Number.isFinite(word.rotation)));
+  assert.equal(plan.variant, "shape-tree");
+  assert.ok(plan.words.every(word => word.treatment === "solid"));
+});
+
+test("Manifesto Wall creates stable masonry boxes with vertical bracket slots", () => {
+  const window = deriveTypographySequenceWindow(lines(), 2.3, {
+    historySeconds: 10,
+    lineStartIndex: 0,
+    lineEndIndex: 1,
+  });
+  const plan = planTypographySequence({
+    grammar: "manifesto-wall",
+    window,
+    width: 1280,
+    height: 720,
+  });
+
+  assert.equal(plan.variant, "masonry");
+  assert.ok(plan.words.length >= 4);
+  assert.ok(plan.words.every(word => word.maxWidth > 0 && word.maxHeight > 0));
+  assert.ok(plan.words.some(word => Math.abs(word.rotation) > 1));
+});
+
+test("Manifesto Wall stamps the active word into its slot without bounce", () => {
+  const source = lines();
+  const earlyWindow = deriveTypographySequenceWindow(source, 2.01, {
+    historySeconds: 10,
+    lineStartIndex: 0,
+    lineEndIndex: 1,
+  });
+  const settledWindow = deriveTypographySequenceWindow(source, 2.2, {
+    historySeconds: 10,
+    lineStartIndex: 0,
+    lineEndIndex: 1,
+  });
+  const early = planTypographySequence({
+    grammar: "manifesto-wall",
+    window: earlyWindow,
+    width: 1920,
+    height: 1080,
+  });
+  const settled = planTypographySequence({
+    grammar: "manifesto-wall",
+    window: settledWindow,
+    width: 1920,
+    height: 1080,
+  });
+
+  const id = typographyWordId(1, 0);
+  const a = early.words.find(word => word.id === id);
+  const b = settled.words.find(word => word.id === id);
+  assert.ok(a && b);
+  assert.ok(Math.hypot(a.x - b.x, a.y - b.y) > 5);
+  assert.ok(Math.abs(b.scale - 1) < 0.001);
+  assert.equal(b.alpha, 1);
 });
 
 test("Ribbon Path preserves motion continuity across active-word handoff", () => {
