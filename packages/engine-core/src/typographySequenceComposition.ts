@@ -459,7 +459,7 @@ function planRibbonPath(input: TypographySequencePlanInput): TypographySequenceP
     }
 
     placements.push(chosen);
-    occupied.push(chosenBox);
+    if (chosenBox) occupied.push(chosenBox);
   }
 
   const incoming = input.window.words
