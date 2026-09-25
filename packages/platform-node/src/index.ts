@@ -9,6 +9,7 @@ import type {
   ProjectDescriptor,
   ProjectBackgroundPreset,
   ProjectColorHarmony,
+  ProjectCompositionMotion,
   ProjectQualityMode,
   ProjectTypographyLayout,
   ProjectTypographyPreset,
@@ -39,6 +40,18 @@ const TYPOGRAPHY_LAYOUTS = new Set<ProjectTypographyLayout>([
   "vertical-accent",
   "split-stage",
   "crossword",
+]);
+const COMPOSITION_MOTIONS = new Set<ProjectCompositionMotion>([
+  "auto",
+  "handoff",
+  "conveyor",
+  "anchor-build",
+  "collapse",
+  "takeover",
+  "flip",
+  "camera-handoff",
+  "portal",
+  "panel",
 ]);
 const COLOR_HARMONIES = new Set<ProjectColorHarmony>([
   "auto",
@@ -150,6 +163,16 @@ function parseDefaults(value: unknown): EmoProjectDefaults | undefined {
       throw new Error("E-MO manifest defaults.typographyLayout is invalid");
     }
     defaults.typographyLayout = input.typographyLayout as ProjectTypographyLayout;
+  }
+
+  if (input.compositionMotion !== undefined) {
+    if (
+      typeof input.compositionMotion !== "string"
+      || !COMPOSITION_MOTIONS.has(input.compositionMotion as ProjectCompositionMotion)
+    ) {
+      throw new Error("E-MO manifest defaults.compositionMotion is invalid");
+    }
+    defaults.compositionMotion = input.compositionMotion as ProjectCompositionMotion;
   }
 
   if (input.backgroundPreset !== undefined) {

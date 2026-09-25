@@ -19,6 +19,17 @@ export type ProjectTypographyLayout =
   | "vertical-accent"
   | "split-stage"
   | "crossword";
+export type ProjectCompositionMotion =
+  | "auto"
+  | "handoff"
+  | "conveyor"
+  | "anchor-build"
+  | "collapse"
+  | "takeover"
+  | "flip"
+  | "camera-handoff"
+  | "portal"
+  | "panel";
 export type ProjectColorHarmony =
   | "auto"
   | "split-complement"
@@ -47,6 +58,7 @@ export interface EmoProjectDefaults {
   quality?: ProjectQualityMode;
   typographyPreset?: ProjectTypographyPreset;
   typographyLayout?: ProjectTypographyLayout;
+  compositionMotion?: ProjectCompositionMotion;
   backgroundPreset?: ProjectBackgroundPreset;
   colorHarmony?: ProjectColorHarmony;
   syncMs?: number;

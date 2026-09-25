@@ -5,6 +5,8 @@ import type {
   BackgroundPreset,
   BackgroundPresetId,
   ColorHarmonyId,
+  CompositionMotionId,
+  CompositionMotionPreset,
   ColorHarmonyMode,
   LineCue,
   QualityMode,
@@ -55,10 +57,12 @@ export class EngineRenderer {
   private modeListeners = new Set<(mode: SceneMode) => void>();
   private typographyListeners = new Set<(preset: TypographyPresetId) => void>();
   private layoutListeners = new Set<(layout: TypographyLayoutId) => void>();
+  private compositionMotionListeners = new Set<(motion: CompositionMotionId) => void>();
   private backgroundListeners = new Set<(preset: BackgroundPresetId) => void>();
   private paletteListeners = new Set<(palette: VisualPalette) => void>();
   private lastTypographyPreset?: TypographyPresetId;
   private lastTypographyLayout?: TypographyLayoutId;
+  private lastCompositionMotion?: CompositionMotionId;
   private lastBackgroundPreset?: BackgroundPresetId;
   private lastPaletteKey = "";
   private sceneTransition = 0;
@@ -186,6 +190,25 @@ export class EngineRenderer {
     return this.lyrics.getResolvedLayout();
   }
 
+  setCompositionMotion(preset: CompositionMotionPreset) {
+    this.lyrics.setCompositionMotion(preset);
+    this.renderGraph.resetFeedback();
+    this.emitCompositionMotion();
+  }
+
+  onCompositionMotionChange(listener: (motion: CompositionMotionId) => void) {
+    this.compositionMotionListeners.add(listener);
+    return () => this.compositionMotionListeners.delete(listener);
+  }
+
+  getCompositionMotion() {
+    return this.lyrics.getCompositionMotion();
+  }
+
+  getResolvedCompositionMotion() {
+    return this.lyrics.getResolvedCompositionMotion();
+  }
+
   onTypographyPresetChange(listener: (preset: TypographyPresetId) => void) {
     this.typographyListeners.add(listener);
     return () => this.typographyListeners.delete(listener);
@@ -249,6 +272,7 @@ export class EngineRenderer {
     this.lyrics.setLine(line, index);
     this.emitTypographyPreset();
     this.emitTypographyLayout();
+    this.emitCompositionMotion();
     if (line) {
       this.background.hit(0.92 + (index % 3) * 0.08);
       this.cameraRig.lineHit(index);
@@ -304,6 +328,7 @@ export class EngineRenderer {
     this.lyrics.setMode(mode);
     this.emitTypographyPreset();
     this.emitTypographyLayout();
+    this.emitCompositionMotion();
     this.cameraRig.setMode(mode);
     this.displacementFX.setMode(mode);
     this.velocitySmearFX.setMode(mode);
@@ -360,6 +385,13 @@ export class EngineRenderer {
     if (layout === this.lastTypographyLayout) return;
     this.lastTypographyLayout = layout;
     for (const listener of this.layoutListeners) listener(layout);
+  }
+
+  private emitCompositionMotion() {
+    const motion = this.lyrics.getResolvedCompositionMotion();
+    if (motion === this.lastCompositionMotion) return;
+    this.lastCompositionMotion = motion;
+    for (const listener of this.compositionMotionListeners) listener(motion);
   }
 
   private resize() {

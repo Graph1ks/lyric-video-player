@@ -45,6 +45,17 @@ export type TypographyLayoutId =
   | "split-stage"
   | "crossword";
 export type TypographyLayoutPreset = "auto" | TypographyLayoutId;
+export type CompositionMotionId =
+  | "handoff"
+  | "conveyor"
+  | "anchor-build"
+  | "collapse"
+  | "takeover"
+  | "flip"
+  | "camera-handoff"
+  | "portal"
+  | "panel";
+export type CompositionMotionPreset = "auto" | CompositionMotionId;
 export type BackgroundPresetId =
   | "cinematic"
   | "nebula"
@@ -73,6 +84,7 @@ export interface VisualSettings {
   quality: QualityMode;
   typographyPreset?: TypographyPreset;
   typographyLayout?: TypographyLayoutPreset;
+  compositionMotion?: CompositionMotionPreset;
   backgroundPreset?: BackgroundPreset;
   colorHarmony?: ColorHarmonyMode;
 }

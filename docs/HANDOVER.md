@@ -2,12 +2,12 @@
 
 **Last updated:** 2026-09-25  
 **Merged baseline:** `fdb8889d6898e34c2c6094baebddbe5e9eab726e`  
-**Active candidate:** none  
+**Active candidate:** `feature/composition-motion-v0.8`  
 **Current phase/milestone:** v0.8 lyric-scene composition + color direction
 
 ## Current objective
 
-Build Step 3 composition-level motion grammar on top of the merged typography-composition and OKLCH palette contracts.
+Finish and land Step 3 composition-level motion grammar on top of the merged typography-composition and OKLCH palette contracts.
 
 ## Current implementation state
 
@@ -59,12 +59,42 @@ New engine-core color system provides:
 
 KineticLyrics consumes text/accent roles. CinematicBackground consumes generated background/accent roles. React exposes harmony selection and a live palette swatch preview. Keyboard `C` cycles harmonies. `emo.project/v1` can persist the default.
 
+### Step 3 active candidate — Composition Motion Grammar
+
+The new pure evaluator in `engine-core` takes explicit LRC time, composition targets and cue timing and returns whole-stage + per-word transforms. It never owns an independent clock or stateful tween timeline.
+
+Motion families:
+
+- `handoff`
+- `conveyor`
+- `anchor-build`
+- `collapse`
+- `takeover`
+- `flip`
+- `camera-handoff`
+- `portal`
+- `panel`
+
+KineticLyrics now applies transforms in three layers:
+
+1. whole typography stage;
+2. composition word slot;
+3. existing word-local/glyph motion.
+
+This keeps layout orientation/placement, composition motion and glyph effects independently composable.
+
+React exposes **Composition Motion** and keyboard `G`; `M` remains mute. `emo.project/v1` can persist `defaults.compositionMotion`.
+
+See `docs/COMPOSITION_MOTION_GRAMMAR.md` for the runtime contract and known tuning risks.
+
 ## Important files / entry points
 
 | Path | Why it matters |
 |---|---|
 | `docs/LYRIC_VISUALIZATION_ENGINE_PLAN.md` | authoritative visual-engine implementation order |
 | `packages/engine-core/src/typographyComposition.ts` | pure word composition planner |
+| `packages/engine-core/src/typographyMotionGrammar.ts` | pure timestamp-driven composition-motion evaluator |
+| `docs/COMPOSITION_MOTION_GRAMMAR.md` | motion grammar contract, transform ownership and tuning notes |
 | `packages/engine-core/src/colorHarmony.ts` | OKLCH conversion + palette director |
 | `packages/renderer-pixi/src/effects/typography/KineticLyrics.ts` | composition + glyph-motion consumer |
 | `packages/renderer-pixi/src/effects/backgrounds/CinematicBackground.ts` | palette/background consumer |
@@ -78,6 +108,8 @@ KineticLyrics consumes text/accent roles. CinematicBackground consumes generated
 - The baseline palette is wired into primary text/background/geometry; some specialist shader worlds still retain internal scene-specific shading and should migrate to palette uniforms in Step 4.
 - The Visual Director is increasingly dense; a later UI pass should group controls without hiding the engine features.
 - Real browser/Desktop visual acceptance remains required even after compile/CI validation.
+- Takeover/Portal can deliberately overscale active words; long words and narrow viewports need visual acceptance.
+- AUTO compatibility constraints may be required after real-track testing if some layout × grammar × glyph combinations are systematically unreadable.
 
 ## Verification
 
@@ -93,8 +125,8 @@ Windows packaging remains a separate required gate.
 
 ## Next concrete work
 
-1. Implement composition-level motion grammar.
-2. Migrate specialist background shaders to full palette-role uniforms.
+1. Get Composition Motion candidate green on Linux + Windows and merge.
+2. Migrate specialist background shaders to full palette-role uniforms / build Step 4 visual worlds.
 3. Complete remaining typography primitives.
 4. Stabilize scene-stack serialization before timeline/editor work.
 

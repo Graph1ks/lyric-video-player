@@ -133,3 +133,48 @@ Use Node's standard HTTP/filesystem APIs first. The current server scope is stat
 The repository should move incrementally to npm-workspace boundaries for engine, renderer, platform adapters and apps before major editor/render-graph expansion continues. Desktop/server filesystem access must be root-confined and unavailable directly to the React renderer.
 
 See `docs/PLATFORM_ARCHITECTURE.md`.
+
+
+---
+
+## ADR-006 — Composition motion is a pure timestamp-evaluated layer
+
+**Status:** accepted  
+**Date:** 2026-09-25
+
+### Context
+
+E-MO now has fixed word-level typography compositions and independent glyph-level animation. Professional lyric-video motion also needs movement of complete words and whole typographic layouts: handoffs, conveyor pushes, takeover words, collapses, flips, camera-like focus changes and panel transitions.
+
+Implementing those as stateful tweens inside Pixi would make arbitrary seeking/history reconstruction fragile and would blur the boundary between authored layout and animation.
+
+### Decision
+
+Composition motion is a separate pure `engine-core` evaluation layer between typography composition and glyph animation.
+
+It receives explicit LRC/playback time, cue timing, scene family, line index, viewport, composition anchor and word composition targets. It returns a whole-stage transform plus per-word transform deltas.
+
+AUTO motion selection is deterministic from scene family + cue index. Pixi consumes the evaluated frame; React only selects presets and displays state.
+
+### Transform ownership
+
+```text
+Typography Composition
+  fixed word targets
+        |
+Composition Motion Grammar
+  stage + word deltas
+        |
+Word-local / Glyph Motion
+  selector-driven detail
+```
+
+The baseline `camera-handoff` moves the typography stage rather than the global scene camera. CameraRig remains responsible for background-inclusive camera impulses until a later scene-stack contract explicitly unifies them.
+
+### Consequences
+
+- arbitrary seek can reconstruct composition motion without replaying tween history;
+- layouts remain reusable with different motion grammars;
+- glyph effects remain reusable inside moving/rotating/scaling words;
+- project files need a separate `compositionMotion` field;
+- visual acceptance must test layout × grammar × glyph combinations and constrain AUTO compatibility where necessary.

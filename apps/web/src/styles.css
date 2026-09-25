@@ -80,17 +80,17 @@ button { color: inherit; }
 .scene-tab.is-active { background: rgba(255,255,255,.13); color: #fff; box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
 .readout-row { margin: 13px 1px 11px; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 8px; letter-spacing: .12em; color: rgba(255,255,255,.42); }
 .readout-row strong { color: white; font-size: 9px; letter-spacing: .04em; }
-.typography-control, .composition-control, .harmony-control, .background-control { margin: 0 1px 12px; display: grid; gap: 7px; }
-.typography-grid, .composition-grid, .harmony-grid, .background-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
-.typography-button, .composition-button, .harmony-button, .background-button {
+.typography-control, .composition-control, .motion-control, .harmony-control, .background-control { margin: 0 1px 12px; display: grid; gap: 7px; }
+.typography-grid, .composition-grid, .motion-grid, .harmony-grid, .background-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+.typography-button, .composition-button, .motion-button, .harmony-button, .background-button {
   appearance: none; height: 24px; padding: 0 5px; border-radius: 7px;
   border: 1px solid rgba(255,255,255,.075); background: rgba(255,255,255,.035);
   color: rgba(255,255,255,.42); font-size: 6.8px; font-weight: 900; letter-spacing: .055em;
   cursor: pointer; transition: background .14s ease, border-color .14s ease, color .14s ease, transform .14s ease;
 }
-.typography-button:hover, .composition-button:hover, .harmony-button:hover, .background-button:hover { background: rgba(255,255,255,.09); border-color: rgba(255,255,255,.15); color: rgba(255,255,255,.76); }
-.typography-button:active, .composition-button:active, .harmony-button:active, .background-button:active { transform: scale(.97); }
-.typography-button.is-active, .composition-button.is-active, .harmony-button.is-active, .background-button.is-active { background: rgba(132,255,242,.12); border-color: rgba(132,255,242,.22); color: #dffffb; box-shadow: inset 0 0 0 1px rgba(132,255,242,.06); }
+.typography-button:hover, .composition-button:hover, .motion-button:hover, .harmony-button:hover, .background-button:hover { background: rgba(255,255,255,.09); border-color: rgba(255,255,255,.15); color: rgba(255,255,255,.76); }
+.typography-button:active, .composition-button:active, .motion-button:active, .harmony-button:active, .background-button:active { transform: scale(.97); }
+.typography-button.is-active, .composition-button.is-active, .motion-button.is-active, .harmony-button.is-active, .background-button.is-active { background: rgba(132,255,242,.12); border-color: rgba(132,255,242,.22); color: #dffffb; box-shadow: inset 0 0 0 1px rgba(132,255,242,.06); }
 .palette-preview {
   display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; padding: 7px;
   border-radius: 10px; border: 1px solid rgba(255,255,255,.06); background: rgba(0,0,0,.16);

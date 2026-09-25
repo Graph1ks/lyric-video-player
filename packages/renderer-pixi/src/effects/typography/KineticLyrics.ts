@@ -7,14 +7,18 @@ import {
   easeOutBack,
   easeOutElastic,
   easeOutExpo,
+  evaluateCompositionMotion,
   hash01,
   lerp,
   planTypographyComposition,
   randomSelector,
+  resolveCompositionMotion,
   resolveTypographyLayout,
   staggerSelector,
   waveSelector,
   wiggleSelector,
+  type CompositionMotionId,
+  type CompositionMotionPreset,
   type GlyphSelectorContext,
   type LineCue,
   type SceneMode,
@@ -49,6 +53,7 @@ interface WordVisual {
   entryY: number;
   entryScale: number;
   entryRotation: number;
+  layoutEmphasis: number;
 }
 
 interface GlyphMotion {
@@ -84,6 +89,9 @@ export class KineticLyrics {
   private resolvedPreset: TypographyPresetId = "elastic";
   private layoutPreset: TypographyLayoutPreset = "auto";
   private resolvedLayout: TypographyLayoutId = "directional-stage";
+  private motionPreset: CompositionMotionPreset = "auto";
+  private resolvedMotion: CompositionMotionId = "handoff";
+  private compositionAnchorIndex = 0;
   private w = 1;
   private h = 1;
   private intensity = 1;
@@ -112,6 +120,7 @@ export class KineticLyrics {
     const previousLayout = this.resolvedLayout;
     this.resolvePreset();
     this.resolveLayout();
+    this.resolveMotion();
     if (this.line && (previousPreset !== this.resolvedPreset || previousLayout !== this.resolvedLayout)) {
       this.rebuild(false);
     } else if (this.line) {
@@ -152,6 +161,20 @@ export class KineticLyrics {
 
   getResolvedLayout() {
     return this.resolvedLayout;
+  }
+
+  setCompositionMotion(preset: CompositionMotionPreset) {
+    if (this.motionPreset === preset) return;
+    this.motionPreset = preset;
+    this.resolveMotion();
+  }
+
+  getCompositionMotion() {
+    return this.motionPreset;
+  }
+
+  getResolvedCompositionMotion() {
+    return this.resolvedMotion;
   }
 
   setPalette(palette: VisualPalette) {
@@ -198,6 +221,7 @@ export class KineticLyrics {
     this.activeWord = -1;
     this.resolvePreset();
     this.resolveLayout();
+    this.resolveMotion();
     this.rebuild(true);
   }
 
@@ -222,7 +246,36 @@ export class KineticLyrics {
       : this.mode === "vortex"
         ? 1 + audio.bass * 0.03 * this.intensity
         : 1 + audio.bass * 0.012 * this.intensity;
-    this.mainLayer.scale.set(sceneScale);
+
+    const compositionMotion = evaluateCompositionMotion({
+      preset: this.motionPreset,
+      scene: this.mode,
+      lineIndex: this.lineIndex,
+      time,
+      lineStart: this.line.start,
+      lineEnd: this.line.end,
+      width: this.w,
+      height: this.h,
+      anchorIndex: this.compositionAnchorIndex,
+      words: this.words.map(word => ({
+        start: word.cue.start,
+        end: word.cue.end,
+        x: word.baseX,
+        y: word.baseY,
+        scale: word.layoutScale,
+        rotation: word.layoutRotation,
+        emphasis: word.layoutEmphasis,
+      })),
+      intensity: this.intensity,
+    });
+    this.resolvedMotion = compositionMotion.motion;
+    this.mainLayer.position.set(
+      this.w * 0.5 + compositionMotion.stage.x,
+      this.h * 0.5 + compositionMotion.stage.y,
+    );
+    this.mainLayer.rotation = compositionMotion.stage.rotation;
+    this.mainLayer.alpha = compositionMotion.stage.alpha;
+    this.mainLayer.scale.set(sceneScale * compositionMotion.stage.scale);
 
     this.words.forEach((word, wordIndex) => {
       const active = wordIndex === wi;
@@ -237,9 +290,18 @@ export class KineticLyrics {
             : 1.8;
 
       this.updateWordMotion(word, wordIndex, time, audio);
+      const grammar = compositionMotion.words[wordIndex];
+      const grammarX = grammar?.x ?? 0;
+      const grammarY = grammar?.y ?? 0;
       word.slot.position.set(
-        word.baseX + Math.sin(wordPhase * 0.53) * floatAmount * this.intensity,
-        word.baseY + Math.cos(wordPhase) * floatAmount * this.intensity,
+        word.baseX + grammarX + Math.sin(wordPhase * 0.53) * floatAmount * this.intensity,
+        word.baseY + grammarY + Math.cos(wordPhase) * floatAmount * this.intensity,
+      );
+      word.slot.rotation = word.layoutRotation + (grammar?.rotation ?? 0);
+      word.slot.alpha = grammar?.alpha ?? 1;
+      word.slot.scale.set(
+        word.layoutScale * (grammar?.scaleX ?? 1),
+        word.layoutScale * (grammar?.scaleY ?? 1),
       );
 
       const wordDuration = Math.max(0.04, word.cue.end - word.cue.start);
@@ -353,6 +415,7 @@ export class KineticLyrics {
         entryY: 0,
         entryScale: 0.64,
         entryRotation: 0,
+        layoutEmphasis: 0.5,
       });
     });
 
@@ -384,6 +447,15 @@ export class KineticLyrics {
   private resolveLayout() {
     this.resolvedLayout = resolveTypographyLayout(
       this.layoutPreset,
+      this.mode,
+      this.lineIndex,
+      this.line?.words.length ?? this.words.length,
+    );
+  }
+
+  private resolveMotion() {
+    this.resolvedMotion = resolveCompositionMotion(
+      this.motionPreset,
       this.mode,
       this.lineIndex,
       this.line?.words.length ?? this.words.length,
@@ -850,6 +922,7 @@ export class KineticLyrics {
       wordTexts: this.words.map(word => word.cue.text),
     });
     this.resolvedLayout = plan.layout;
+    this.compositionAnchorIndex = plan.anchorIndex;
 
     this.words.forEach((word, index) => {
       const placement = plan.words[index];
@@ -862,6 +935,7 @@ export class KineticLyrics {
       word.entryY = placement.entryY;
       word.entryScale = placement.entryScale;
       word.entryRotation = placement.entryRotation;
+      word.layoutEmphasis = placement.emphasis;
       word.slot.position.set(word.baseX, word.baseY);
       word.slot.rotation = word.layoutRotation;
       word.slot.scale.set(word.layoutScale);
