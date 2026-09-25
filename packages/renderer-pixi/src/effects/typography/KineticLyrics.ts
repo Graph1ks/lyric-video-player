@@ -839,7 +839,7 @@ export class KineticLyrics {
               : 3;
 
     for (let i = 0; i < count; i++) {
-      const echo = new Text({ text: lineText, style: this.echoStyle(i) });
+      const echo = new Text({ text: lineText, style: this.echoStyle(i), resolution: textTextureResolution() });
       echo.anchor.set(0.5);
       this.echoLayer.addChild(echo);
       this.echoes.push(echo);
@@ -856,7 +856,7 @@ export class KineticLyrics {
             : (this.palette?.accentB ?? 0xff387f),
           letterSpacing: -2,
         });
-        const echo = new Text({ text: lineText, style });
+        const echo = new Text({ text: lineText, style, resolution: textTextureResolution() });
         echo.anchor.set(0.5);
         echo.alpha = 0.15;
         echo.blendMode = "add";

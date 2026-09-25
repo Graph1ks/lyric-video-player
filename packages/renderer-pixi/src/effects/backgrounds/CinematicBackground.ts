@@ -617,7 +617,11 @@ export class CinematicBackground {
         },
         letterSpacing: -1,
       });
-      const echo = new Text({ text, style });
+      const echo = new Text({
+        text,
+        style,
+        resolution: backgroundTextResolution(),
+      });
       echo.anchor.set(0.5);
       this.lyricBackdropLayer.addChild(echo);
       this.lyricBackdrop.push(echo);
@@ -967,4 +971,10 @@ export class CinematicBackground {
     });
     this.redrawBase();
   }
+}
+
+
+function backgroundTextResolution() {
+  const dpr = typeof devicePixelRatio === "number" ? devicePixelRatio : 1;
+  return Math.max(1.5, Math.min(3, dpr * 1.5));
 }
