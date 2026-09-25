@@ -6,7 +6,7 @@ import {
   type VisualPalette,
 } from "@graph1ks/emo-engine-core";
 
-const vertex = \`
+const vertex = `
 in vec2 aPosition;
 out vec2 vTextureCoord;
 uniform vec4 uInputSize;
@@ -28,9 +28,9 @@ void main(void) {
   gl_Position = filterVertexPosition();
   vTextureCoord = filterTextureCoord();
 }
-\`;
+`;
 
-const fragment = \`
+const fragment = `
 precision highp float;
 in vec2 vTextureCoord;
 uniform vec4 uInputSize;
@@ -188,7 +188,7 @@ void main(void) {
 
   gl_FragColor = vec4(finish(color, vTextureCoord), 1.0);
 }
-\`;
+`;
 
 type CinematicUniforms = {
   uTime: number;
@@ -296,8 +296,8 @@ export class LegacyCinematicWorld {
     const r = ((color >> 16) & 0xff) / 255;
     const g = ((color >> 8) & 0xff) / 255;
     const b = (color & 0xff) / 255;
-    this.write(\`\${prefix}R\` as keyof CinematicUniforms, r);
-    this.write(\`\${prefix}G\` as keyof CinematicUniforms, g);
-    this.write(\`\${prefix}B\` as keyof CinematicUniforms, b);
+    this.write(`${prefix}R` as keyof CinematicUniforms, r);
+    this.write(`${prefix}G` as keyof CinematicUniforms, g);
+    this.write(`${prefix}B` as keyof CinematicUniforms, b);
   }
 }
