@@ -1,6 +1,10 @@
 import { Container, Filter, GlProgram, Graphics } from "pixi.js";
 import type { AudioBands } from "@graph1ks/emo-audio-web";
-import type { QualityMode } from "@graph1ks/emo-engine-core";
+import {
+  clamp,
+  type QualityMode,
+  type VisualPalette,
+} from "@graph1ks/emo-engine-core";
 
 const vertex = `
 in vec2 aPosition;
@@ -10,26 +14,22 @@ uniform vec4 uOutputFrame;
 uniform vec4 uOutputTexture;
 
 vec4 filterVertexPosition(void) {
-    vec2 position = aPosition * uOutputFrame.zw + uOutputFrame.xy;
-    position.x = position.x * (2.0 / uOutputTexture.x) - 1.0;
-    position.y = position.y * (2.0 * uOutputTexture.z / uOutputTexture.y) - uOutputTexture.z;
-    return vec4(position, 0.0, 1.0);
-}
-
-vec2 filterTextureCoord(void) {
-    return aPosition * (uOutputFrame.zw * uInputSize.zw);
+  vec2 position = aPosition * uOutputFrame.zw + uOutputFrame.xy;
+  position.x = position.x * (2.0 / uOutputTexture.x) - 1.0;
+  position.y = position.y * (2.0 * uOutputTexture.z / uOutputTexture.y) - uOutputTexture.z;
+  return vec4(position, 0.0, 1.0);
 }
 
 void main(void) {
-    gl_Position = filterVertexPosition();
-    vTextureCoord = filterTextureCoord();
+  gl_Position = filterVertexPosition();
+  vTextureCoord = aPosition * (uOutputFrame.zw * uInputSize.zw);
 }
 `;
 
 const fragment = `
 precision highp float;
+
 in vec2 vTextureCoord;
-uniform sampler2D uTexture;
 uniform float uTime;
 uniform float uPower;
 uniform float uDetail;
@@ -40,150 +40,226 @@ uniform float uEnergy;
 uniform float uTransient;
 uniform float uAspect;
 uniform float uQuality;
+uniform vec3 uBackground;
+uniform vec3 uSurface;
+uniform vec3 uAccentA;
+uniform vec3 uAccentB;
+uniform vec3 uGlow;
+uniform vec3 uMuted;
 
 float hash11(float p) {
-    p = fract(p * 0.1031);
-    p *= p + 33.33;
-    p *= p + p;
-    return fract(p);
+  p = fract(p * 0.1031);
+  p *= p + 33.33;
+  p *= p + p;
+  return fract(p);
 }
 
 float hash21(vec2 p) {
-    p = fract(p * vec2(123.34, 456.21));
-    p += dot(p, p + 45.32);
-    return fract(p.x * p.y);
+  p = fract(p * vec2(123.34, 456.21));
+  p += dot(p, p + 45.32);
+  return fract(p.x * p.y);
 }
 
 float noise2(vec2 p) {
-    vec2 i = floor(p);
-    vec2 f = fract(p);
-    f = f * f * (3.0 - 2.0 * f);
-    float a = hash21(i);
-    float b = hash21(i + vec2(1.0, 0.0));
-    float c = hash21(i + vec2(0.0, 1.0));
-    float d = hash21(i + vec2(1.0, 1.0));
-    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  float a = hash21(i);
+  float b = hash21(i + vec2(1.0, 0.0));
+  float c = hash21(i + vec2(0.0, 1.0));
+  float d = hash21(i + vec2(1.0, 1.0));
+  return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
 }
 
 float sdSegment(vec2 p, vec2 a, vec2 b) {
-    vec2 pa = p - a;
-    vec2 ba = b - a;
-    float h = clamp(dot(pa, ba) / max(dot(ba, ba), 0.00001), 0.0, 1.0);
-    return length(pa - ba * h);
+  vec2 pa = p - a;
+  vec2 ba = b - a;
+  float h = clamp(dot(pa, ba) / max(dot(ba, ba), 0.00001), 0.0, 1.0);
+  return length(pa - ba * h);
 }
 
-float sdBox(vec2 p, vec2 b) {
-    vec2 d = abs(p) - b;
-    return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
+vec2 projectPoint(vec3 world) {
+  // Camera sits low in the club and looks into positive Z.
+  float z = max(0.65, world.z);
+  float focal = 1.30;
+  return vec2(
+    world.x / z * focal,
+    -world.y / z * focal + 0.085
+  );
 }
 
-vec3 laserColor(float index) {
-    float phase = mod(index, 7.0);
-    if (phase < 3.0) return vec3(1.0, 0.11, 0.22);
-    if (phase < 5.0) return vec3(0.18, 0.94, 1.0);
-    if (phase < 6.0) return vec3(0.16, 1.0, 0.60);
-    return vec3(0.92, 0.98, 1.0);
+vec3 canopyColor(float seed) {
+  float phase = fract(seed * 4.7);
+  if (phase < 0.42) return uAccentA;
+  if (phase < 0.82) return uAccentB;
+  return mix(uGlow, uAccentA, 0.24);
 }
 
 void main(void) {
-    vec2 uv = vTextureCoord;
-    vec2 p = uv * 2.0 - 1.0;
-    p.x *= uAspect;
+  vec2 p = vTextureCoord * 2.0 - 1.0;
+  p.x *= uAspect;
 
-    float power = max(0.0, uPower);
-    float quality = mix(0.68, 1.0, uQuality);
-    float emitterCount = mix(7.0, 18.0, clamp(uDetail / 3.0, 0.0, 1.0));
-    float rayCount = mix(12.0, 32.0, clamp(uDetail / 3.0, 0.0, 1.0));
+  float detail = clamp(uDetail / 3.0, 0.0, 1.0);
+  float quality = mix(0.72, 1.0, uQuality);
+  float power = max(0.0, uPower);
 
-    vec3 color = vec3(0.0025, 0.0045, 0.007);
-    float roomFog = noise2(p * vec2(2.1, 3.4) + vec2(uTime * 0.014, -uTime * 0.009));
-    color += vec3(0.008, 0.016, 0.022) * roomFog * (0.25 + uEnergy * 0.25 + power * 0.08);
+  vec3 color = uBackground;
 
-    float rigY = -0.78;
-    float rigMask = 1.0 - smoothstep(0.006, 0.018, sdBox(p - vec2(0.0, rigY), vec2(uAspect * 0.37, 0.012)));
-    color = mix(color, vec3(0.028, 0.034, 0.045), rigMask * 0.92);
+  // Deep club atmosphere: low-frequency fog gives the projected geometry air
+  // without becoming the identity layer itself.
+  float roomFog = noise2(
+    p * vec2(2.0, 3.2)
+    + vec2(uTime * 0.012, -uTime * 0.008)
+  );
+  float depthFog = exp(-abs(p.y + 0.02) * 2.4);
+  color += mix(uSurface, uMuted, 0.36)
+    * roomFog
+    * depthFog
+    * (0.035 + power * 0.012 + uEnergy * 0.010);
 
-    // Perspective floor is intentionally subtle: it provides physical depth,
-    // but the laser architecture remains the hero.
-    float floorStart = 0.43;
-    if (p.y > floorStart) {
-        float depth = clamp((p.y - floorStart) / (1.0 - floorStart), 0.0, 1.0);
-        float perspective = depth * depth;
-        float horizontal = abs(fract((perspective * 16.0 - uTime * 0.12)) - 0.5);
-        float hLine = 1.0 - smoothstep(0.485, 0.5, horizontal);
-        float convergeX = p.x / max(0.10, depth + 0.10);
-        float vertical = abs(fract(convergeX * 0.22 + 0.5) - 0.5);
-        float vLine = 1.0 - smoothstep(0.492, 0.5, vertical);
-        color += vec3(0.04, 0.15, 0.18) * (hLine + vLine * 0.5)
-            * (0.006 + power * 0.004 + uMid * 0.006) * quality;
+  // Perspective dance floor. This establishes real camera/depth coordinates
+  // before any laser is drawn.
+  for (int i = 0; i < 9; i++) {
+    float fi = float(i);
+    float z = 2.8 + fi * 1.55;
+    vec2 a = projectPoint(vec3(-4.2, -1.55, z));
+    vec2 b = projectPoint(vec3(4.2, -1.55, z));
+    float d = sdSegment(p, a, b);
+    float line = 1.0 - smoothstep(0.0012, 0.0032, d);
+    color += uSurface * line * (0.020 + (1.0 - fi / 9.0) * 0.010);
+  }
+
+  for (int i = 0; i < 9; i++) {
+    float fi = float(i);
+    float x = mix(-4.0, 4.0, fi / 8.0);
+    vec2 a = projectPoint(vec3(x, -1.55, 2.7));
+    vec2 b = projectPoint(vec3(x, -1.55, 15.5));
+    float d = sdSegment(p, a, b);
+    float line = 1.0 - smoothstep(0.0009, 0.0025, d);
+    color += uMuted * line * 0.018;
+  }
+
+  // Ceiling truss rails and depth slices frame the canopy in an actual room.
+  for (int i = 0; i < 7; i++) {
+    float fi = float(i);
+    float z = 3.0 + fi * 1.85;
+    vec2 a = projectPoint(vec3(-4.0, 1.72, z));
+    vec2 b = projectPoint(vec3(4.0, 1.72, z));
+    float d = sdSegment(p, a, b);
+    float line = 1.0 - smoothstep(0.0016, 0.0037, d);
+    color += uSurface * line * (0.055 + (1.0 - fi / 7.0) * 0.025);
+  }
+
+  for (int side = 0; side < 2; side++) {
+    float x = side == 0 ? -3.95 : 3.95;
+    vec2 a = projectPoint(vec3(x, 1.72, 2.7));
+    vec2 b = projectPoint(vec3(x, 1.72, 15.5));
+    float d = sdSegment(p, a, b);
+    float line = 1.0 - smoothstep(0.0017, 0.0043, d);
+    color += uSurface * line * 0.075;
+  }
+
+  // The hero: a true projected 3D canopy. Endpoints live at different X/Y/Z
+  // coordinates across the room, so beams cross above and through one another
+  // instead of sharing one 2D rig line.
+  float activeBeams = mix(18.0, 32.0, detail);
+  for (int i = 0; i < 32; i++) {
+    float fi = float(i);
+    float enabled = step(fi + 0.5, activeBeams);
+    float seed = hash11(fi * 17.31 + 4.7);
+    float seed2 = hash11(fi * 31.73 + 8.9);
+    float family = mod(fi, 4.0);
+
+    float zA = 3.1 + seed * 10.4;
+    float zB = 3.1 + seed2 * 10.4;
+    float scan = sin(uTime * (0.105 + seed * 0.055) + seed * 12.0);
+    float scan2 = cos(uTime * (0.083 + seed2 * 0.049) + seed2 * 15.0);
+
+    vec3 a3;
+    vec3 b3;
+
+    if (family < 0.5) {
+      // Transverse canopy rib: wall-to-wall at one depth slice.
+      float y = 1.02 + 0.34 * scan;
+      a3 = vec3(-3.85, y, zA);
+      b3 = vec3(3.85, 1.16 - 0.22 * scan2, zA + 0.18 * scan2);
+    } else if (family < 1.5) {
+      // Deep diagonal: connects opposite wall rails at different depths.
+      a3 = vec3(-3.85, 1.52, zA);
+      b3 = vec3(3.85, 0.70 + 0.30 * scan, zB);
+    } else if (family < 2.5) {
+      // Longitudinal canopy strand: runs with the room depth.
+      float x = mix(-3.0, 3.0, seed);
+      a3 = vec3(x, 1.58, 2.9);
+      b3 = vec3(x + scan * 1.45, 0.82 + seed2 * 0.42, 15.2);
+    } else {
+      // Reverse diagonal for the characteristic woven canopy lattice.
+      a3 = vec3(3.85, 1.48, zA);
+      b3 = vec3(-3.85, 0.72 + 0.32 * scan2, zB);
     }
 
-    for (int i = 0; i < 32; i++) {
-        float fi = float(i);
-        float active = step(fi + 0.5, rayCount);
-        float seed = hash11(fi * 19.31 + 2.7);
+    vec2 a = projectPoint(a3);
+    vec2 b = projectPoint(b3);
+    float depth = max(2.0, (a3.z + b3.z) * 0.5);
+    float d = sdSegment(p, a, b);
 
-        float emitterIndex = mod(fi, max(1.0, emitterCount));
-        float emitterT = (emitterIndex + 0.5) / max(1.0, emitterCount);
-        float ex = mix(-uAspect * 0.34, uAspect * 0.34, emitterT);
-        float ey = rigY + 0.035 + (hash11(emitterIndex * 7.2 + 1.3) - 0.5) * 0.045;
-        vec2 a = vec2(ex, ey);
+    float nearScale = clamp(7.5 / depth, 0.42, 1.35);
+    float coreWidth = mix(0.0011, 0.0018, quality) * nearScale;
+    float glowWidth = coreWidth * mix(5.2, 7.4, detail);
+    float veilWidth = glowWidth * 2.8;
 
-        float fan = (hash11(fi * 3.71 + 8.2) - 0.5) * 2.0;
-        float sweep = sin(uTime * (0.17 + seed * 0.13) + seed * 10.0)
-            * (0.10 + uBass * 0.07 + power * 0.018);
-        float tx = clamp(
-            ex * 0.28 + fan * (0.55 + uBass * 0.18) + sweep,
-            -uAspect * 0.88,
-            uAspect * 0.88
-        );
-        float ty = 0.78 - abs(fan) * 0.10 - seed * 0.045;
-        vec2 b = vec2(tx, ty);
+    float core = 1.0 - smoothstep(coreWidth, coreWidth * 2.0, d);
+    float glow = 1.0 - smoothstep(glowWidth, glowWidth * 2.2, d);
+    float veil = 1.0 - smoothstep(veilWidth, veilWidth * 2.5, d);
 
-        float d = sdSegment(p, a, b);
-        float coreWidth = mix(0.0014, 0.0022, quality);
-        float glowWidth = coreWidth * (4.0 + power * 0.7);
-        float core = 1.0 - smoothstep(coreWidth, coreWidth * 2.2, d);
-        float glow = 1.0 - smoothstep(glowWidth, glowWidth * 2.4, d);
+    vec3 laser = canopyColor(seed);
+    float lightResponse = (0.74 + uEnergy * 0.16 + uTreble * 0.08 + uTransient * 0.10)
+      * (0.58 + power * 0.26);
 
-        vec3 lc = laserColor(fi);
-        float flicker = 0.90 + 0.10 * sin(uTime * (7.0 + seed * 8.0) + seed * 41.0);
-        float gain = active * flicker * (0.46 + uEnergy * 0.34 + uTransient * 0.20) * (0.56 + power * 0.26);
-        color += lc * glow * gain * 0.22;
-        color += mix(lc, vec3(1.0), 0.40) * core * gain * 0.90;
+    // Haze breaks up the broad light volume, but does not move beam geometry.
+    float breakup = 0.72 + 0.28 * noise2(
+      p * vec2(7.0, 11.0) + vec2(seed * 17.0, uTime * 0.045)
+    );
 
-        float sourceDist = length(p - a);
-        float sourceGlint = 1.0 - smoothstep(0.0, 0.016 + uTransient * 0.004, sourceDist);
-        color += lc * sourceGlint * active * (0.13 + uTreble * 0.16 + uTransient * 0.12);
+    color += laser * veil * breakup * enabled * lightResponse * 0.030;
+    color += laser * glow * enabled * lightResponse * 0.20;
+    color += mix(laser, uGlow, 0.52) * core * enabled * lightResponse * 0.88;
+  }
 
-        float targetDist = length(p - b);
-        float floorHalo = 1.0 - smoothstep(0.0, 0.030 + uBass * 0.016, targetDist);
-        float floorHot = 1.0 - smoothstep(0.0, 0.006 + uTransient * 0.003, targetDist);
-        color += lc * floorHalo * active * (0.022 + uBass * 0.06 + uTransient * 0.04);
-        color += mix(lc, vec3(1.0), 0.55) * floorHot * active * (0.20 + uTransient * 0.30);
-    }
+  // Projected fixture pods live on both ceiling rails at different depths.
+  for (int i = 0; i < 12; i++) {
+    float fi = float(i);
+    float side = mod(fi, 2.0) < 1.0 ? -1.0 : 1.0;
+    float row = floor(fi * 0.5);
+    vec3 fixture3 = vec3(side * 3.82, 1.68, 3.0 + row * 2.15);
+    vec2 fixture = projectPoint(fixture3);
+    float depth = fixture3.z;
+    float radius = 0.010 * clamp(5.8 / depth, 0.45, 1.25);
+    float d = length(p - fixture);
+    float body = 1.0 - smoothstep(radius * 0.9, radius * 1.6, d);
+    float aperture = 1.0 - smoothstep(radius * 0.16, radius * 0.52, d);
+    color = mix(color, uSurface, body * 0.48);
+    color += canopyColor(hash11(fi * 7.7 + 2.0)) * aperture * (0.18 + uTreble * 0.14);
+  }
 
-    // Fixture apertures: thin luminous slots, not cartoon dots.
-    for (int j = 0; j < 18; j++) {
-        float fj = float(j);
-        float active = step(fj + 0.5, emitterCount);
-        float t = (fj + 0.5) / max(1.0, emitterCount);
-        vec2 fixtureP = p - vec2(mix(-uAspect * 0.34, uAspect * 0.34, t), rigY + 0.035);
-        float body = 1.0 - smoothstep(0.004, 0.010, sdBox(fixtureP, vec2(0.021, 0.012)));
-        float aperture = 1.0 - smoothstep(0.002, 0.006, sdBox(fixtureP - vec2(0.0, 0.004), vec2(0.010, 0.0025)));
-        color = mix(color, vec3(0.010, 0.012, 0.016), body * active * 0.74);
-        color += laserColor(fj) * aperture * active * (0.20 + uTreble * 0.18);
-    }
+  // Volumetric dust gives near/far separation without turning into a particle
+  // background. It is only visible where the room haze exists.
+  vec2 dustCell = floor((p + vec2(3.0)) * mix(42.0, 72.0, detail));
+  vec2 dustLocal = fract((p + vec2(3.0)) * mix(42.0, 72.0, detail)) - 0.5;
+  float dust = step(0.991, hash21(dustCell))
+    * (1.0 - smoothstep(0.0, 0.055, length(dustLocal)));
+  color += uGlow * dust * depthFog * (0.018 + uTreble * 0.018) * quality;
 
-    // Microscopic suspended haze specks sell volume while keeping line edges crisp.
-    float speck = smoothstep(0.985, 1.0, noise2(p * 65.0 + vec2(uTime * 0.45, -uTime * 0.18)));
-    color += vec3(0.45, 0.75, 0.80) * speck * (0.008 + uTreble * 0.018) * quality;
+  float vignette = 1.0 - smoothstep(
+    0.46,
+    1.14,
+    length(p * vec2(0.64, 1.0))
+  );
+  color *= 0.78 + vignette * 0.24;
+  color = vec3(1.0) - exp(-max(color, vec3(0.0)) * (1.05 + power * 0.36));
+  color = pow(color, vec3(0.94));
 
-    color *= 0.80 + power * 0.30;
-    color = 1.0 - exp(-max(color, vec3(0.0)) * (1.12 + uEnergy * 0.30));
-    color = pow(color, vec3(0.94));
-
-    gl_FragColor = vec4(color, 1.0);
+  gl_FragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
 }
 `;
 
@@ -198,6 +274,12 @@ type Uniforms = {
   uTransient: number;
   uAspect: number;
   uQuality: number;
+  uBackground: Float32Array;
+  uSurface: Float32Array;
+  uAccentA: Float32Array;
+  uAccentB: Float32Array;
+  uGlow: Float32Array;
+  uMuted: Float32Array;
 };
 
 export class LaserCanopyGridWorld {
@@ -226,6 +308,12 @@ export class LaserCanopyGridWorld {
           uTransient: { value: 0, type: "f32" },
           uAspect: { value: 16 / 9, type: "f32" },
           uQuality: { value: 1, type: "f32" },
+          uBackground: { value: new Float32Array([0.003, 0.006, 0.010]), type: "vec3<f32>" },
+          uSurface: { value: new Float32Array([0.028, 0.040, 0.060]), type: "vec3<f32>" },
+          uAccentA: { value: new Float32Array([0.98, 0.12, 0.30]), type: "vec3<f32>" },
+          uAccentB: { value: new Float32Array([0.12, 0.90, 1.0]), type: "vec3<f32>" },
+          uGlow: { value: new Float32Array([0.94, 0.98, 1.0]), type: "vec3<f32>" },
+          uMuted: { value: new Float32Array([0.16, 0.22, 0.28]), type: "vec3<f32>" },
         },
       },
     });
@@ -234,6 +322,15 @@ export class LaserCanopyGridWorld {
     this.container.addChild(this.surface);
     this.container.visible = false;
     this.resize(1, 1);
+  }
+
+  setPalette(palette: VisualPalette) {
+    this.writeColor("uBackground", palette.background);
+    this.writeColor("uSurface", palette.surface);
+    this.writeColor("uAccentA", palette.accentA);
+    this.writeColor("uAccentB", palette.accentB);
+    this.writeColor("uGlow", palette.glow);
+    this.writeColor("uMuted", palette.muted);
   }
 
   setIntensity(value: number) {
@@ -251,7 +348,10 @@ export class LaserCanopyGridWorld {
   resize(width: number, height: number) {
     this.width = Math.max(1, width);
     this.height = Math.max(1, height);
-    this.surface.clear().rect(0, 0, this.width, this.height).fill({ color: 0x020305, alpha: 1 });
+    this.surface
+      .clear()
+      .rect(0, 0, this.width, this.height)
+      .fill({ color: 0xffffff, alpha: 1 });
     this.write("uAspect", this.width / this.height);
   }
 
@@ -270,12 +370,34 @@ export class LaserCanopyGridWorld {
     this.container.alpha = clamp(this.intensity, 0, 1);
   }
 
-  private write(name: keyof Uniforms, value: number) {
-    const uniforms = (this.filter.resources.laserUniforms as { uniforms: Uniforms }).uniforms;
-    uniforms[name] = value;
+  private uniforms() {
+    return (this.filter.resources.laserUniforms as { uniforms: Uniforms }).uniforms;
   }
-}
 
-function clamp(value: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, value));
+  private write(
+    name:
+      | "uTime"
+      | "uPower"
+      | "uDetail"
+      | "uBass"
+      | "uMid"
+      | "uTreble"
+      | "uEnergy"
+      | "uTransient"
+      | "uAspect"
+      | "uQuality",
+    value: number,
+  ) {
+    this.uniforms()[name] = value;
+  }
+
+  private writeColor(
+    name: "uBackground" | "uSurface" | "uAccentA" | "uAccentB" | "uGlow" | "uMuted",
+    color: number,
+  ) {
+    const target = this.uniforms()[name];
+    target[0] = ((color >> 16) & 0xff) / 255;
+    target[1] = ((color >> 8) & 0xff) / 255;
+    target[2] = (color & 0xff) / 255;
+  }
 }
