@@ -71,7 +71,9 @@ export type BackgroundPresetId =
   | "editorial"
   | "print"
   | "architecture"
-  | "aurora";
+  | "aurora"
+  | "prism-stage-beams"
+  | "laser-canopy-grid";
 export type BackgroundPreset = "auto" | BackgroundPresetId;
 export type ColorHarmonyId =
   | "split-complement"
