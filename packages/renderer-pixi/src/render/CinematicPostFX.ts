@@ -53,8 +53,13 @@ void main(void) {
     vec2 texel = uInputSize.zw;
     vec2 centered = vTextureCoord - 0.5;
     float radius2 = dot(centered, centered);
+    float edgeDistance = min(
+        min(vTextureCoord.x, 1.0 - vTextureCoord.x),
+        min(vTextureCoord.y, 1.0 - vTextureCoord.y)
+    );
+    float edgeGuard = smoothstep(0.0, 0.075, edgeDistance);
 
-    float barrel = (0.004 + uBass * 0.009 + uTransient * 0.012) * uAmount;
+    float barrel = (0.004 + uBass * 0.009 + uTransient * 0.012) * uAmount * edgeGuard;
     vec2 uv = clamp(vTextureCoord + centered * radius2 * barrel, vec2(0.001), vec2(0.999));
 
     vec2 smearDir;
@@ -66,7 +71,10 @@ void main(void) {
         smearDir = normalize(vec2(-centered.y, centered.x) + vec2(0.0001));
     }
 
-    float smearPx = (0.65 + uBass * 2.4 + uTransient * 10.0) * uAmount * mix(0.72, 1.0, uQuality);
+    float smearPx = (0.65 + uBass * 2.4 + uTransient * 10.0)
+        * uAmount
+        * mix(0.72, 1.0, uQuality)
+        * mix(0.12, 1.0, edgeGuard);
     vec2 smearStep = smearDir * texel * smearPx;
 
     vec4 c0 = texture2D(uTexture, uv);
@@ -75,7 +83,7 @@ void main(void) {
     vec4 c3 = texture2D(uTexture, clamp(uv + smearStep * 0.65, vec2(0.001), vec2(0.999)));
     vec4 smeared = c0 * 0.66 + c1 * 0.17 + c2 * 0.08 + c3 * 0.09;
 
-    float chromaPx = (0.8 + uEnergy * 2.4 + uTransient * 8.0) * uAmount;
+    float chromaPx = (0.8 + uEnergy * 2.4 + uTransient * 8.0) * uAmount * edgeGuard;
     vec2 chroma = smearDir * texel * chromaPx;
     float red = texture2D(uTexture, clamp(uv + chroma, vec2(0.001), vec2(0.999))).r;
     float blue = texture2D(uTexture, clamp(uv - chroma, vec2(0.001), vec2(0.999))).b;
@@ -90,7 +98,10 @@ void main(void) {
     glow += texture2D(uTexture, clamp(uv - vec2(0.0, glowOffset.y), vec2(0.001), vec2(0.999))).rgb;
     glow *= 0.25;
     float bright = smoothstep(0.38, 1.0, luma(glow));
-    color += glow * bright * (0.12 + uEnergy * 0.24 + uTransient * 0.18) * uAmount;
+    color += glow * bright
+        * (0.12 + uEnergy * 0.24 + uTransient * 0.18)
+        * uAmount
+        * mix(0.35, 1.0, edgeGuard);
 
     if (uMode < 0.5) {
         color.r *= 1.03;
@@ -105,15 +116,17 @@ void main(void) {
     }
 
     float scan = sin((uv.y * uInputSize.y + uTime * 16.0) * 3.14159265);
-    color *= 1.0 - (0.007 + uEnergy * 0.006) * scan * uAmount;
+    color *= 1.0 - (0.007 + uEnergy * 0.006) * scan * uAmount * edgeGuard;
 
     float grain = hash21(uv * uInputSize.xy + vec2(uTime * 91.7, -uTime * 63.1)) - 0.5;
-    color += grain * (0.012 + uEnergy * 0.014) * uAmount;
+    color += grain * (0.012 + uEnergy * 0.014) * uAmount * mix(0.3, 1.0, edgeGuard);
 
     float vignette = smoothstep(0.84, 0.18, radius2);
     color *= mix(0.78, 1.0, vignette);
 
-    gl_FragColor = vec4(max(color, vec3(0.0)), smeared.a);
+    // The scene has an opaque world base. Keep the final presentation opaque as
+    // well so filter padding or feedback history can never reveal the HTML shell.
+    gl_FragColor = vec4(max(color, vec3(0.0)), 1.0);
 }
 `;
 

@@ -47,6 +47,8 @@ vec2 safeNormalize(vec2 value) {
 void main(void) {
     vec2 uv = vTextureCoord;
     vec2 centered = uv - 0.5;
+    float edgeDistance = min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y));
+    float edgeGuard = smoothstep(0.0, 0.065, edgeDistance);
     vec2 direction;
 
     if (uMode < 0.5) {
@@ -79,7 +81,7 @@ void main(void) {
     vec4 sample6 = texture2D(uTexture, clamp(uv + stepUv * 1.10, vec2(0.001), vec2(0.999)));
 
     float impact = clamp(uTransient * 1.7 + uBass * 0.35, 0.0, 1.0);
-    float trailMix = clamp((0.16 + impact * 0.56) * uAmount, 0.0, 0.82);
+    float trailMix = clamp((0.16 + impact * 0.56) * uAmount, 0.0, 0.82) * edgeGuard;
 
     vec4 trail =
         sample0 * 0.38 +
@@ -95,7 +97,8 @@ void main(void) {
         trailMix *= mix(0.62, 1.0, gate);
     }
 
-    gl_FragColor = mix(sample0, trail, trailMix);
+    vec4 result = mix(sample0, trail, trailMix);
+    gl_FragColor = vec4(result.rgb, 1.0);
 }
 `;
 
