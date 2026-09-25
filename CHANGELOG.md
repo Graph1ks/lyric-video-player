@@ -59,7 +59,7 @@ Git history remains the complete technical history. This file records meaningful
 - Progressive editorial Manifesto page build with immutable future-slot reservation.
 - Measured collision separation for Spiral Depth and Ribbon Path.
 - Shape Fill persistent grammar with Tree, Star and Human/Figure packed word silhouettes.
-- Manifesto Wall persistent grammar with deterministic masonry blocks, rigid snap-ins and vertical bracket words.
+- Manifesto Wall persistent grammar with progressive editorial-page writing, rigid snap-ins, moderate hierarchy and occasional vertical bracket words.
 
 ### Changed
 

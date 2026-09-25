@@ -167,7 +167,7 @@ See `docs/OPERATOR_OUTPUT_LOWER_THIRDS.md`.
 - Tree / Star / Human-Figure silhouette packers — complete baseline
 - stable phrase-scope text-fit slots using real renderer font metrics — complete baseline
 - legacy shape-build compatibility alias — complete baseline
-- Manifesto Wall phrase-wide masonry subdivision — complete baseline
+- initial Manifesto masonry prototype — historical baseline; superseded by v0.11.1 progressive editorial page
 - rigid snap/slotted word arrival — complete baseline
 - 90° bracket/column word slots — complete baseline
 - variable anchor / connector block hierarchy — complete baseline
