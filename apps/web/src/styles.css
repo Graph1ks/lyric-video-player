@@ -3676,3 +3676,43 @@ kbd {
   mask-image:radial-gradient(circle at 50% 48%, transparent 0 16%, #000 28%, transparent 88%);
   opacity:.75;
 }
+
+
+/* Reference worlds 05/06 — semantic Director miniatures */
+.director-miniature[data-preview="world-fractal-hex-spiral-mosaic"] {
+  background:
+    radial-gradient(circle at 28% 34%, rgba(120,255,210,.85) 0 4%, rgba(245,245,80,.72) 5% 9%, rgba(235,70,225,.66) 10% 16%, transparent 17%),
+    radial-gradient(circle at 63% 58%, rgba(80,205,255,.82) 0 3%, rgba(245,225,65,.72) 4% 8%, rgba(245,85,185,.62) 9% 15%, transparent 16%),
+    radial-gradient(circle at 78% 24%, rgba(180,100,255,.72) 0 3%, rgba(80,225,255,.68) 4% 8%, transparent 13%),
+    linear-gradient(135deg, #3cc8f3 0%, #75efb2 20%, #f2ef58 40%, #f277ae 65%, #b060f0 84%, #4bbfe8 100%);
+  box-shadow: inset 0 0 0 2px rgba(8,8,12,.82);
+}
+.director-miniature[data-preview="world-fractal-hex-spiral-mosaic"]::before {
+  content:"";
+  position:absolute;
+  inset:-12%;
+  background:
+    repeating-conic-gradient(from 8deg at 32% 38%, rgba(4,4,7,.82) 0 2deg, transparent 2.3deg 10deg),
+    repeating-conic-gradient(from 18deg at 68% 62%, rgba(4,4,7,.72) 0 1.4deg, transparent 1.8deg 8deg);
+  opacity:.62;
+  mix-blend-mode:multiply;
+}
+.director-miniature[data-preview="world-soft-hex-cell-field"] {
+  background:
+    radial-gradient(circle at 18% 18%, rgba(165,255,205,.92) 0 10%, transparent 11%),
+    radial-gradient(circle at 46% 20%, rgba(250,245,105,.9) 0 14%, transparent 15%),
+    radial-gradient(circle at 78% 26%, rgba(255,178,126,.88) 0 12%, transparent 13%),
+    radial-gradient(circle at 28% 62%, rgba(255,211,155,.9) 0 15%, transparent 16%),
+    radial-gradient(circle at 58% 64%, rgba(255,132,155,.9) 0 14%, transparent 15%),
+    radial-gradient(circle at 84% 70%, rgba(248,97,214,.86) 0 11%, transparent 12%),
+    #030304;
+}
+.director-miniature[data-preview="world-soft-hex-cell-field"]::before {
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(circle at 18% 18%, transparent 0 8%, rgba(255,255,255,.18) 9% 10%, transparent 11%),
+    radial-gradient(circle at 58% 64%, transparent 0 12%, rgba(0,0,0,.28) 13% 15%, transparent 16%);
+  opacity:.9;
+}
