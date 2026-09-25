@@ -74,13 +74,14 @@ The Color Director remains the art-direction source of truth:
 - `WorldColorContext` is defined in engine-core with title-safe luminance, highlight risk, busyness/chroma pressure, stable text-polarity recommendation and outline-support pressure.
 - The five Phase-B worst offenders are now isolated as dedicated worlds instead of shared-stack variants:
   - `vortex` → `LegacyVortexWorld`: projected helix ribbons, depth hoops and monotonic one-way tracers;
-  - `rays` → `LegacyRaysWorld`: multilayer volumetric shafts, autonomous target drift and event-only flare response;
-  - `starfield` → `LegacyStarfieldWorld`: deterministic world-space stars, perspective streaks and monotonic z travel;
-  - `nebula` → `LegacyNebulaWorld`: layered depth cloud masses, coherent filaments and autonomous dust parallax;
-  - `grid` → `LegacyGridWorld`: explicit perspective floor, monotonic depth-scroll rows and side wireframe architecture.
+  - `rays` → `LegacyRaysWorld`: fullscreen participating-media shader with broad soft cones, atmospheric breakup, source bloom and event-only light response;
+  - `starfield` → `LegacyStarfieldWorld`: fixed-axis 3D flight volume with deterministic stars, strictly one-way z travel, analytic earlier-time streaks and wrap fading;
+  - `nebula` → `LegacyNebulaWorld`: fullscreen domain-warped FBM gas density with ridged filaments, cavities, folded-volume lighting and sparse depth stars;
+  - `grid` → `LegacyGridWorld`: fullscreen infinite-perspective floor/ceiling, horizon atmosphere, moving side architecture and deterministic energy traffic.
 - Those five preset IDs are included in the specialized-world isolation set, so generic particles/blobs/rings/beams no longer dilute them.
-- All five consume semantic `VisualPalette` roles. Geometry/phase/direction are timestamp-owned; smoothed legacy audio only affects light/material response, and Rays uses the positive transient envelope for flare brightness only.
+- All five consume semantic `VisualPalette` roles. Geometry/phase/direction are timestamp-owned; smoothed legacy audio only affects light/material response, and Rays uses the positive transient envelope for light only. Full-frame post-FX barrel/displacement/smear sampling distance is also time-owned so global FX cannot reintroduce bass-driven scene breathing.
 - All five remain **visual-acceptance pending**; do not describe them as fidelity-accepted until real browser/Desktop review passes.
+- Fidelity escalation is now explicit in `docs/WORLD_BACKGROUND_REHABILITATION_PLAN.md`: continuous media/spatial worlds must use shader/projected-3D/Mesh primitives appropriate to their identity instead of primitive `Graphics` stand-ins; `Graph1ks/website` remains the internal quality benchmark.
 
 ## Merged baseline — Resource lifetime + physical-edge safety v0.11.2
 
