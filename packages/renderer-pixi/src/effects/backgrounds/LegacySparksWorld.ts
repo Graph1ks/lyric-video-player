@@ -1,4 +1,4 @@
-import { Container, Graphics } from "pixi.js";
+import { Container, Filter, GlProgram, Graphics } from "pixi.js";
 import type { AudioBands } from "@graph1ks/emo-audio-web";
 import {
   clamp,
@@ -6,346 +6,410 @@ import {
   type VisualPalette,
 } from "@graph1ks/emo-engine-core";
 
-type SparkSeed = {
-  phase: number;
-  rate: number;
-  source: number;
-  direction: number;
-  lift: number;
-  spread: number;
-  size: number;
-  brightness: number;
-  burstAffinity: number;
-  hue: number;
+const vertex = `
+in vec2 aPosition;
+out vec2 vTextureCoord;
+uniform vec4 uInputSize;
+uniform vec4 uOutputFrame;
+uniform vec4 uOutputTexture;
+
+vec4 filterVertexPosition(void) {
+  vec2 position = aPosition * uOutputFrame.zw + uOutputFrame.xy;
+  position.x = position.x * (2.0 / uOutputTexture.x) - 1.0;
+  position.y = position.y * (2.0 * uOutputTexture.z / uOutputTexture.y) - uOutputTexture.z;
+  return vec4(position, 0.0, 1.0);
+}
+
+void main(void) {
+  gl_Position = filterVertexPosition();
+  vTextureCoord = aPosition * (uOutputFrame.zw * uInputSize.zw);
+}
+`;
+
+const fragment = `
+precision highp float;
+
+in vec2 vTextureCoord;
+uniform float uTime;
+uniform float uPower;
+uniform float uDetail;
+uniform float uQuality;
+uniform float uEnergy;
+uniform float uMid;
+uniform float uTreble;
+uniform float uBurst;
+uniform float uAspect;
+uniform vec3 uBackground;
+uniform vec3 uSurface;
+uniform vec3 uAccentA;
+uniform vec3 uAccentB;
+uniform vec3 uGlow;
+uniform vec3 uMuted;
+
+float hash21(vec2 p) {
+  p = fract(p * vec2(123.34, 456.21));
+  p += dot(p, p + 45.32);
+  return fract(p.x * p.y);
+}
+
+float noise2(vec2 p) {
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  float a = hash21(i);
+  float b = hash21(i + vec2(1.0, 0.0));
+  float c = hash21(i + vec2(0.0, 1.0));
+  float d = hash21(i + vec2(1.0, 1.0));
+  return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+
+mat2 rot(float a) {
+  float c = cos(a);
+  float s = sin(a);
+  return mat2(c, -s, s, c);
+}
+
+float sdSegment(vec2 p, vec2 a, vec2 b) {
+  vec2 pa = p - a;
+  vec2 ba = b - a;
+  float h = clamp(dot(pa, ba) / max(dot(ba, ba), 0.00001), 0.0, 1.0);
+  return length(pa - ba * h);
+}
+
+vec3 streakField(
+  vec2 p,
+  float angle,
+  vec2 frequency,
+  float speed,
+  float seed,
+  float occupancy,
+  float width
+) {
+  // Distributed flow coordinates create a room-wide spark storm. There are no
+  // fixed emitters or ballistic fountain arcs; every stream owns its motion.
+  vec2 q = rot(angle) * p;
+  q.x += uTime * speed;
+
+  vec2 grid = q * frequency;
+  vec2 cell = floor(grid);
+  vec2 local = fract(grid) - 0.5;
+
+  float h0 = hash21(cell + vec2(seed, seed * 1.71));
+  float h1 = hash21(cell + vec2(seed * 2.37 + 3.1, seed * 4.17 + 1.7));
+  float h2 = hash21(cell + vec2(seed * 5.13 + 7.7, seed * 3.41 + 5.9));
+  float active = step(1.0 - occupancy, h0);
+
+  float yJitter = (h1 - 0.5) * 0.64;
+  float headX = mix(-0.08, 0.34, h2);
+  float tailLength = mix(0.18, 0.48, h1);
+  float bend = sin((local.x + h0) * 4.2 + h2 * 6.28318) * 0.030;
+
+  vec2 shaped = local;
+  shaped.y -= yJitter * 0.28 + bend;
+
+  vec2 tail = vec2(headX - tailLength, 0.0);
+  vec2 head = vec2(headX, 0.0);
+  float d = sdSegment(shaped, tail, head);
+
+  float along = clamp((shaped.x - tail.x) / max(tailLength, 0.001), 0.0, 1.0);
+  float gate = step(tail.x, shaped.x) * step(shaped.x, head.x);
+  float taper = pow(along, 1.6);
+
+  float core = (1.0 - smoothstep(width, width * 2.15, d))
+    * gate
+    * taper
+    * active;
+  float glow = (1.0 - smoothstep(width * 3.0, width * 7.5, d))
+    * gate
+    * pow(taper, 0.75)
+    * active;
+  float hotHead = (1.0 - smoothstep(
+    width * 1.4,
+    width * 4.5,
+    length(shaped - head)
+  )) * active;
+
+  return vec3(core, glow, hotHead);
+}
+
+void main(void) {
+  vec2 p = vTextureCoord * 2.0 - 1.0;
+  p.x *= uAspect;
+
+  float detail = clamp(uDetail / 3.0, 0.0, 1.0);
+  float quality = mix(0.72, 1.0, uQuality);
+  float power = max(0.0, uPower);
+
+  vec3 color = uBackground;
+
+  // Low heat/smoke substrate. It grounds the world but does not define motion.
+  float smoke = noise2(
+    p * vec2(1.8, 3.0)
+    + vec2(uTime * 0.010, -uTime * 0.015)
+  );
+  float heatBand = exp(-abs(p.y - 0.22) * 3.1);
+  color += mix(uSurface, uMuted, 0.42)
+    * smoke
+    * heatBand
+    * (0.030 + uEnergy * 0.012 + power * 0.010);
+
+  float occupancy = mix(0.20, 0.34, detail);
+  float width = mix(0.012, 0.0075, detail);
+
+  vec3 layer0 = streakField(
+    p,
+    0.22,
+    vec2(mix(4.8, 7.2, detail), mix(8.0, 12.0, detail)),
+    0.54,
+    1.7,
+    occupancy,
+    width
+  );
+  vec3 layer1 = streakField(
+    p,
+    -0.31,
+    vec2(mix(4.0, 6.4, detail), mix(7.0, 11.0, detail)),
+    -0.43,
+    7.9,
+    occupancy * 0.88,
+    width * 0.92
+  );
+  vec3 layer2 = streakField(
+    p,
+    0.66,
+    vec2(mix(3.7, 5.7, detail), mix(6.0, 9.5, detail)),
+    0.31,
+    13.4,
+    occupancy * 0.76,
+    width * 0.82
+  );
+  vec3 layer3 = streakField(
+    p,
+    -0.82,
+    vec2(mix(3.2, 5.2, detail), mix(5.8, 8.7, detail)),
+    -0.27,
+    21.3,
+    occupancy * 0.68,
+    width * 0.76
+  );
+
+  // Cinema adds two quieter depth strata instead of simply increasing opacity.
+  vec3 layer4 = streakField(
+    p * 0.92,
+    0.10,
+    vec2(8.6, 14.5),
+    0.68,
+    31.8,
+    occupancy * 0.52 * uQuality,
+    width * 0.62
+  );
+  vec3 layer5 = streakField(
+    p * 1.08,
+    -0.48,
+    vec2(7.5, 13.2),
+    -0.58,
+    44.1,
+    occupancy * 0.46 * uQuality,
+    width * 0.58
+  );
+
+  float coreA = layer0.x + layer2.x + layer4.x;
+  float coreB = layer1.x + layer3.x + layer5.x;
+  float glowA = layer0.y + layer2.y + layer4.y;
+  float glowB = layer1.y + layer3.y + layer5.y;
+  float heads = layer0.z + layer1.z + layer2.z + layer3.z + layer4.z + layer5.z;
+
+  // Audio changes emissive/material energy only. The flow field, direction,
+  // coordinates and speed above remain entirely playback-time owned.
+  float lightResponse = 0.80 + uEnergy * 0.12 + uTreble * 0.09 + uMid * 0.04;
+  float burstLight = 1.0 + uBurst * 0.72;
+
+  color += uAccentA * glowA * 0.060 * lightResponse;
+  color += uAccentB * glowB * 0.055 * lightResponse;
+  color += mix(uAccentA, uGlow, 0.52) * coreA * 0.50 * lightResponse;
+  color += mix(uAccentB, uGlow, 0.48) * coreB * 0.46 * lightResponse;
+  color += uGlow * heads * 0.22 * lightResponse * burstLight;
+
+  // Fine embers rise slowly across the whole scene. They are a secondary depth
+  // cue, not four visible sources.
+  vec2 emberQ = p;
+  emberQ.y += uTime * 0.055;
+  vec2 emberGrid = emberQ * vec2(
+    mix(11.0, 18.0, detail),
+    mix(8.0, 13.0, detail)
+  );
+  vec2 emberCell = floor(emberGrid);
+  vec2 emberLocal = fract(emberGrid) - 0.5;
+  float emberHash = hash21(emberCell + vec2(5.3, 19.7));
+  emberLocal.x += (hash21(emberCell + vec2(11.1, 2.7)) - 0.5) * 0.62;
+  float ember = step(0.965 - detail * 0.018, emberHash)
+    * (1.0 - smoothstep(0.0, 0.075, length(emberLocal)));
+  color += mix(uMuted, uGlow, 0.54)
+    * ember
+    * (0.045 + uTreble * 0.025)
+    * quality;
+
+  // A few glancing hot seams suggest sparks passing close to the lens.
+  float nearSeamA = exp(-abs(
+    p.y - (0.48 + sin(p.x * 2.7 + uTime * 0.13) * 0.018)
+  ) * 110.0);
+  float nearSeamB = exp(-abs(
+    p.y - (-0.36 + cos(p.x * 3.1 - uTime * 0.11) * 0.014)
+  ) * 135.0);
+  color += uAccentA * nearSeamA * 0.020 * (0.8 + uEnergy * 0.2);
+  color += uAccentB * nearSeamB * 0.016 * (0.8 + uTreble * 0.2);
+
+  float vignette = 1.0 - smoothstep(
+    0.46,
+    1.12,
+    length(p * vec2(0.66, 1.0))
+  );
+  color *= 0.80 + vignette * 0.22;
+
+  color = vec3(1.0) - exp(
+    -max(color, vec3(0.0)) * (1.0 + power * 0.44)
+  );
+  color = pow(color, vec3(0.95));
+
+  gl_FragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
+}
+`;
+
+type Uniforms = {
+  uTime: number;
+  uPower: number;
+  uDetail: number;
+  uQuality: number;
+  uEnergy: number;
+  uMid: number;
+  uTreble: number;
+  uBurst: number;
+  uAspect: number;
+  uBackground: Float32Array;
+  uSurface: Float32Array;
+  uAccentA: Float32Array;
+  uAccentB: Float32Array;
+  uGlow: Float32Array;
+  uMuted: Float32Array;
 };
 
 export class LegacySparksWorld {
   readonly container = new Container();
 
-  private readonly backdrop = new Graphics();
-  private readonly glow = new Graphics();
-  private readonly trails = new Graphics();
-  private readonly heads = new Graphics();
-  private readonly seeds: SparkSeed[] = [];
+  private readonly surface = new Graphics();
+  private readonly filter: Filter;
   private width = 1;
   private height = 1;
   private intensity = 1;
   private detail = 1;
   private quality: QualityMode = "cinema";
-  private palette?: VisualPalette;
 
   constructor() {
-    this.glow.blendMode = "add";
-    this.heads.blendMode = "add";
-    this.container.addChild(this.backdrop, this.glow, this.trails, this.heads);
+    this.filter = new Filter({
+      glProgram: GlProgram.from({ vertex, fragment }),
+      resources: {
+        sparksUniforms: {
+          uTime: { value: 0, type: "f32" },
+          uPower: { value: 1 / 3, type: "f32" },
+          uDetail: { value: 1 / 3, type: "f32" },
+          uQuality: { value: 1, type: "f32" },
+          uEnergy: { value: 0, type: "f32" },
+          uMid: { value: 0, type: "f32" },
+          uTreble: { value: 0, type: "f32" },
+          uBurst: { value: 0, type: "f32" },
+          uAspect: { value: 16 / 9, type: "f32" },
+          uBackground: { value: new Float32Array([0.003, 0.006, 0.008]), type: "vec3<f32>" },
+          uSurface: { value: new Float32Array([0.040, 0.050, 0.055]), type: "vec3<f32>" },
+          uAccentA: { value: new Float32Array([1.0, 0.42, 0.12]), type: "vec3<f32>" },
+          uAccentB: { value: new Float32Array([0.98, 0.14, 0.24]), type: "vec3<f32>" },
+          uGlow: { value: new Float32Array([1.0, 0.92, 0.72]), type: "vec3<f32>" },
+          uMuted: { value: new Float32Array([0.30, 0.24, 0.20]), type: "vec3<f32>" },
+        },
+      },
+    });
+
+    this.filter.padding = 0;
+    this.surface.filters = [this.filter];
+    this.container.addChild(this.surface);
     this.container.visible = false;
-    this.buildSeeds();
     this.resize(1, 1);
   }
 
   setPalette(palette: VisualPalette) {
-    this.palette = palette;
+    this.writeColor("uBackground", palette.background);
+    this.writeColor("uSurface", palette.surface);
+    this.writeColor("uAccentA", palette.accentA);
+    this.writeColor("uAccentB", palette.accentB);
+    this.writeColor("uGlow", palette.glow);
+    this.writeColor("uMuted", palette.muted);
   }
 
   setIntensity(value: number) {
     this.intensity = clamp(value, 0, 3);
+    this.write("uPower", clamp(this.intensity / 3));
   }
 
   setDetail(value: number) {
     this.detail = clamp(value, 0, 3);
+    this.write("uDetail", clamp(this.detail / 3));
   }
 
   setQuality(value: QualityMode) {
     this.quality = value;
+    this.write("uQuality", value === "cinema" ? 1 : 0);
   }
 
   resize(width: number, height: number) {
     this.width = Math.max(1, width);
     this.height = Math.max(1, height);
+    this.surface
+      .clear()
+      .rect(0, 0, this.width, this.height)
+      .fill({ color: 0xffffff, alpha: 1 });
+    this.write("uAspect", this.width / this.height);
   }
 
   update(time: number, audio: AudioBands, transientEnvelope: number) {
     if (!this.container.visible) return;
-    this.draw(time, audio, clamp(transientEnvelope, 0, 1));
+    this.write("uTime", time);
+    this.write("uPower", clamp(this.intensity / 3));
+    this.write("uDetail", clamp(this.detail / 3));
+    this.write("uQuality", this.quality === "cinema" ? 1 : 0);
+    this.write("uEnergy", audio.energy);
+    this.write("uMid", audio.mid);
+    this.write("uTreble", audio.treble);
+    this.write("uBurst", clamp(transientEnvelope, 0, 1));
+    this.write("uAspect", this.width / this.height);
     this.container.alpha = clamp(this.intensity, 0, 1);
   }
 
-  private buildSeeds() {
-    const total = 460;
-    for (let index = 0; index < total; index++) {
-      this.seeds.push({
-        phase: hash(index * 3.17 + 1.2),
-        rate: 0.095 + hash(index * 4.83 + 6.1) * 0.16,
-        source: Math.floor(hash(index * 7.11 + 2.7) * 4),
-        direction: hash(index * 8.29 + 9.3) < 0.5 ? -1 : 1,
-        lift: 0.55 + hash(index * 5.43 + 4.1) * 0.58,
-        spread: (hash(index * 6.71 + 5.9) - 0.5) * 0.72,
-        size: 0.55 + hash(index * 9.31 + 7.7) * 1.45,
-        brightness: 0.42 + hash(index * 11.13 + 3.4) * 0.78,
-        burstAffinity: hash(index * 13.79 + 8.6),
-        hue: hash(index * 15.17 + 1.9),
-      });
-    }
+  private uniforms() {
+    return (this.filter.resources.sparksUniforms as { uniforms: Uniforms }).uniforms;
   }
 
-  private draw(time: number, audio: AudioBands, transientEnvelope: number) {
-    this.backdrop.clear();
-    this.glow.clear();
-    this.trails.clear();
-    this.heads.clear();
-
-    const background = this.palette?.background ?? 0x010305;
-    const surface = this.palette?.surface ?? 0x101619;
-    const accentA = this.palette?.accentA ?? 0xffb45f;
-    const accentB = this.palette?.accentB ?? 0xff526f;
-    const glowColor = this.palette?.glow ?? 0xfff3db;
-    const muted = this.palette?.muted ?? 0x65514c;
-
-    this.backdrop.rect(0, 0, this.width, this.height).fill({ color: background, alpha: 1 });
-
-    const detail01 = clamp(this.detail / 3, 0, 1);
-    const qualityScale = this.quality === "cinema" ? 1 : 0.68;
-    const count = Math.max(
-      130,
-      Math.min(
-        this.seeds.length,
-        Math.round((170 + detail01 * 290) * qualityScale * (0.72 + this.intensity * 0.16)),
-      ),
-    );
-
-    // A faint floor of smoke/heat keeps the fountain spatially grounded without
-    // replacing the ballistic trajectories as the identity layer.
-    const floorY = this.height * 0.82;
-    this.glow
-      .rect(0, floorY - this.height * 0.035, this.width, this.height * 0.07)
-      .fill({
-        color: mixColor(surface, accentB, 0.18),
-        alpha: 0.010 + audio.energy * 0.012,
-      });
-
-    for (let index = 0; index < count; index++) {
-      const seed = this.seeds[index];
-      const cycle = seed.phase + time * seed.rate;
-      const age = fract(cycle);
-      const born = smoothstep(0.0, 0.035, age);
-      const death = 1 - smoothstep(0.58, 0.995, age);
-      const lifeAlpha = born * death;
-      if (lifeAlpha <= 0.001) continue;
-
-      // Transient response creates extra freshly-born emission only. It never
-      // rescales, reverses or bends particles already in flight.
-      const freshWindow = 1 - smoothstep(0.08, 0.26, age);
-      const burstSpawn = transientEnvelope
-        * freshWindow
-        * smoothstep(0.58, 0.96, seed.burstAffinity);
-
-      const origin = emitter(seed.source, time, this.width, this.height);
-      const scale = Math.min(this.width, this.height);
-      const vx = seed.direction * scale * (0.12 + Math.abs(seed.spread) * 0.18)
-        + seed.spread * scale * 0.13;
-      const vy = -scale * (0.44 + seed.lift * 0.32);
-      const gravity = scale * (0.46 + seed.size * 0.08);
-      const curl = scale * (0.018 + detail01 * 0.018);
-
-      const position = sparkPosition(origin.x, origin.y, vx, vy, gravity, curl, age, seed, time);
-      const trailAge = 0.035 + seed.size * 0.012 + detail01 * 0.016;
-      const previous1 = sparkPosition(
-        origin.x,
-        origin.y,
-        vx,
-        vy,
-        gravity,
-        curl,
-        Math.max(0, age - trailAge),
-        seed,
-        time,
-      );
-      const previous2 = sparkPosition(
-        origin.x,
-        origin.y,
-        vx,
-        vy,
-        gravity,
-        curl,
-        Math.max(0, age - trailAge * 2),
-        seed,
-        time,
-      );
-      const previous3 = sparkPosition(
-        origin.x,
-        origin.y,
-        vx,
-        vy,
-        gravity,
-        curl,
-        Math.max(0, age - trailAge * 3),
-        seed,
-        time,
-      );
-
-      const margin = scale * 0.10;
-      if (
-        position.x < -margin
-        || position.x > this.width + margin
-        || position.y < -margin
-        || position.y > this.height + margin
-      ) continue;
-
-      const baseColor = mixColor(accentA, accentB, seed.hue);
-      const hotColor = mixColor(baseColor, glowColor, 0.36 + seed.brightness * 0.32);
-      const audioLight = 0.82 + audio.energy * 0.12 + audio.treble * 0.11;
-      const alpha = clamp(
-        lifeAlpha
-          * seed.brightness
-          * audioLight
-          * (0.36 + this.intensity * 0.26)
-          * (1 + burstSpawn * 0.75),
-        0,
-        0.96,
-      );
-      const width = (0.62 + seed.size * 0.62) * (0.76 + detail01 * 0.26);
-
-      this.glow
-        .moveTo(previous3.x, previous3.y)
-        .lineTo(previous2.x, previous2.y)
-        .lineTo(previous1.x, previous1.y)
-        .lineTo(position.x, position.y)
-        .stroke({
-          width: width * (4.2 + seed.size * 1.1),
-          color: baseColor,
-          alpha: alpha * (0.018 + audio.energy * 0.020 + burstSpawn * 0.018),
-        });
-
-      this.trails
-        .moveTo(previous3.x, previous3.y)
-        .lineTo(previous2.x, previous2.y)
-        .lineTo(previous1.x, previous1.y)
-        .lineTo(position.x, position.y)
-        .stroke({
-          width,
-          color: baseColor,
-          alpha: alpha * 0.72,
-        });
-
-      const headRadius = (0.62 + seed.size * 0.72) * (1 + burstSpawn * 0.24);
-      this.heads
-        .circle(position.x, position.y, headRadius * 2.8)
-        .fill({
-          color: baseColor,
-          alpha: alpha * (0.025 + audio.treble * 0.025),
-        });
-      this.heads
-        .circle(position.x, position.y, headRadius)
-        .fill({
-          color: hotColor,
-          alpha,
-        });
-
-      if (seed.brightness > 0.90 && age < 0.42) {
-        const flare = headRadius * (2.6 + burstSpawn * 1.8);
-        this.heads
-          .moveTo(position.x - flare, position.y)
-          .lineTo(position.x + flare, position.y)
-          .stroke({
-            width: 0.55,
-            color: glowColor,
-            alpha: alpha * 0.22,
-          });
-      }
-    }
-
-    // Deterministic hot-source embers communicate emitter locations even in a
-    // paused frame; they are material accents, not the moving identity layer.
-    for (let source = 0; source < 4; source++) {
-      const origin = emitter(source, time, this.width, this.height);
-      const sourceColor = source % 2 ? accentB : accentA;
-      this.glow
-        .circle(origin.x, origin.y, this.height * 0.018)
-        .fill({
-          color: sourceColor,
-          alpha: 0.015 + audio.energy * 0.018,
-        });
-      this.heads
-        .circle(origin.x, origin.y, 1.2 + detail01 * 0.7)
-        .fill({
-          color: mixColor(sourceColor, glowColor, 0.55),
-          alpha: 0.30 + transientEnvelope * 0.22,
-        });
-    }
-
-    // A few low-energy ash motes establish depth without becoming generic
-    // fallback particles.
-    const ashCount = this.quality === "cinema" ? 34 : 18;
-    for (let i = 0; i < ashCount; i++) {
-      const sx = hash(i * 31.7 + 4.1);
-      const sy = fract(hash(i * 19.1 + 9.2) + time * (0.006 + hash(i * 8.7) * 0.009));
-      const x = sx * this.width + Math.sin(time * 0.07 + i) * this.width * 0.008;
-      const y = this.height * (0.92 - sy * 0.82);
-      this.heads
-        .circle(x, y, 0.45 + hash(i * 3.7) * 0.75)
-        .fill({
-          color: mixColor(muted, glowColor, 0.28),
-          alpha: 0.035 + audio.treble * 0.018,
-        });
-    }
+  private write(
+    name:
+      | "uTime"
+      | "uPower"
+      | "uDetail"
+      | "uQuality"
+      | "uEnergy"
+      | "uMid"
+      | "uTreble"
+      | "uBurst"
+      | "uAspect",
+    value: number,
+  ) {
+    this.uniforms()[name] = value;
   }
-}
 
-function emitter(source: number, time: number, width: number, height: number) {
-  const wobble = Math.sin(time * 0.12 + source * 1.73);
-  if (source === 0) return { x: width * (0.16 + wobble * 0.012), y: height * 0.84 };
-  if (source === 1) return { x: width * (0.37 + wobble * 0.010), y: height * 0.88 };
-  if (source === 2) return { x: width * (0.64 + wobble * 0.010), y: height * 0.87 };
-  return { x: width * (0.84 + wobble * 0.012), y: height * 0.83 };
-}
-
-function sparkPosition(
-  originX: number,
-  originY: number,
-  vx: number,
-  vy: number,
-  gravity: number,
-  curl: number,
-  age: number,
-  seed: SparkSeed,
-  time: number,
-) {
-  const flight = age * (1.15 + seed.lift * 0.28);
-  return {
-    x: originX
-      + vx * flight
-      + Math.sin(flight * 5.2 + seed.phase * 9.0 + time * 0.045) * curl * flight,
-    y: originY
-      + vy * flight
-      + 0.5 * gravity * flight * flight,
-  };
-}
-
-function mixColor(a: number, b: number, t: number) {
-  const amount = clamp(t, 0, 1);
-  const ar = (a >> 16) & 0xff;
-  const ag = (a >> 8) & 0xff;
-  const ab = a & 0xff;
-  const br = (b >> 16) & 0xff;
-  const bg = (b >> 8) & 0xff;
-  const bb = b & 0xff;
-  return (
-    (Math.round(ar + (br - ar) * amount) << 16)
-    | (Math.round(ag + (bg - ag) * amount) << 8)
-    | Math.round(ab + (bb - ab) * amount)
-  );
-}
-
-function hash(value: number) {
-  const x = Math.sin(value * 127.1 + 311.7) * 43758.5453;
-  return fract(x);
-}
-
-function fract(value: number) {
-  return value - Math.floor(value);
-}
-
-function smoothstep(edge0: number, edge1: number, value: number) {
-  const t = clamp((value - edge0) / Math.max(0.000001, edge1 - edge0), 0, 1);
-  return t * t * (3 - 2 * t);
+  private writeColor(
+    name: "uBackground" | "uSurface" | "uAccentA" | "uAccentB" | "uGlow" | "uMuted",
+    color: number,
+  ) {
+    const target = this.uniforms()[name];
+    target[0] = ((color >> 16) & 0xff) / 255;
+    target[1] = ((color >> 8) & 0xff) / 255;
+    target[2] = (color & 0xff) / 255;
+  }
 }

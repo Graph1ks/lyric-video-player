@@ -264,6 +264,7 @@ export class CinematicBackground {
 
   setPalette(palette: VisualPalette, refreshStatic = true) {
     this.palette = palette;
+    this.laserCanopyGrid.setPalette(palette);
     this.legacyVortex.setPalette(palette);
     this.legacyRays.setPalette(palette);
     this.legacyStarfield.setPalette(palette);
