@@ -29,8 +29,8 @@ Interpretation of controls:
 
 | ID | World | Reference file | Identity / required visual language | Detail axis | Primary audio response | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| 01 | Prism Stage Beams | `01_prism_stage_beams.png` | Central stage-light hub emitting thick volumetric rainbow/RGB shafts through haze; strong bloom and dark negative space. | major/ghost beam count, fixture count, haze layers | bass→beam width+bloom; energy→brightness; transient→flare surge | **Implemented** |
-| 02 | Laser Canopy Grid | `02_laser_canopy_grid.png` | Thin crisp red/cyan/green lasers from overhead rig to floor hit-points; geometric canopy, black room, minimal haze. | emitters, rays/emitter, floor points, sparkle density | bass→canopy spread/floor glow; treble→shimmer; transient→burst brightness | **Implemented** |
+| 01 | Prism Stage Beams | `01_prism_stage_beams.png` | Central stage-light hub emitting thick volumetric rainbow/RGB shafts through haze; strong bloom and dark negative space. | shader beam density, haze/gobo complexity, fixture apertures | bass→beam width+bloom; energy→brightness; transient→flare surge | **Implemented — GPU shader v2** |
+| 02 | Laser Canopy Grid | `02_laser_canopy_grid.png` | Thin crisp red/cyan/green lasers from overhead rig to floor hit-points; geometric canopy, black room, minimal haze. | analytic ray count, emitter count, floor/detail density | bass→canopy spread/floor glow; treble→shimmer; transient→burst brightness | **Implemented — GPU shader v2** |
 | 03 | Disco Mirrorball Room | `03_disco_mirrorball_room.png` | Central mirrored disco ball inside an enclosed dark room with hundreds of colored square reflections on walls/floor/ceiling. | mirror facets, reflected tiles, room light spots | bass→room pulse; highs→sparkle/twinkle; transient→ball flare | Planned |
 | 04 | Neon Energy Burst Tunnel | `04_neon_energy_burst_tunnel.png` | Explosive central neon warp tunnel with outward speed streaks and electric scribble lines in magenta/blue/gold. | streak count, electric filaments, trail layers | bass→rush/line thickness; highs→scribble detail; transient→burst spikes | Planned |
 | 05 | Fractal Hex Spiral Mosaic | `05_fractal_hex_spiral_mosaic.png` | Graphic cellular/hex tessellation recursively spiraling into multiple sinks; thick dark outlines and rainbow cells. | cell subdivision, spiral depth, secondary sinks | bass→field pulse; mids/highs→color ripple; transient→spiral accent | Planned |
@@ -69,7 +69,7 @@ Required:
 
 `packages/renderer-pixi/src/effects/backgrounds/PrismStageBeamsWorld.ts`
 
-The implementation uses reusable Pixi `Graphics` layers only; no per-frame object allocation or external dependency.
+The initial Graphics prototype was rejected as insufficiently cinematic. The current implementation is a full-screen custom Pixi GPU shader with analytic beam cones, procedural density/haze, spectral color, integrated apertures, anamorphic flare and filmic exposure compression.
 
 ## WORLD_02 — Laser Canopy Grid
 
@@ -97,13 +97,13 @@ Required:
 
 `packages/renderer-pixi/src/effects/backgrounds/LaserCanopyGridWorld.ts`
 
-The implementation uses separate crisp core/glow passes so the lasers remain visually sharp while still reading in a dark scene.
+The initial CPU Graphics line prototype was replaced by a full-screen analytic GPU shader. Segment-distance fields create the laser cores/glow, while the same pass renders rig apertures, floor impacts, perspective depth and restrained haze.
 
 ## Research notes for the first two builds
 
 The implementation direction was cross-checked against real concert/light-show imagery: broad stage-light beams rely on atmospheric volume and a visible source region, while laser shows read through thin geometric lines, ceiling/rig origin and depth-defining intersections/hit points.
 
-No third-party image asset or code is bundled. The worlds are original procedural implementations using the existing PixiJS stack.
+No third-party image asset or code is bundled. The worlds are original procedural implementations using the existing PixiJS stack. Rendering-technology research and the current decision not to add Three.js prematurely are documented in `docs/WORLD_RENDERING_TECH_RESEARCH.md`.
 
 ## Integration status
 

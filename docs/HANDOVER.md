@@ -1,13 +1,13 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `5155a18a22aa4ba691cf09edc1565c95bb979bfc`  
-**Active candidate:** none  
-**Current phase/milestone:** 13-world visualizer expansion — first two worlds visual acceptance
+**Merged baseline:** `52c875aac3df9e89721622fd365c1d29c9ae7fb0`  
+**Active candidate:** `fix/fx-baseline-preset-cleanup-world-fidelity` / PR #61  
+**Current phase/milestone:** FX parity repair + shader-fidelity world rebuild
 
 ## Current objective
 
-Visually verify merged PR #59 WORLD_01 Prism Stage Beams and WORLD_02 Laser Canopy Grid against the supplied references. These two worlds establish the fidelity bar for the remaining 11-world roadmap.
+Finish PR #61, then verify that factory FX reset restores the pre-exposure cinematic balance and that the shader-rebuilt WORLD_01/WORLD_02 materially improve fidelity over the rejected Graphics prototypes.
 
 ## Merged baseline — Resource lifetime + physical-edge safety v0.11.2
 
@@ -110,6 +110,21 @@ PR #59 implements the first two as dedicated specialized worlds:
   - quality-aware and World Power/Detail-aware density.
 
 Integration is in `CinematicBackground.ts`. Specialized worlds suppress generic particles/blobs/rings/beams so their identity is not diluted. Director catalog/CSS previews and energetic Performance Presets expose the two worlds.
+
+## Active candidate — FX parity investigation + world shader rebuild
+
+The user's report that the image became cleaner/less cinematic after FX exposure was valid. The investigation found multiple concrete regressions rather than a subjective tuning issue:
+
+1. FX factory defaults were authored below 1.0 even though all those renderer layers previously ran at implicit 1.0.
+2. Background Impact/Pulse was multiplied before `background.hit()` and again when the background consumed it, squaring attenuation below 100%.
+3. DOM bloom/scanline/grain controls replaced the original audio-reactive opacity behavior with static rack-derived opacity.
+4. `CinematicPostFX`'s final bypass blend referenced `source.rgb` without defining `source` in the shader. TypeScript/build cannot validate GLSL strings, so CI remained green while the browser could fail that shader at runtime.
+
+PR #61 restores all four contracts and adds a Director factory-reset action.
+
+Preset policy also changes: E-MO no longer ships authored Performance Presets. Only user-created presets remain; v1/v2 built-in IDs are stripped during local-storage migration. Delete is a two-click Director action.
+
+WORLD_01/WORLD_02 first-pass Graphics implementations are superseded by full-screen GPU fragment shaders. This was based on research into Pixi v8 custom Filters/Mesh and volumetric-light rendering. Three.js is MIT and technically capable, but adding a second renderer is not justified yet. See `docs/WORLD_RENDERING_TECH_RESEARCH.md`.
 
 ## Current implementation state
 

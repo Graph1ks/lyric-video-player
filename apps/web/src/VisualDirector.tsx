@@ -21,7 +21,7 @@ import {
 } from "./directorCatalog";
 import { copy, localizeDirectorItem } from "./directorI18n";
 import { LOWER_THIRD_PRESETS, type LowerThirdPresetInfo } from "./lowerThirds";
-import { isBuiltinPerformancePreset, type PerformancePresetPoolKey } from "./performancePresets";
+import { type PerformancePresetPoolKey } from "./performancePresets";
 import { useUiStore } from "./store";
 
 type DirectorSection = "presets" | "scene" | "type" | "motion" | "world" | "fx" | "color" | "titles" | "system";
@@ -39,7 +39,7 @@ export function VisualDirector({
   const t = (en: string, german: string) => copy(state.uiLanguage, en, german);
 
   const sections: { id: DirectorSection; label: string; hint: string }[] = [
-    { id: "presets", label: t("Presets", "Presets"), hint: t("Curated", "Kuratiert") },
+    { id: "presets", label: t("Presets", "Presets"), hint: t("User-built", "User-built") },
     { id: "scene", label: t("Scene", "Szene"), hint: t("Direction", "Regie") },
     { id: "type", label: t("Type", "Typo"), hint: t("Words", "Wörter") },
     { id: "motion", label: t("Motion", "Motion"), hint: t("Movement", "Bewegung") },
@@ -501,6 +501,7 @@ export function VisualDirector({
 
 function PerformancePresetDirector() {
   const state = useUiStore();
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const t = (en: string, german: string) => copy(state.uiLanguage, en, german);
   const active = state.performancePresets.find(item => item.id === state.activePerformancePresetId);
 
@@ -524,10 +525,10 @@ function PerformancePresetDirector() {
     <>
       <SectionHeading
         eyebrow={t("PERFORMANCE PRESETS", "PERFORMANCE-PRESETS")}
-        title={t("Curated AUTO, not everything at once.", "Kuratiertes AUTO statt alles gleichzeitig.")}
+        title={t("Build your own AUTO vocabulary.", "Baue dein eigenes AUTO-Vokabular.")}
         description={t(
-          "A preset narrows every AUTO pool to a deliberate emotion/pace palette. Activate one, then edit exactly which scenes, effects and colors are allowed.",
-          "Ein Preset begrenzt jeden AUTO-Pool auf eine bewusste Emotions-/Tempo-Palette. Aktivieren und danach exakt festlegen, welche Szenen, Effekte und Farben erlaubt sind.",
+          "Presets are user-authored only. Start from the current look, then decide which scenes, effects and colors AUTO may use.",
+          "Presets werden nur vom User gebaut. Starte vom aktuellen Look und lege dann fest, welche Szenen, Effekte und Farben AUTO verwenden darf.",
         )}
         resolved={active?.label ?? t("UNRESTRICTED AUTO", "UNBEGRENZTES AUTO")}
       />
@@ -540,7 +541,7 @@ function PerformancePresetDirector() {
           {t("UNRESTRICTED AUTO", "UNBEGRENZTES AUTO")}
         </button>
         <button onClick={() => state.createPerformancePreset()}>
-          + {t("NEW FROM ACTIVE", "NEU AUS AKTIVEM")}
+          + {t("NEW FROM CURRENT", "NEU AUS AKTUELLEM LOOK")}
         </button>
       </div>
 
@@ -566,26 +567,28 @@ function PerformancePresetDirector() {
           <div className="performance-preset-editor__head">
             <div>
               <span>{t("ACTIVE PRESET", "AKTIVES PRESET")}</span>
-              {isBuiltinPerformancePreset(active.id) ? (
-                <b>{active.label}</b>
-              ) : (
-                <input
-                  value={active.label}
-                  onChange={event => state.setPerformancePresetLabel(active.id, event.target.value)}
-                  aria-label={t("Preset name", "Preset-Name")}
-                />
-              )}
+              <input
+                value={active.label}
+                onChange={event => state.setPerformancePresetLabel(active.id, event.target.value)}
+                aria-label={t("Preset name", "Preset-Name")}
+              />
             </div>
             <div>
-              {isBuiltinPerformancePreset(active.id) ? (
-                <button onClick={() => state.resetPerformancePreset(active.id)}>
-                  {t("RESET", "RESET")}
-                </button>
-              ) : (
-                <button className="is-danger" onClick={() => state.deletePerformancePreset(active.id)}>
-                  {t("DELETE", "LÖSCHEN")}
-                </button>
-              )}
+              <button
+                className={`is-danger ${deleteConfirmId === active.id ? "is-confirming" : ""}`}
+                onClick={() => {
+                  if (deleteConfirmId !== active.id) {
+                    setDeleteConfirmId(active.id);
+                    return;
+                  }
+                  state.deletePerformancePreset(active.id);
+                  setDeleteConfirmId(null);
+                }}
+              >
+                {deleteConfirmId === active.id
+                  ? t("CONFIRM DELETE", "LÖSCHEN BESTÄTIGEN")
+                  : t("DELETE", "LÖSCHEN")}
+              </button>
             </div>
           </div>
 
@@ -675,6 +678,7 @@ function FxRackDirector({
   onChange: (key: VisualFxRackKey, value: number) => void;
 }) {
   const language = useUiStore(state => state.uiLanguage);
+  const resetFxRack = useUiStore(state => state.resetFxRack);
   const t = (en: string, german: string) => copy(language, en, german);
 
   return (
@@ -688,6 +692,12 @@ function FxRackDirector({
         )}
         resolved={t("0% OFF · 100% NORMAL · 300% EXTREME", "0% AUS · 100% NORMAL · 300% EXTREM")}
       />
+      <div className="director-fx-toolbar">
+        <button onClick={resetFxRack}>
+          {t("RESET FX TO FACTORY", "FX AUF WERKSZUSTAND")}
+        </button>
+        <small>{t("Restores the original pre-FX-rack cinematic balance.", "Stellt die ursprüngliche Cinematic-Balance vor dem FX-Rack wieder her.")}</small>
+      </div>
       <FxRackControls rack={rack} onChange={onChange} />
       <DirectorNote>
         {t(

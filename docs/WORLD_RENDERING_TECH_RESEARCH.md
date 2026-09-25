@@ -1,0 +1,156 @@
+# World Rendering Technology Research
+
+**Status:** accepted direction for the 13-world expansion  
+**Decision:** keep PixiJS as the primary renderer for full-screen procedural worlds; do **not** add Three.js merely to fix WORLD_01/WORLD_02 fidelity.
+
+## Why the first WORLD_01 / WORLD_02 pass looked primitive
+
+The limitation was the implementation, not PixiJS.
+
+The first pass used high-level `Graphics` polygons, circles and line strokes. That is useful for composition prototypes, but it cannot by itself reproduce the continuous density, scattering, optical falloff, haze, bloom and fine geometric precision visible in the references.
+
+The rewrite therefore moves both worlds into custom GPU fragment shaders.
+
+## What PixiJS v8 already gives us
+
+PixiJS v8 `Filter` supports custom GPU programs and ordered post-processing. The official docs explicitly describe custom GLSL filters for blur, noise, displacement and arbitrary shader effects.
+
+PixiJS v8 `Mesh` exposes geometry, UVs, indices, shaders and GPU state. Its own documentation describes it as sufficient for arbitrary WebGL/WebGPU visuals, including advanced distortion and perspective work.
+
+Primary references:
+
+- https://pixijs.download/v8.17.0/docs/filters.html
+- https://pixijs.com/8.x/guides/components/scene-objects/mesh
+- https://pixijs.com/8.x/examples/filters-advanced/custom
+- https://pixijs.com/examples/mesh-and-shaders/shared-shader/
+
+This means E-MO can implement:
+
+- full-screen signed-distance-field worlds;
+- procedural noise/fBm;
+- volumetric-looking light shafts;
+- analytic laser lines;
+- custom bloom/threshold passes;
+- feedback;
+- chromatic treatment;
+- perspective meshes;
+- GPU particle/vertex systems;
+
+without replacing the renderer.
+
+## Volumetric-light research
+
+The key visual lesson from real-time volumetric-light techniques is that convincing shafts need more than translucent triangles:
+
+- spatially continuous scattering;
+- smooth distance decay;
+- density variation;
+- bright emissive source regions;
+- additive accumulation;
+- controlled exposure/tone mapping;
+- optionally radial or screen-space sampling when scene occlusion is available.
+
+NVIDIA GPU Gems 3, Chapter 13 describes real-time volumetric light scattering as a pixel/post-process problem and uses additive sampling with exposure, weight and decay controls.
+
+Reference:
+
+- https://developer.nvidia.com/gpugems/gpugems3/part-ii-light-and-shadows/chapter-13-volumetric-light-scattering-post-process
+
+WORLD_01 does not currently have an occlusion/depth pre-pass, so its v2 shader uses analytic cone fields, procedural density variation, source bloom and filmic compression. If later worlds introduce real geometry/depth, an occlusion-aware scattering pass can be added.
+
+## Three.js evaluation
+
+Three.js is technically suitable and MIT licensed.
+
+It provides:
+
+- true perspective cameras and 3D scene graphs;
+- `ShaderMaterial` for custom GPU materials;
+- `EffectComposer` for chained post-processing;
+- `UnrealBloomPass` with a multiscale mip-chain bloom implementation.
+
+References:
+
+- https://threejs.org/docs/pages/ShaderMaterial.html
+- https://threejs.org/docs/pages/EffectComposer.html
+- https://threejs.org/docs/pages/UnrealBloomPass.html
+- https://threejs.org/license/
+
+### Why not add it now
+
+Adding Three.js beside Pixi would create a second renderer with its own:
+
+- WebGL context / render-target ownership;
+- resize/resolution lifecycle;
+- memory/resource lifecycle;
+- post-processing chain;
+- edge-safety rules;
+- synchronization and compositing boundary.
+
+That complexity is not justified for full-screen shader worlds that Pixi already handles directly.
+
+### When Three.js becomes justified
+
+Re-evaluate Three.js when a world genuinely benefits from true 3D geometry/depth rather than a full-screen shader or Pixi mesh.
+
+Likely candidates:
+
+- WORLD_03 Disco Mirrorball Room — true room + reflective/mirrored geometry may benefit;
+- WORLD_09 Neon Equalizer Grid City — real perspective skyline can benefit;
+- WORLD_10 Holographic Audio Terrain — true displaced terrain mesh is a strong candidate.
+
+Before adding Three.js, prototype those with Pixi `Mesh`/custom shaders and compare:
+
+1. fidelity;
+2. GPU cost;
+3. implementation complexity;
+4. memory overhead;
+5. renderer/compositor integration risk.
+
+## Current implementation direction
+
+### WORLD_01 Prism Stage Beams v2
+
+Replaced `Graphics` beam polygons and white fixture circles with one full-screen GPU shader.
+
+The shader now owns:
+
+- analytic volumetric cone fields;
+- soft/hot beam cores;
+- procedural haze and gobo-like density modulation;
+- rainbow spectral coloring;
+- source bloom;
+- anamorphic horizontal flare;
+- vertical flare;
+- dark truss silhouette;
+- narrow fixture apertures;
+- filmic exposure compression.
+
+### WORLD_02 Laser Canopy Grid v2
+
+Replaced CPU line/point drawing with one analytic GPU shader.
+
+The shader now owns:
+
+- signed-distance segment lasers;
+- thin white-hot cores;
+- colored glow envelopes;
+- overhead rig;
+- narrow fixture apertures;
+- animated canopy targets;
+- floor impact halos/hotspots;
+- subtle perspective floor;
+- suspended haze specks;
+- filmic exposure compression.
+
+## Rule for the remaining 11 worlds
+
+Do not prototype a reference-grade world using only primitive `Graphics` shapes unless the reference itself is graphic/flat.
+
+Choose the rendering technique from the target:
+
+- **full-screen procedural shader** — light, plasma, waveforms, bokeh, fractals;
+- **Pixi Mesh + shader** — terrain, perspective surfaces, ribbons, displaced geometry;
+- **GPU particles / batched mesh** — dense particle vortices/starfields;
+- **multi-pass render texture/post-FX** — bloom, feedback, light scattering;
+- **Three.js candidate** — true scene-depth/reflective 3D worlds only when measurable benefit justifies the second renderer.

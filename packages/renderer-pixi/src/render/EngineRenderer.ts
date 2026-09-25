@@ -7,6 +7,7 @@ import {
   evaluateCinematicCameraPlan,
   resolveManifestoPageScope,
   SceneDirector,
+  DEFAULT_VISUAL_FX_RACK,
 } from "@graph1ks/emo-engine-core";
 import type {
   BackgroundPreset,
@@ -77,21 +78,7 @@ export class EngineRenderer {
   private colorFlow: ColorFlowMode = "static";
   private typographySequence: TypographySequenceMode = "auto";
   private autoProfile?: VisualAutoProfile;
-  private fxRack: VisualFxRack = {
-    cameraMotion: 0.75,
-    impactPulse: 0.65,
-    displacement: 0.55,
-    smear: 0.45,
-    bloom: 0.7,
-    feedback: 0.35,
-    postFx: 0.55,
-    worldIntensity: 1,
-    worldDetail: 1,
-    screenBloom: 0.55,
-    scanlines: 0.35,
-    grain: 0.35,
-    vignette: 0.55,
-  };
+  private fxRack: VisualFxRack = { ...DEFAULT_VISUAL_FX_RACK };
   private lastLineIndex = -1;
   private currentDirection?: DirectedScene;
   private lines: LineCue[] = [];
@@ -122,7 +109,7 @@ export class EngineRenderer {
   constructor() {
     this.lyrics.onWordHit((index, audio) => {
       this.cameraRig.wordHit(index, audio);
-      this.background.hit((0.22 + audio.transient * 0.36) * this.fxRack.impactPulse);
+      this.background.hit(0.22 + audio.transient * 0.36);
     });
   }
 
@@ -496,7 +483,7 @@ export class EngineRenderer {
     this.emitTypographyLayout();
     this.emitCompositionMotion();
     if (line) {
-      this.background.hit((0.92 + (index % 3) * 0.08) * this.fxRack.impactPulse);
+      this.background.hit(0.92 + (index % 3) * 0.08);
       this.cameraRig.lineHit(index);
     }
   }
