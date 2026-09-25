@@ -32,6 +32,8 @@ export class SceneRenderGraph {
   private quality: QualityMode = "cinema";
   private mode: SceneMode = "neon";
   private intensity = 1;
+  private feedbackMix = 1;
+  private bloomMix = 1;
   private width = 1;
   private height = 1;
   private resolution = 1;
@@ -149,6 +151,16 @@ export class SceneRenderGraph {
     this.applyFeedbackTransform();
   }
 
+  setFeedbackMix(value: number) {
+    this.feedbackMix = Math.max(0, Math.min(3, value));
+    this.applyFeedbackTransform();
+  }
+
+  setBloomMix(value: number) {
+    this.bloomMix = Math.max(0, Math.min(3, value));
+    this.applyPresentation();
+  }
+
   resetFeedback() {
     this.feedbackPrimed = false;
     this.lastFeedbackTime = undefined;
@@ -246,7 +258,7 @@ export class SceneRenderGraph {
   private applyPresentation() {
     if (!this.bloom) return;
     const qualityScale = this.quality === "cinema" ? 1 : 0.45;
-    this.bloom.alpha = Math.min(0.5, (0.16 + this.intensity * 0.1) * qualityScale);
+    this.bloom.alpha = Math.min(1, (0.16 + this.intensity * 0.1) * qualityScale * this.bloomMix);
   }
 
   private applyFeedbackTransform() {
@@ -264,8 +276,8 @@ export class SceneRenderGraph {
         : 0.006;
 
     this.previousFrame.position.set(this.width * 0.5, this.height * 0.5);
-    this.previousFrame.alpha = Math.min(0.18, baseAlpha * this.intensity);
-    this.previousFrame.scale.set(1 + scaleLift * this.intensity);
-    this.previousFrame.rotation = this.mode === "vortex" ? 0.0025 * this.intensity : 0;
+    this.previousFrame.alpha = Math.min(0.52, baseAlpha * this.intensity * this.feedbackMix);
+    this.previousFrame.scale.set(1 + scaleLift * this.intensity * this.feedbackMix);
+    this.previousFrame.rotation = this.mode === "vortex" ? 0.0025 * this.intensity * this.feedbackMix : 0;
   }
 }
