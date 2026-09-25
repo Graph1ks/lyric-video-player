@@ -9,6 +9,7 @@ import type {
   VisualPalette,
 } from "@graph1ks/emo-engine-core";
 import { hash01, seeded } from "@graph1ks/emo-engine-core";
+import { WorldAudioReactivity } from "./WorldAudioReactivity.js";
 import { ArtDirectionWorlds } from "./ArtDirectionWorlds.js";
 import { ProceduralLiquidFX } from "./ProceduralLiquidFX.js";
 import { PrismStageBeamsWorld } from "./PrismStageBeamsWorld.js";
@@ -109,7 +110,7 @@ export class CinematicBackground {
   private worldDetail = 1;
   private impactPulse = 1;
   private impact = 0;
-  private previousTime = 0;
+  private readonly legacyReactivity = new WorldAudioReactivity();
   private palette?: VisualPalette;
 
   constructor() {
@@ -309,9 +310,10 @@ export class CinematicBackground {
     const cx = this.w * 0.5;
     const cy = this.h * 0.5;
     const intensity = this.intensity * this.worldIntensity;
-    const bass = audio.bass * intensity;
-    const energy = audio.energy * intensity;
-    const transient = audio.transient * intensity;
+    const legacyFrame = this.legacyReactivity.update(time, audio);
+    const legacyAudio = legacyFrame.bands;
+    const energy = legacyAudio.energy * intensity;
+    const transientEnvelope = legacyFrame.transientEnvelope * intensity;
     const layerAlpha = Math.min(1, this.worldIntensity);
     this.geometry.alpha = layerAlpha;
     this.lyricBackdropLayer.alpha = layerAlpha;
@@ -322,7 +324,9 @@ export class CinematicBackground {
     this.ringLayer.alpha = layerAlpha;
     this.beamLayer.alpha = layerAlpha;
 
-    this.artDirection.update(time, audio);
+    // Dedicated WORLD_01–08 renderers keep their own audio semantics. Only the
+    // legacy shared stack is routed through the stable world-audio primitives.
+    this.artDirection.update(time, legacyAudio);
     this.prismStageBeams.update(time, audio);
     this.laserCanopyGrid.update(time, audio);
     this.discoMirrorballRoom.update(time, audio);
@@ -331,25 +335,21 @@ export class CinematicBackground {
     this.softHexCellField.update(time, audio);
     this.particleSpiralVortex.update(time, audio);
     this.minimalRainbowWaveform.update(time, audio, spectrum);
-    if (this.liquidSurface.visible) this.liquidFX.update(time, audio);
-    this.updateGeometry(time, audio);
-    this.updateLyricBackdrop(time, audio);
-    this.updateSparks(time, audio);
-    this.updateSpectrum(time, audio, spectrum);
-    this.updateBlobs(time, audio, cx, cy, bass, energy);
-    this.updateParticles(time, audio, cx, cy, transient, energy);
-    this.updateRings(time, audio, cx, cy, bass, energy);
-    this.updateBeams(time, audio, cx, cy, energy);
+    if (this.liquidSurface.visible) this.liquidFX.update(time, legacyAudio);
+    this.updateGeometry(time, legacyAudio);
+    this.updateLyricBackdrop(time, legacyAudio);
+    this.updateSparks(time, legacyAudio, legacyFrame.transientEnvelope);
+    this.updateSpectrum(time, legacyAudio, spectrum);
+    this.updateBlobs(time, cx, cy, energy);
+    this.updateParticles(time, legacyAudio, cx, cy, legacyFrame.transientEnvelope);
+    this.updateRings(time, cx, cy, energy);
+    this.updateBeams(time, cx, cy, energy);
 
     this.flash.alpha = Math.max(
       0,
-      (this.impact * 0.12 + transient * 0.045) * this.impactPulse,
+      (this.impact * 0.12 + transientEnvelope * 0.045) * this.impactPulse,
     );
-    const dt = this.previousTime
-      ? Math.min(0.08, Math.max(1 / 240, Math.abs(time - this.previousTime)))
-      : 1 / 60;
-    this.previousTime = time;
-    this.impact *= Math.pow(0.018, dt);
+    if (legacyFrame.dt > 0) this.impact *= Math.pow(0.018, legacyFrame.dt);
   }
 
   hit(strength = 1) {
@@ -450,10 +450,8 @@ export class CinematicBackground {
 
   private updateBlobs(
     time: number,
-    audio: AudioBands,
     cx: number,
     cy: number,
-    bass: number,
     energy: number,
   ) {
     this.blobs.forEach((blob, index) => {
@@ -479,7 +477,6 @@ export class CinematicBackground {
         cy + Math.cos(t * 1.11 - index * 0.2) * blob.orbitY * spread,
       );
       const pulse = 1
-        + bass * (0.1 + index * 0.01)
         + Math.sin(t * 1.7) * (this.resolvedPreset === "nebula" ? 0.055 : 0.025);
       blob.g.scale.set(pulse);
       const blobAlpha = this.resolvedPreset === "nebula"
@@ -497,8 +494,7 @@ export class CinematicBackground {
     audio: AudioBands,
     cx: number,
     cy: number,
-    transient: number,
-    energy: number,
+    transientEnvelope: number,
   ) {
     for (let index = 0; index < this.particles.length; index++) {
       const particle = this.particles[index];
@@ -526,9 +522,9 @@ export class CinematicBackground {
         const dy = y - cy;
         const radius = Math.hypot(dx, dy) || 1;
         const angle = Math.atan2(dy, dx) + phase * 0.9 + time * 0.08;
-        const breathe = 0.68 + ((Math.sin(phase * 0.7) + 1) * 0.2) + energy * 0.16;
-        x = cx + Math.cos(angle) * radius * breathe;
-        y = cy + Math.sin(angle) * radius * breathe;
+        const funnel = 0.62 + particle.depth * 0.3;
+        x = cx + Math.cos(angle) * radius * funnel;
+        y = cy + Math.sin(angle) * radius * funnel;
         scaleBoost = 1.15;
         particle.g.alpha = 0.08 + particle.depth * 0.56 + audio.treble * 0.18;
       } else if (this.resolvedPreset === "grid") {
@@ -538,7 +534,7 @@ export class CinematicBackground {
       } else if (this.resolvedPreset === "rays") {
         const dx = x - cx;
         const dy = y - cy;
-        const expansion = 1 + Math.sin(phase) * 0.03 + transient * 0.16;
+        const expansion = 1 + Math.sin(phase) * 0.018;
         x = cx + dx * expansion;
         y = cy + dy * expansion;
         particle.g.alpha = 0.035 + particle.depth * 0.24 + audio.treble * 0.08;
@@ -561,9 +557,9 @@ export class CinematicBackground {
         const dy = y - cy;
         const radius = Math.hypot(dx, dy) || 1;
         const angle = Math.atan2(dy, dx) + phase * 0.36;
-        const breathe = 0.78 + ((Math.sin(phase * 0.55) + 1) * 0.18) + energy * 0.16;
-        x = cx + Math.cos(angle) * radius * breathe;
-        y = cy + Math.sin(angle) * radius * breathe;
+        const funnel = 0.7 + particle.depth * 0.22;
+        x = cx + Math.cos(angle) * radius * funnel;
+        y = cy + Math.sin(angle) * radius * funnel;
         particle.g.alpha = 0.08 + particle.depth * 0.5 + audio.treble * 0.18;
       } else {
         x += Math.sin(phase * 1.4) * (18 + 34 * particle.depth);
@@ -571,22 +567,25 @@ export class CinematicBackground {
         particle.g.alpha = 0.08 + particle.depth * 0.5 + audio.treble * 0.18;
       }
 
-      const push = 1 + (transient * (0.18 + particle.depth * 0.35) + this.impact * 0.08) * this.impactPulse;
+      const push = 1 + this.impact * 0.08 * this.impactPulse;
       particle.g.position.set(cx + (x - cx) * push, cy + (y - cy) * push);
       const scale = particle.size
         * scaleBoost
-        * (0.55 + particle.depth * 1.2 + transient * 1.6);
-      particle.g.alpha = Math.min(1, particle.g.alpha * (0.18 + this.worldIntensity * 1.42));
+        * (0.55 + particle.depth * 1.2);
+      particle.g.alpha = Math.min(
+        1,
+        particle.g.alpha
+          * (0.18 + this.worldIntensity * 1.42)
+          * (1 + transientEnvelope * 0.08),
+      );
       particle.g.scale.set(scale * (0.72 + this.worldIntensity * 0.38));
     }
   }
 
   private updateRings(
     time: number,
-    audio: AudioBands,
     cx: number,
     cy: number,
-    bass: number,
     energy: number,
   ) {
     this.rings.forEach((ring, index) => {
@@ -600,7 +599,7 @@ export class CinematicBackground {
             ? 3.2
             : 1;
       ring.rotation = time * (0.025 + index * 0.011) * (index % 2 ? -1 : 1) * speed;
-      const scale = 0.85 + index * 0.14 + bass * (0.08 + index * 0.015) + this.impact * 0.1;
+      const scale = 0.85 + index * 0.14 + this.impact * 0.1;
       ring.scale.set(scale);
       const ringAlpha = this.resolvedPreset === "vortex"
         ? 0.04 + energy * 0.12
@@ -615,7 +614,6 @@ export class CinematicBackground {
 
   private updateBeams(
     time: number,
-    audio: AudioBands,
     cx: number,
     cy: number,
     energy: number,
@@ -635,8 +633,8 @@ export class CinematicBackground {
               ? 0.02
               : 0.008;
       beam.alpha = Math.min(0.95, beamAlpha * (0.2 + this.worldIntensity * 1.65));
-      beam.scale.y = 0.8 + audio.mid * (this.resolvedPreset === "rays" ? 0.55 : 0.35);
-      beam.scale.x = this.resolvedPreset === "rays" ? 1.15 + audio.bass * 0.14 : 1;
+      beam.scale.y = 0.96 + Math.sin(time * 0.17 + index * 1.7) * 0.035;
+      beam.scale.x = this.resolvedPreset === "rays" ? 1.15 : 1;
     });
   }
 
@@ -860,7 +858,7 @@ export class CinematicBackground {
     });
   }
 
-  private updateSparks(time: number, audio: AudioBands) {
+  private updateSparks(time: number, audio: AudioBands, transientEnvelope: number) {
     this.sparkLayer.clear();
     if (!this.sparkLayer.visible) return;
 
@@ -883,7 +881,7 @@ export class CinematicBackground {
           ? 0xff9a69
           : 0x9b76ff
     );
-    const burst = 0.35 + audio.treble * 0.9 + audio.transient * 2.4 + this.impact * 0.55;
+    const burst = 0.35 + audio.treble * 0.65 + transientEnvelope * 1.8 + this.impact * 0.55;
 
     for (let index = 0; index < count; index++) {
       const seed = hash01((this.lineIndex + 17) * 131.7 + index * 43.19);

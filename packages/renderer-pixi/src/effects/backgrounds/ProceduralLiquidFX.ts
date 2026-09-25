@@ -73,7 +73,7 @@ void main(void) {
     vec4 source = texture2D(uTexture, vTextureCoord);
     vec2 uv = vTextureCoord;
     vec2 p = (uv - 0.5) * vec2(uAspect, 1.0);
-    float speed = mix(0.12, 0.2, uQuality) * (0.8 + uEnergy * 0.7);
+    float speed = mix(0.12, 0.2, uQuality);
     float t = uTime * speed;
 
     float warpA = fbm(p * 2.1 + vec2(t, -t * 0.72));
@@ -82,7 +82,7 @@ void main(void) {
         * (0.2 + uMid * 0.18 + uTransient * 0.08)
         * uIntensity;
 
-    float field = fbm(warped * (2.2 + uBass * 0.5) + vec2(t * 0.42, -t * 0.31));
+    float field = fbm(warped * 2.45 + vec2(t * 0.42, -t * 0.31));
     float vein = sin((warped.x * 4.2 + warped.y * 2.6 + field * 5.4) - uTime * 0.34);
     float highlight = smoothstep(0.28, 0.94, field + vein * 0.16 + uTransient * 0.16);
 
