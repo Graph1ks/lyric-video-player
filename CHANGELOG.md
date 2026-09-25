@@ -66,6 +66,8 @@ Git history remains the complete technical history. This file records meaningful
 - Explicit Visual FX Rack for camera motion, impact/pulse, displacement, smear, bloom, temporal feedback, cinematic post FX, world power/detail and DOM screen finishing.
 - **Prism Stage Beams** world with a visible central fixture hub, multi-layer volumetric rainbow/RGB beams, haze, hot cores and audio-reactive flare.
 - **Laser Canopy Grid** world with an overhead rig, crisp red/cyan/mint laser architecture, floor hit-points and audio-reactive canopy sweeps.
+- **Disco Mirrorball Room** shader world with spherical mirror facets, metallic/specular response and dense moving room reflections.
+- **Neon Energy Burst Tunnel** shader world with logarithmic tunnel depth, dense radial streaks, electric filaments, arc sparks and central energy bloom.
 - User-authored-only Performance Presets; the previously shipped emotion/pace preset library is removed.
 - FX Rack factory reset that restores the original pre-exposure renderer/compositor balance.
 
