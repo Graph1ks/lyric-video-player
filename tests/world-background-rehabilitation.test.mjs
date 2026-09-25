@@ -213,6 +213,47 @@ test("phase B legacy worlds use authored fidelity systems and keep motion time-o
   assert.doesNotMatch(grid, /Math\.random\(/);
 });
 
+
+test("minimum fidelity floor locks cinematic and liquid to authored rendering systems", async () => {
+  const [background, cinematic, liquid] = await Promise.all([
+    source("packages/renderer-pixi/src/effects/backgrounds/CinematicBackground.ts"),
+    source("packages/renderer-pixi/src/effects/backgrounds/LegacyCinematicWorld.ts"),
+    source("packages/renderer-pixi/src/effects/backgrounds/ProceduralLiquidFX.ts"),
+  ]);
+
+  assert.match(background, /"cinematic",\s*\n\s*"liquid",\s*\n\s*"vortex"/);
+  assert.match(background, /legacyCinematic\.container\.visible = this\.resolvedPreset === "cinematic"/);
+  assert.match(background, /legacyCinematic\.update\(time, legacyAudio\)/);
+  assert.match(background, /liquidFX\.setPalette\(palette\)/);
+  assert.match(background, /liquidFX\.setDetail\(this\.worldDetail\)/);
+
+  // Cinematic: continuous atmospheric shader + optical identity, never generic shape soup.
+  assert.match(cinematic, /GlProgram\.from/);
+  assert.match(cinematic, /Filmic depth field/);
+  assert.match(cinematic, /Anamorphic lens-light structure is the paused-frame identity layer/);
+  assert.match(cinematic, /Foreground shadow masses create controlled parallax/);
+  assert.doesNotMatch(cinematic, /\.circle\(/);
+  assert.doesNotMatch(cinematic, /\.poly\(/);
+  assert.doesNotMatch(cinematic, /Math\.random\(/);
+
+  // Liquid: actual implicit 3D surface with smooth-min fusion, raymarching and material normals.
+  assert.match(liquid, /float smin\(/);
+  assert.match(liquid, /float field\(vec3 p\)/);
+  assert.match(liquid, /vec3 normalAt\(vec3 p\)/);
+  assert.match(liquid, /for \(int stepIndex = 0; stepIndex < 58; stepIndex\+\+\)/);
+  assert.match(liquid, /float fresnel = pow/);
+  assert.match(liquid, /setPalette\(palette: VisualPalette\)/);
+
+  const fieldStart = liquid.indexOf("float field(vec3 p)");
+  const normalStart = liquid.indexOf("vec3 normalAt(vec3 p)");
+  assert.ok(fieldStart >= 0 && normalStart > fieldStart);
+  const fieldSource = liquid.slice(fieldStart, normalStart);
+  assert.doesNotMatch(fieldSource, /u(?:Bass|Mid|Energy|Transient)/);
+  assert.doesNotMatch(liquid, /darkColor|midColor|hotColor/);
+  assert.doesNotMatch(liquid, /uniform float uTransient/);
+});
+
+
 test("global spatial post FX no longer turn raw audio into scene-scale motion", async () => {
   const [post, displacement, smear] = await Promise.all([
     source("packages/renderer-pixi/src/render/CinematicPostFX.ts"),
