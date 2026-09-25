@@ -198,9 +198,9 @@ test("phase B legacy worlds use authored fidelity systems and keep motion time-o
   // Nebula: shader-domain gas density, domain warping and filament structure.
   assert.match(nebula, /GlProgram\.from/);
   assert.match(nebula, /float cloudField\(/);
-  assert.match(nebula, /vec2 warp = vec2/);
+  assert.match(nebula, /float warped = fbm/);
   assert.match(nebula, /float ridged\(/);
-  assert.match(nebula, /Density-gradient lighting|density-gradient lighting/i);
+  assert.match(nebula, /folded-volume lighting/i);
   assert.doesNotMatch(nebula, /\.ellipse\(/);
   assert.doesNotMatch(nebula, /Math\.random\(/);
 
