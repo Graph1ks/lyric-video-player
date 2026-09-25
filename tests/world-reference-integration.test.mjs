@@ -6,7 +6,7 @@ function source(relativePath) {
   return readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
 }
 
-test("WORLD_01 and WORLD_02 are first-class selectable background presets", async () => {
+test("WORLD_01 through WORLD_06 are first-class selectable background presets", async () => {
   const [types, catalog, background] = await Promise.all([
     source("packages/engine-core/src/types.ts"),
     source("apps/web/src/directorCatalog.ts"),
@@ -18,6 +18,8 @@ test("WORLD_01 and WORLD_02 are first-class selectable background presets", asyn
     "laser-canopy-grid",
     "disco-mirrorball-room",
     "neon-energy-burst-tunnel",
+    "fractal-hex-spiral-mosaic",
+    "soft-hex-cell-field",
   ]) {
     assert.match(types, new RegExp(`\\| "${id}"`));
     assert.match(catalog, new RegExp(`value: "${id}"`));
@@ -33,6 +35,8 @@ test("specialized stage and laser worlds suppress generic background layers", as
   assert.match(background, /laserCanopyGrid\.container\.visible = this\.resolvedPreset === "laser-canopy-grid"/);
   assert.match(background, /discoMirrorballRoom\.container\.visible = this\.resolvedPreset === "disco-mirrorball-room"/);
   assert.match(background, /neonEnergyBurstTunnel\.container\.visible = this\.resolvedPreset === "neon-energy-burst-tunnel"/);
+  assert.match(background, /fractalHexSpiralMosaic\.container\.visible = this\.resolvedPreset === "fractal-hex-spiral-mosaic"/);
+  assert.match(background, /softHexCellField\.container\.visible = this\.resolvedPreset === "soft-hex-cell-field"/);
   assert.match(background, /!artWorld && !specializedWorld/);
 });
 
@@ -73,6 +77,16 @@ test("Disco Mirrorball Room uses analytic sphere facets and layered projected re
   assert.doesNotMatch(mirrorball, /new Sprite/);
 });
 
+test("Mirrorball motion is mechanical while music changes lighting only", async () => {
+  const mirrorball = await source("packages/renderer-pixi/src/effects/backgrounds/DiscoMirrorballRoomWorld.ts");
+
+  assert.match(mirrorball, /rotateY\(normal, uTime \* 0\.205\)/);
+  assert.match(mirrorball, /float ballRadius = 0\.305;/);
+  assert.doesNotMatch(mirrorball, /rotateY\(normal, uTime \* \([^\n]*uEnergy/);
+  assert.doesNotMatch(mirrorball, /float ballRadius = [^;]*uBass/);
+  assert.match(mirrorball, /smoothEnvelope/);
+});
+
 test("Neon Energy Burst Tunnel uses polar depth, fBm streaks and electric filaments", async () => {
   const tunnel = await source("packages/renderer-pixi/src/effects/backgrounds/NeonEnergyBurstTunnelWorld.ts");
 
@@ -83,6 +97,32 @@ test("Neon Energy Burst Tunnel uses polar depth, fBm streaks and electric filame
   assert.match(tunnel, /wrappedAngle/);
   assert.match(tunnel, /Electric scribbles/);
   assert.match(tunnel, /central energy aperture/i);
+  assert.match(tunnel, /uTravel/);
+  assert.match(tunnel, /uBurstAge/);
+  assert.match(tunnel, /travel \+= dt \* \(1\.0 \+ this\.burst \* 0\.82\)/);
+  assert.match(tunnel, /One-way burst shock front/);
+  assert.doesNotMatch(tunnel, /uTime \* \([^\n]*uBass/);
+});
+
+test("Fractal Hex Spiral Mosaic uses recursive vortex warps and graphic hex-cell rendering", async () => {
+  const fractal = await source("packages/renderer-pixi/src/effects/backgrounds/FractalHexSpiralMosaicWorld.ts");
+
+  assert.match(fractal, /Filter, GlProgram/);
+  assert.match(fractal, /vortexWarp/);
+  assert.match(fractal, /hexGrid/);
+  assert.match(fractal, /sinkField/);
+  assert.match(fractal, /Small inset hex detail/);
+  assert.match(fractal, /Geometry motion is intentionally slow\/time-driven/);
+});
+
+test("Soft Hex Cell Field layers variable-size beveled cells over real black gaps", async () => {
+  const softHex = await source("packages/renderer-pixi/src/effects/backgrounds/SoftHexCellFieldWorld.ts");
+
+  assert.match(softHex, /renderHexLayer/);
+  assert.match(softHex, /mix\(minSize, maxSize/);
+  assert.match(softHex, /Selective white facet glints/);
+  assert.match(softHex, /Far layer puts smaller, darker cells into the gaps/);
+  assert.match(softHex, /Geometry never scales\/pulses with raw music input/);
 });
 
 test("13-world reference roadmap remains durable in repository documentation", async () => {
@@ -95,5 +135,7 @@ test("13-world reference roadmap remains durable in repository documentation", a
   assert.match(docs, /WORLD_02 — Laser Canopy Grid/);
   assert.match(docs, /WORLD_03 — Disco Mirrorball Room/);
   assert.match(docs, /WORLD_04 — Neon Energy Burst Tunnel/);
+  assert.match(docs, /WORLD_05 — Fractal Hex Spiral Mosaic/);
+  assert.match(docs, /WORLD_06 — Soft Hex Cell Field/);
   assert.match(docs, /reference images are intentionally \*\*not committed\*\*/i);
 });
