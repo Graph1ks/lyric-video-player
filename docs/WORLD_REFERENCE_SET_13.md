@@ -1,6 +1,6 @@
 # Visualizer World Reference Set — 13 Worlds
 
-**Status:** active implementation set  
+**Status:** active implementation set — WORLD_01 + WORLD_02 merged in PR #59  
 **Reference origin:** user-supplied visual references. The reference images are intentionally **not committed** to this public repository because their redistribution/license status is unknown. A local reference ZIP uses the filenames below.
 
 The goal is not literal screenshot recreation. Each reference defines a **rendering identity, depth language, motion grammar, audio-reactive behavior and fidelity floor**.

@@ -1,13 +1,13 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `4029b45616cef9e577fbfa98b71d1dd9dd6840ce`  
-**Active candidate:** `feat/worlds-prism-laser` / PR #59  
-**Current phase/milestone:** 13-world visualizer expansion — first two worlds
+**Merged baseline:** `5155a18a22aa4ba691cf09edc1565c95bb979bfc`  
+**Active candidate:** none  
+**Current phase/milestone:** 13-world visualizer expansion — first two worlds visual acceptance
 
 ## Current objective
 
-Complete PR #59 and visually verify WORLD_01 Prism Stage Beams and WORLD_02 Laser Canopy Grid against the supplied references. These two worlds establish the fidelity bar for the remaining 11-world roadmap.
+Visually verify merged PR #59 WORLD_01 Prism Stage Beams and WORLD_02 Laser Canopy Grid against the supplied references. These two worlds establish the fidelity bar for the remaining 11-world roadmap.
 
 ## Merged baseline — Resource lifetime + physical-edge safety v0.11.2
 
@@ -89,7 +89,7 @@ World Power now affects visibility/amplitude/audio response while World Detail a
 
 The player and Director were rebuilt around current DAW/post-production control-surface patterns: persistent transport/counter, strong hierarchy, direct controls, modular panels and restrained chrome. See `docs/PRO_CONTROL_SURFACE_FX_RACK.md`.
 
-## Active candidate — 13-world reference expansion
+## Merged baseline — 13-world reference expansion
 
 The user supplied 13 visual reference images. Their durable interpretation is recorded in `docs/WORLD_REFERENCE_SET_13.md`; the binary reference images are not committed to this public repository because redistribution/license status is unknown.
 

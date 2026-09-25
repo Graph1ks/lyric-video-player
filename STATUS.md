@@ -1,17 +1,17 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `4029b45616cef9e577fbfa98b71d1dd9dd6840ce`  
-**Active candidate:** `feat/worlds-prism-laser` / PR #59  
-**Current phase/milestone:** 13-world visualizer expansion — WORLD_01 + WORLD_02 integration
+**Last known good merged baseline:** `5155a18a22aa4ba691cf09edc1565c95bb979bfc`  
+**Active candidate:** none  
+**Current phase/milestone:** 13-world visualizer expansion — WORLD_01 + WORLD_02 visual acceptance
 
 ## Current objective
 
-Integrate and visually accept the first two worlds from the 13-world reference set at reference-grade fidelity: Prism Stage Beams and Laser Canopy Grid.
+Visually accept the merged first two worlds from the 13-world reference set at reference-grade fidelity: Prism Stage Beams and Laser Canopy Grid.
 
 ## Current state
 
-- **WORLD_01 / WORLD_02 candidate (PR #59):** `prism-stage-beams` and `laser-canopy-grid` are first-class Background presets, selectable in Director, exposed to AUTO/presets and rendered as specialized Pixi worlds that suppress generic legacy background layers.
+- **WORLD_01 / WORLD_02 merged baseline (PR #59):** `prism-stage-beams` and `laser-canopy-grid` are first-class Background presets, selectable in Director, exposed to AUTO/presets and rendered as specialized Pixi worlds that suppress generic legacy background layers.
 - WORLD_01 uses broad additive volumetric beam polygons, hot cores, dark haze, visible fixture lenses and transient flares.
 - WORLD_02 uses an overhead rig, thin laser core/glow passes, geometric canopy targeting, floor hit-points and restrained depth haze.
 - The full 13-world target set, fidelity floor, detail axis and audio-reactive intent are durable in `docs/WORLD_REFERENCE_SET_13.md`. Reference images are not committed because redistribution rights are unknown.
@@ -183,11 +183,10 @@ Integrate and visually accept the first two worlds from the 13-world reference s
 
 ## Next concrete action
 
-1. Finish PR #59 CI and merge if Linux + Windows gates remain green.
-2. User locally tests Director → World → **Prism Stage Beams** and **Laser Canopy Grid** at World Power/Detail 50%, 100%, 200% and 300%.
-3. Tune beam width/bloom/fixture density and laser line density/spread from that visual feedback.
-4. Continue with WORLD_03 and WORLD_04 after the first two establish the fidelity bar.
-5. Keep the existing pro-control/Lower-Third/memory/Shape-Fill acceptance queue active after world tuning.
+1. User locally tests Director → World → **Prism Stage Beams** and **Laser Canopy Grid** at World Power/Detail 50%, 100%, 200% and 300%.
+2. Tune beam width/bloom/fixture density and laser line density/spread from that visual feedback.
+3. Continue with WORLD_03 and WORLD_04 after the first two establish the fidelity bar.
+4. Keep the existing pro-control/Lower-Third/memory/Shape-Fill acceptance queue active after world tuning.
 
 ### Previous visual-acceptance queue
 
