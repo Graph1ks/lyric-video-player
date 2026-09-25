@@ -124,9 +124,16 @@ void main(void) {
     float vignette = smoothstep(0.84, 0.18, radius2);
     color *= mix(0.78, 1.0, vignette);
 
+    // FX Rack contract: 0% must be a true bypass. Some aesthetic operations
+    // above (mode grade/vignette) are intentionally authored at full strength,
+    // so blend the complete processed result back to the untouched source at
+    // the end. Values above 100% still increase the spatial/chroma/glow terms
+    // because those terms already consume uAmount directly.
+    vec3 processed = mix(source.rgb, color, clamp(uAmount, 0.0, 1.0));
+
     // The scene has an opaque world base. Keep the final presentation opaque as
     // well so filter padding or feedback history can never reveal the HTML shell.
-    gl_FragColor = vec4(max(color, vec3(0.0)), 1.0);
+    gl_FragColor = vec4(max(processed, vec3(0.0)), 1.0);
 }
 `;
 
