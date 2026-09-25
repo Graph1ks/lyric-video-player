@@ -1,13 +1,13 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `e9a01d5524efff9fdc8a7e111815ea9c9003f8a5`  
-**Active candidate:** `feat/worlds-mirrorball-energy-tunnel`  
-**Current phase/milestone:** 13-world expansion — WORLD_03 + WORLD_04 shader implementation
+**Last known good merged baseline:** `16881100f0318786e0aaf0faf611b0fb5678333c`  
+**Active candidate:** none  
+**Current phase/milestone:** 13-world expansion — WORLD_03 + WORLD_04 visual acceptance
 
 ## Current objective
 
-Implement WORLD_03 Disco Mirrorball Room and WORLD_04 Neon Energy Burst Tunnel at the shader-fidelity bar established by the rebuilt first two worlds.
+Visually accept merged WORLD_03 Disco Mirrorball Room and WORLD_04 Neon Energy Burst Tunnel at the shader-fidelity bar established by the rebuilt first two worlds.
 
 ## Current state
 
@@ -20,7 +20,7 @@ Implement WORLD_03 Disco Mirrorball Room and WORLD_04 Neon Energy Burst Tunnel a
 - WORLD_01 Prism Stage Beams and WORLD_02 Laser Canopy Grid are rebuilt as full-screen custom GPU shaders. The first Graphics prototypes are superseded.
 - Pixi-vs-Three research is durable in `docs/WORLD_RENDERING_TECH_RESEARCH.md`: current conclusion is that Pixi custom Filters/Mesh are not the fidelity bottleneck; Three.js should be introduced only for worlds that measurably require a true second 3D scene/depth pipeline.
 
-- **WORLD_03 / WORLD_04 active candidate:** `disco-mirrorball-room` and `neon-energy-burst-tunnel` are first-class Background presets, Director-selectable, included in unrestricted AUTO and rendered as specialized GPU worlds.
+- **WORLD_03 / WORLD_04 merged baseline (PR #63):** `disco-mirrorball-room` and `neon-energy-burst-tunnel` are first-class Background presets, Director-selectable, included in unrestricted AUTO and rendered as specialized GPU worlds.
 - WORLD_03 uses an analytic faceted sphere, metallic/Fresnel/specular response, layered dense square reflection fields, room-depth masks, dust and transient halo response.
 - WORLD_04 uses logarithmic radial tunnel depth, dense polar speed streaks, fBm density modulation, electric scribble filaments, broken arc sparks/ejecta and a hot central aperture.
 - Rendering-tech research keeps both in Pixi custom shaders for now; WORLD_03 escalates to a Three.js comparison only if local acceptance still requires true projected-room geometry/parallax.
@@ -196,11 +196,10 @@ Implement WORLD_03 Disco Mirrorball Room and WORLD_04 Neon Energy Burst Tunnel a
 
 ## Next concrete action
 
-1. Finish CI for the WORLD_03/WORLD_04 candidate and merge only after Linux + Windows gates pass.
-2. User tests **Disco Mirrorball Room** at 50/100/200/300% World Power + Detail; verify the ball reads as faceted metal and the room contains dense moving square reflections rather than particles.
-3. User tests **Neon Energy Burst Tunnel** at 50/100/200/300%; verify strong depth/rush, dense photographic streaks, irregular electric scribbles and transient center spikes.
-4. Tune mirrorball room projection/parallax and tunnel density/exposure from the local display feedback.
-5. Continue to WORLD_05/WORLD_06 only after these two meet the reference-fidelity bar.
+1. User tests **Disco Mirrorball Room** at 50/100/200/300% World Power + Detail; verify the ball reads as faceted metal and the room contains dense moving square reflections rather than particles.
+2. User tests **Neon Energy Burst Tunnel** at 50/100/200/300%; verify strong depth/rush, dense photographic streaks, irregular electric scribbles and transient center spikes.
+3. Tune mirrorball room projection/parallax and tunnel density/exposure from the local display feedback.
+4. Continue to WORLD_05/WORLD_06 only after these two meet the reference-fidelity bar.
 
 ### Previous visual-acceptance queue
 
