@@ -22,6 +22,7 @@ export class SceneRenderGraph {
   private feedbackRead?: RenderTexture;
   private feedbackWrite?: RenderTexture;
 
+  private fallback?: Sprite;
   private sharp?: Sprite;
   private bloom?: Sprite;
   private currentFrame?: Sprite;
@@ -91,6 +92,17 @@ export class SceneRenderGraph {
       this.feedbackStage.addChild(this.previousFrame);
     } else {
       this.previousFrame.texture = this.feedbackRead;
+    }
+
+    // Keep an unfiltered copy under the entire presentation stack. Spatial
+    // filters are allowed to distort the scene, but a clipped/transparent filter
+    // sample must reveal the same current frame rather than the canvas clear
+    // color. This is deliberately a Sprite, not another RenderTexture.
+    if (!this.fallback) {
+      this.fallback = new Sprite(this.sceneTexture);
+      this.output.addChild(this.fallback);
+    } else {
+      this.fallback.texture = this.sceneTexture;
     }
 
     if (!this.bloom) {
@@ -198,8 +210,8 @@ export class SceneRenderGraph {
   }
 
   destroy() {
-    this.output.removeChildren();
-    this.feedbackStage.removeChildren();
+    for (const child of this.output.removeChildren()) child.destroy();
+    for (const child of this.feedbackStage.removeChildren()) child.destroy();
     this.sceneTexture?.destroy(true);
     this.feedbackA?.destroy(true);
     this.feedbackB?.destroy(true);
@@ -208,6 +220,7 @@ export class SceneRenderGraph {
     this.feedbackB = undefined;
     this.feedbackRead = undefined;
     this.feedbackWrite = undefined;
+    this.fallback = undefined;
     this.sharp = undefined;
     this.bloom = undefined;
     this.currentFrame = undefined;
@@ -225,6 +238,7 @@ export class SceneRenderGraph {
   }
 
   private present(texture: RenderTexture) {
+    if (this.fallback) this.fallback.texture = texture;
     if (this.sharp) this.sharp.texture = texture;
     if (this.bloom) this.bloom.texture = texture;
   }
