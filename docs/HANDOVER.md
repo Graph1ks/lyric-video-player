@@ -1,130 +1,125 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Implementation baseline commit:** `dd8e9fdfd5efd9dd75c9ca907fd07401a9c250c0`  
-**Current phase/milestone:** v0.3.0 alpha bootstrap / milestone 0.4 post-FX
+**Merged implementation baseline:** `d4f1d30d5f6db8203a6fec95656f813b96752e9a`  
+**Current phase/milestone:** E-MO-Engine platform architecture freeze
 
 ## Current objective
 
-Get pull request #1 fully green under the mandatory `validate` check, merge the v0.3 baseline, then move directly into a RenderTexture composition graph and feedback pipeline.
+Replatform the existing v0.3 browser baseline into stable cross-platform package boundaries before continuing major post-FX/editor work.
 
 ## What was just completed
 
-- Replaced the template project shell with the v0.3 E-MOE-CHAIN implementation.
-- Added local MP3/M4A/AAC loading and drag/drop ingestion.
-- Added Enhanced LRC line/word parsing, LRC offset support, line-only fallback word timing, seek, and manual sync trim.
-- Added audio FFT bands and transient envelope.
-- Added PixiJS scene rendering with glyph-level kinetic lyrics, Poster/Neon/Vortex scene families, particles, rings, beams, geometry, and a dedicated virtual camera rig.
-- Added a deterministic Auto Director based on lyric structure/repeated hooks.
-- Added the high-end glass/HUD player shell, fullscreen, keyboard transport, Cinema/Performance modes, and `Ctrl + Shift + H` full-HUD visibility control.
-- Mirrored the Graph1ks RhymeLab source-available/public-noncommercial plus separate-commercial-license structure.
-- Reviewed dependencies and rejected GSAP for this product scope rather than inheriting a visual-animation-builder licensing constraint.
-- Added the repository-required GitHub Actions `validate` job.
-- Corrected the TypeScript pin from nonexistent `5.9.0` to published stable `5.9.3`.
-- Added `CinematicPostFX`: a custom WebGL filter for scene-aware RGB split, audio/transient smear, glow sampling, barrel warp, scanlines, grain, and vignette.
-- Real CI now passes dependency installation, strict TypeScript checking, and the Vite production build. The only remaining prior failure was a publication-audit false positive in README wording, now fixed.
+- The first E-MO realtime baseline was merged with fully green CI.
+- Product identity was changed from the earlier E-MOE-CHAIN working name to **E-MO-Engine — Extensive Motion Engine for Enhanced LRC files**.
+- RhymeLab's current application and shared-core architecture was reviewed as the reference stack.
+- The cross-platform baseline was selected and documented in `docs/PLATFORM_ARCHITECTURE.md`.
+- Desktop packaging decision: Electron + electron-builder.
+- Hosted runtime decision: Node.js standard HTTP/filesystem APIs first.
+- UI decision: React + TypeScript + Vite + Base UI + Motion + Zustand + TanStack Query; TanStack Virtual where justified.
+- Renderer decision remains PixiJS + custom timestamp motion/shaders.
+- React/UI libraries are explicitly excluded from frame-critical rendering ownership.
 
 ## Current implementation state
 
-The browser application is Vite + TypeScript with PixiJS as the single runtime package dependency. The HTML audio element owns authoritative playback time. Lyrics and primary typography transforms are evaluated from LRC/audio timestamps, so seek semantics do not depend on a second animation timeline.
+The merged code is still a single Vite/Pixi browser application. Do not expand that single-app shape further. Preserve its working behavior while extracting it into the new package/application boundaries.
 
-The UI is a lightweight DOM/CSS shell. React is intentionally absent from the frame-critical renderer. A future editor may use React for panels/timeline/project state while calling stable imperative engine APIs.
+Current visual behavior includes:
 
-The first background and typography systems are procedural and audio-reactive. A first single-pass custom GPU post-FX shader is implemented. The actual multi-pass RenderTexture composition/feedback graph is not implemented yet.
+- local audio playback and Web Audio analysis;
+- Enhanced LRC parsing and fallback timing;
+- deterministic timestamp-derived word/glyph motion;
+- Auto Director;
+- Poster/Neon/Vortex scene families;
+- camera impulses;
+- procedural particles/geometry;
+- custom scene-aware GPU post-FX;
+- high-end HUD with `Ctrl + Shift + H` visibility control.
 
 ## Important files / entry points
 
 | Path | Why it matters |
 |---|---|
-| `src/main.ts` | application orchestration, local file ingestion, transport, keyboard/HUD UX |
-| `src/audio/AudioEngine.ts` | playback graph plus FFT/transient analysis |
-| `src/lyrics/ELRCParser.ts` | Enhanced LRC parser and fallback word timing |
-| `src/core/MasterClock.ts` | audio-backed master time |
-| `src/core/SceneDirector.ts` | deterministic scene selection |
-| `src/render/EngineRenderer.ts` | Pixi root/render orchestration |
-| `src/render/CameraRig.ts` | camera impulses/drift/audio reactions |
-| `src/render/CinematicPostFX.ts` | first custom GPU post-processing pass |
-| `src/effects/typography/KineticLyrics.ts` | glyph/word kinetic typography |
-| `src/effects/backgrounds/CinematicBackground.ts` | current procedural backgrounds |
-| `src/core/math.ts` | in-house easing/interpolation/seed primitives |
-| `src/styles.css` | player HUD and screen treatments |
-| `docs/DECISIONS.md` | accepted architecture/licensing decisions |
-| `docs/DEPENDENCY_REVIEW.md` | dependency cost/license review |
+| `docs/PLATFORM_ARCHITECTURE.md` | authoritative cross-platform stack and boundaries |
+| `docs/DECISIONS.md` | ADRs, including platform decision |
+| `src/main.ts` | current monolithic app orchestration to be split |
+| `src/audio/AudioEngine.ts` | current browser audio adapter |
+| `src/lyrics/ELRCParser.ts` | first engine-core extraction candidate |
+| `src/core/MasterClock.ts` | evolve behind a generic Clock contract |
+| `src/core/SceneDirector.ts` | engine-core candidate |
+| `src/render/EngineRenderer.ts` | renderer-pixi entry candidate |
+| `src/render/CinematicPostFX.ts` | renderer-pixi custom filter |
+| `src/effects/typography/KineticLyrics.ts` | renderer-pixi typography |
+| `src/effects/backgrounds/CinematicBackground.ts` | renderer-pixi backgrounds |
 
 ## Decisions already made
 
-- Audio time is the single source of truth for synchronized visuals. See ADR-001.
-- PixiJS owns frame-critical GPU rendering; a future editor framework stays outside the render loop. See ADR-002.
-- GSAP is not used because the roadmap includes a visual motion editor and the current GSAP Standard License contains a relevant visual-builder restriction. See ADR-003.
-- Licensing mirrors RhymeLab: PolyForm Noncommercial 1.0.0 plus Graph1ks monetization restriction, separate commercial licensing, third-party exclusions, CLA for authorized contributions. See ADR-004.
+- ADR-001: playback clock owns synchronized live time.
+- ADR-002: PixiJS owns frame-critical rendering; UI framework stays outside.
+- ADR-003: GSAP is not an engine dependency.
+- ADR-004: licensing mirrors RhymeLab.
+- ADR-005: React/Vite + PixiJS + Node + Electron cross-platform baseline.
 
-## Known problems / risks
+## Target package/app shape
 
-- No `package-lock.json` exists yet because dependency installation was unavailable in the current local environment; create and commit one once a dependency install is available.
-- Stateful particle/camera impulses are deterministic enough for live playback but are not yet fully reconstructible from an arbitrary timestamp. Primary lyric motion is timestamp-derived. Future export-grade seeking should make all seek-sensitive effects reproducible from scene seed + time.
-- Safari/M4A codec behavior requires real-device testing.
-- Current post-FX is a single filter pass; true frame feedback and multi-pass bloom require render targets.
+```text
+apps/
+  web/
+  desktop/
+  server/
+
+packages/
+  engine-core/
+  renderer-pixi/
+  audio-web/
+  platform-web/
+  platform-node/
+  app-contracts/
+```
+
+This migration should be incremental. Do not perform a large rewrite that loses the already verified v0.3 behavior.
 
 ## Next concrete work
 
-1. Confirm pull request #1 is green under the required `validate` status check and merge it.
-2. Implement a RenderTexture composition graph separating background, typography, foreground, and post-FX stages.
-3. Add ping-pong feedback buffers and true displacement.
-4. Split/extend the current shader into quality-budgeted velocity-smear and bloom passes only where the visual gain justifies extra render targets.
-5. Verify 1080p Performance/Cinema behavior before expanding the effect catalog.
+1. Add npm workspaces and scaffold the package/app boundaries.
+2. Pin the React app stack to the RhymeLab baseline where compatible.
+3. Move Enhanced LRC types/parser, math, timing contracts and SceneDirector into `engine-core`.
+4. Move Pixi renderer/effects into `renderer-pixi`.
+5. Wrap HTMLAudio/Web Audio as `audio-web`.
+6. Define `AssetSource`, `ProjectSource`, `Clock`, and typed platform contracts.
+7. Build the hosted Node project-root adapter.
+8. Build the secure Electron main/preload directory adapter.
+9. Resume render-graph/editor work only after the same baseline runs through the new boundaries.
 
 ## Verification
 
-### Commands
+During extraction, every migration chunk must keep:
 
 ```text
-npm install --ignore-scripts --no-audit --no-fund
 npm run typecheck
 npm run build
 python scripts/repo_audit.py
 ```
 
-Latest real CI result before this documentation fix:
-
-- dependency install: pass;
-- strict TypeScript check: pass;
-- Vite production build: pass;
-- publication audit: one README angle-bracket/template-placeholder false positive; wording now fixed.
-
-Browser smoke test after merge:
-
-- load MP3 or M4A and Enhanced LRC;
-- play/pause/seek repeatedly;
-- verify word sync and manual +/- sync trim;
-- switch Auto/Poster/Neon/Vortex;
-- switch Performance/Cinema;
-- verify fullscreen;
-- verify `Ctrl + Shift + H` hides and restores the entire HUD;
-- verify drag/drop of audio + LRC;
-- verify post-FX responds to bass/transients without destroying text readability.
+Add package tests as modules move. Visual smoke tests must still cover audio/LRC load, seek, mode switching, post-FX, fullscreen, and `Ctrl + Shift + H`.
 
 ## Important context / traps
 
-- Do not add GSAP casually; the rejection is a product-license decision, not a technical preference.
-- Do not let UI state become the renderer's timing source.
-- Keep imported media local; there is no upload backend in the core architecture.
-- Do not bundle commercial fonts/audio/lyrics without explicit provenance/license review.
-- The repository requires changes through pull requests and expects a status check named `validate`.
-- `typescript@5.9.0` is nonexistent; current pin is `5.9.3`.
-
-## Local / generated state
-
-- `node_modules/`, `dist/`, local user media, and future generated caches remain untracked.
-- No generated database or remote user-data state exists.
+- Electron renderer must not have `nodeIntegration`; use typed preload IPC.
+- Server/Electron filesystem reads must be confined below a configured root.
+- React/Zustand/TanStack are control-plane/application tools, not a 60-FPS render state bus.
+- Motion is for UI transitions, not lyric/camera/particle animation.
+- Do not introduce Next.js/Tauri/Tailwind/FFmpeg/Three.js as baseline dependencies without reopening the corresponding architecture decision.
 
 ## Resume instruction
 
-A new agent/user should:
+Read in order:
 
-1. read `AGENTS.md`;
-2. read `PROJECT.md`;
-3. read `STATUS.md`;
-4. read this file;
-5. inspect pull request #1 and the latest `validate` result;
-6. read `docs/DECISIONS.md` and `docs/DEPENDENCY_REVIEW.md` before changing architecture/dependencies;
-7. reconcile stale documentation against repository state and reproducible checks before continuing.
+1. `AGENTS.md`
+2. `PROJECT.md`
+3. `STATUS.md`
+4. this file
+5. `docs/PLATFORM_ARCHITECTURE.md`
+6. `docs/DECISIONS.md`
+
+Then inspect current branches/CI before moving code.

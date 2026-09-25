@@ -1,8 +1,8 @@
-# Graph1ks Lyric Video Player — E-MOE-CHAIN Engine
+# E-MO-Engine — Extensive Motion Engine for Enhanced LRC files
 
 Local-first realtime kinetic-lyrics and motion-graphics player for MP3/M4A/AAC audio plus Enhanced LRC.
 
-The render engine is framework-independent: PixiJS owns GPU rendering, Web Audio provides music analysis, and E-MOE-CHAIN evaluates lyric motion analytically from the audio clock. The player UI is a lightweight DOM shell rather than a React render loop.
+The motion engine is framework-independent: PixiJS owns GPU rendering, Web Audio provides live analysis, and E-MO-Engine evaluates lyric motion from the playback clock. The accepted product shell is React + TypeScript + Vite, while React remains outside the frame-critical render loop.
 
 ## Current status — v0.3.0 alpha
 
@@ -89,6 +89,20 @@ E-MOE timestamp motion + audio reactions
 ```
 
 The HTML audio element is the timing source of truth. Lyric entry and word-punch transforms are calculated from timestamps, so seeking does not start or depend on a second wall-clock animation timeline.
+
+## Platform baseline
+
+The accepted cross-platform application architecture reuses the current RhymeLab stack:
+
+- React 19 + TypeScript + Vite for the app/editor shell
+- Base UI + Motion for application chrome
+- Zustand + TanStack Query for UI/session and async platform state
+- PixiJS for all frame-critical motion graphics
+- Node.js for hosted/server mode
+- Electron for the standalone Windows application and local directory targeting
+- npm workspace packages separating engine-core, renderer and platform adapters
+
+See `docs/PLATFORM_ARCHITECTURE.md`.
 
 ## Near-term build plan
 
