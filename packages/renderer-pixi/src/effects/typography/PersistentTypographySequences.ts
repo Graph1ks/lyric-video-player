@@ -31,6 +31,9 @@ export class PersistentTypographySequences {
   private w = 1;
   private h = 1;
   private baseFontSize = 84;
+  private focusX = 0;
+  private focusY = 0;
+  private hasFocus = false;
 
   constructor() {
     this.container.sortableChildren = true;
@@ -61,6 +64,12 @@ export class PersistentTypographySequences {
 
   getGrammar() {
     return this.grammar;
+  }
+
+  getFocusPoint() {
+    return this.hasFocus
+      ? { x: this.focusX, y: this.focusY }
+      : { x: 0, y: 0 };
   }
 
   setPalette(palette: VisualPalette, _refreshStatic = true) {
@@ -134,6 +143,16 @@ export class PersistentTypographySequences {
     });
     const refs = new Map(window.words.map(word => [word.id, word]));
     const activeIds = new Set<string>();
+    const heroPlacement = plan.heroId
+      ? plan.words.find(word => word.id === plan.heroId)
+      : undefined;
+    this.hasFocus = Boolean(heroPlacement);
+    this.focusX = heroPlacement
+      ? clamp(heroPlacement.x / Math.max(1, this.w * 0.5), -1, 1)
+      : 0;
+    this.focusY = heroPlacement
+      ? clamp(heroPlacement.y / Math.max(1, this.h * 0.5), -1, 1)
+      : 0;
 
     for (const placement of plan.words) {
       const ref = refs.get(placement.id);
@@ -276,5 +295,8 @@ export class PersistentTypographySequences {
       entry.node.destroy();
     }
     this.nodes.clear();
+    this.focusX = 0;
+    this.focusY = 0;
+    this.hasFocus = false;
   }
 }

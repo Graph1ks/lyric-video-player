@@ -10,3 +10,5 @@ export * from "./typographyMotionGrammar.js";
 export * from "./kineticReadability.js";
 export * from "./typographySequence.js";
 export * from "./typographySequenceComposition.js";
+export * from "./elasticTether.js";
+export * from "./cinematicCamera.js";

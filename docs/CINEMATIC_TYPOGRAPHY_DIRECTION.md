@@ -267,14 +267,22 @@ Planned extensions:
 
 ### Elastic Tether
 
+**Implementation status:** bounded anisotropic word-level tether active candidate.
+
 A word enters from a source direction and appears to be pulled into its target.
 
-Implementation stages:
+Current implementation:
 
-1. anisotropic stretch/squash aligned to travel direction;
-2. overshoot + damped settle;
-3. optional RenderTexture/mesh deformation for genuine non-rigid “gum” bending;
-4. later variable-font width/weight axes where a compatible font pipeline exists.
+1. word-level travel follows the composition entry/source vector;
+2. anisotropic stretch/squash is projected onto X/Y from that travel direction;
+3. target arrival uses bounded overshoot + damped settle;
+4. existing glyph elastic becomes secondary follow-through;
+5. readability pressure reduces distance/deformation for Rapid/Burst cues without eliminating motion.
+
+Future stages:
+
+- optional RenderTexture/mesh deformation for genuine non-rigid “gum” bending after visual acceptance;
+- later variable-font width/weight axes where a compatible font pipeline exists.
 
 Do not fake every elastic case with extreme scale alone; severe anisotropic scaling damages letterform readability.
 
@@ -303,7 +311,9 @@ Continuity strategies:
 
 ## Camera rule
 
-Camera motion should increasingly come from the sequence plan.
+**Implementation status:** phrase/shot/focus base-plan active candidate.
+
+Camera motion should increasingly come from the sequence plan. The active candidate derives normalized pan, shot scale, rotation and impulse/micro-motion budgets from phrase progress, shot role, active typography focus, persistent grammar and readability pressure.
 
 Audio transients may add bounded micro-response, but they should not constantly override:
 
@@ -334,8 +344,8 @@ Audio analysis remains a supporting signal. Enhanced LRC timing and explicit son
 2. **Persistent multi-cue typography scene graph** — next.
 3. **Spiral Depth + Hero/Echo Field** — merged persistent grammars exercising history, scale hierarchy and camera continuity.
 4. **Shape Build + Ribbon/Path** — active candidate.
-5. **Elastic Tether** with readable anisotropic deformation; mesh deformation only after baseline acceptance.
-6. **Continuity-aware camera plan** and constrained audio impulses.
+5. **Elastic Tether** with readable anisotropic deformation — active candidate; mesh deformation only after baseline acceptance.
+6. **Continuity-aware camera plan** and constrained audio impulses — active candidate.
 7. **Section-level tension/release and shot-size sequencing**.
 8. **Serializable sequence directives** in the project format.
 9. **Real-track cinematic acceptance matrix** before editor work.

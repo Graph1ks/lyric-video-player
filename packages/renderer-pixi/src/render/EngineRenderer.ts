@@ -1,6 +1,12 @@
 import { Application, Container } from "pixi.js";
 import type { AudioBands } from "@graph1ks/emo-audio-web";
-import { createVisualPalette, SceneDirector } from "@graph1ks/emo-engine-core";
+import {
+  analyzeKineticReadability,
+  clamp,
+  createVisualPalette,
+  evaluateCinematicCameraPlan,
+  SceneDirector,
+} from "@graph1ks/emo-engine-core";
 import type {
   BackgroundPreset,
   BackgroundPresetId,
@@ -64,6 +70,7 @@ export class EngineRenderer {
   private colorFlow: ColorFlowMode = "static";
   private lastLineIndex = -1;
   private currentDirection?: DirectedScene;
+  private lines: LineCue[] = [];
   private intensity = 1;
   private host?: HTMLElement;
   private modeListeners = new Set<(mode: SceneMode) => void>();
@@ -127,6 +134,7 @@ export class EngineRenderer {
   }
 
   setLyrics(lines: LineCue[]) {
+    this.lines = lines;
     this.director.load(lines);
     this.sequenceLyrics.setLyrics(lines);
     this.renderGraph.resetFeedback();
@@ -414,6 +422,7 @@ export class EngineRenderer {
     this.background.update(time, audio, spectrum);
     this.lyrics.update(lyricTime, audio);
     this.sequenceLyrics.update(lyricTime, audio);
+    this.updateCinematicCamera(lyricTime);
     this.cameraRig.update(time, audio);
 
     this.renderGraph.capture(this.app.renderer, this.camera, time);
@@ -454,6 +463,42 @@ export class EngineRenderer {
     if (animate) this.sceneTransition = 1;
 
     for (const listener of this.modeListeners) listener(mode);
+  }
+
+  private updateCinematicCamera(lyricTime: number) {
+    const direction = this.currentDirection;
+    if (!direction) {
+      this.cameraRig.setCinematicPlan(undefined);
+      return;
+    }
+
+    const phraseStart = this.lines[direction.phraseStartLine]?.start ?? lyricTime;
+    const phraseEnd = this.lines[direction.phraseEndLine]?.end ?? phraseStart + 1;
+    const phraseProgress = clamp(
+      (lyricTime - phraseStart) / Math.max(0.08, phraseEnd - phraseStart),
+    );
+    const persistent = Boolean(this.sequenceLyrics.getGrammar());
+    const focus = persistent
+      ? this.sequenceLyrics.getFocusPoint()
+      : this.lyrics.getFocusPoint(lyricTime);
+    const activeLine = this.lines[this.lastLineIndex];
+    const readability = activeLine
+      ? analyzeKineticReadability({
+          lineStart: activeLine.start,
+          lineEnd: activeLine.end,
+          words: activeLine.words,
+        })
+      : undefined;
+
+    this.cameraRig.setCinematicPlan(evaluateCinematicCameraPlan({
+      mode: direction.mode,
+      shotRole: direction.shotRole,
+      sequenceGrammar: persistent ? direction.typography.sequenceGrammar : undefined,
+      phraseProgress,
+      focus,
+      readabilityPressure: readability?.pressure ?? 0,
+      intensity: this.intensity,
+    }));
   }
 
   private refreshPalette(time = this.lastLyricTime, dynamic = false) {
