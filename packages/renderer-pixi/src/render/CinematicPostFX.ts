@@ -51,6 +51,7 @@ float hash21(vec2 p) {
 
 void main(void) {
     vec2 texel = uInputSize.zw;
+    vec4 source = texture2D(uTexture, clamp(vTextureCoord, vec2(0.001), vec2(0.999)));
     vec2 centered = vTextureCoord - 0.5;
     float radius2 = dot(centered, centered);
     float edgeDistance = min(
