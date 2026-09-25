@@ -13,7 +13,7 @@ import type { TypographySequenceGrammarId } from "./typographySequenceCompositio
 export interface VisualAutoProfile {
   scenes?: SceneMode[];
   typographyPresets?: TypographyPresetId[];
-  sequences?: TypographySequenceGrammarId[];
+  sequences?: Array<TypographySequenceGrammarId | "off">;
   layouts?: TypographyLayoutId[];
   motions?: CompositionMotionId[];
   backgrounds?: BackgroundPresetId[];
