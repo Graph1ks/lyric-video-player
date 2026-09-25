@@ -27,11 +27,22 @@ export interface ParsedLyrics {
 export type SceneMode = "poster" | "neon" | "vortex";
 export type VisualMode = "auto" | SceneMode;
 export type QualityMode = "performance" | "cinema";
+export type TypographyPresetId =
+  | "impact"
+  | "cascade"
+  | "wave"
+  | "scatter"
+  | "elastic"
+  | "outline"
+  | "tunnel"
+  | "glitch";
+export type TypographyPreset = "auto" | TypographyPresetId;
 
 export interface VisualSettings {
   mode: VisualMode;
   intensity: number;
   quality: QualityMode;
+  typographyPreset?: TypographyPreset;
 }
 
 export interface AudioBands {

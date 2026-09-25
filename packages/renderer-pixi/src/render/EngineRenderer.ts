@@ -1,7 +1,7 @@
 import { Application, Container } from "pixi.js";
 import type { AudioBands } from "@graph1ks/emo-audio-web";
 import { SceneDirector } from "@graph1ks/emo-engine-core";
-import type { LineCue, QualityMode, SceneMode, VisualMode } from "@graph1ks/emo-engine-core";
+import type { LineCue, QualityMode, SceneMode, TypographyPreset, VisualMode } from "@graph1ks/emo-engine-core";
 import { CinematicBackground } from "../effects/backgrounds/CinematicBackground";
 import { KineticLyrics } from "../effects/typography/KineticLyrics";
 import { CameraRig } from "./CameraRig";
@@ -91,6 +91,18 @@ export class EngineRenderer {
     this.director.setMode(mode);
     if (mode !== "auto") this.applyMode(mode, true);
     else if (this.lastLineIndex >= 0) this.applyMode(this.director.sceneFor(this.lastLineIndex).mode, true);
+  }
+
+  setTypographyPreset(preset: TypographyPreset) {
+    this.lyrics.setPreset(preset);
+  }
+
+  getTypographyPreset() {
+    return this.lyrics.getPreset();
+  }
+
+  getResolvedTypographyPreset() {
+    return this.lyrics.getResolvedPreset();
   }
 
   setIntensity(value: number) {
