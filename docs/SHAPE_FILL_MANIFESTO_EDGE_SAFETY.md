@@ -1,6 +1,6 @@
 # Shape Fill, Manifesto Wall and Edge Safety
 
-**Status:** active candidate  
+**Status:** merged baseline — PR #48 / `40a5f29a078f1983285dea984ef468f98efa23ec`  
 **Started:** 2026-09-25  
 **Scope:** correct calligram semantics, architectural kinetic typography, and final output-edge safety.
 
@@ -167,7 +167,7 @@ New UI and AUTO direction use `shape-fill`.
 
 ## Manual acceptance
 
-Verify on real tracks/displays:
+The implementation baseline is merged and CI-verified. Verify on real tracks/displays:
 
 - no black reveal at any edge during strong displacement/smear/transient hits;
 - no visible rectangular scanline/grain/bloom boundary;
