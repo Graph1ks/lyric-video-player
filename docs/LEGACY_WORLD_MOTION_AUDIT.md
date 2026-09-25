@@ -9,10 +9,10 @@ This audit is the implementation companion to `WORLD_BACKGROUND_REHABILITATION_P
 | Preset | Current renderer | Motion class | Confirmed legacy issue | Rehabilitation action |
 | --- | --- | --- | --- | --- |
 | `cinematic` | shared CinematicBackground layers | mechanical / continuous | shared blob/ring/particle scale and push paths | isolate filmic depth field; keep audio on light/material response |
-| `nebula` | shared blobs/particles/beams | mechanical / continuous | blob scale and shared particle response made cloud mass pump | autonomous drift/depth; audio only illumination and bounded local density accents |
-| `grid` | shared Geometry + particles | one-way flow / mechanical | generic particles dilute perspective identity | dedicated perspective grid/mesh with time-owned scroll |
-| `starfield` | shared particles + streaks | one-way flow | global transient push/scale modified all stars | keep z travel time-owned; audio only brightness/specular accents |
-| `rays` | shared beams/rings/particles | mechanical / burst accents | transient expansion and audio-scaled beam geometry | dedicated shafts; slow targeting plus event-only flare |
+| `nebula` | dedicated `LegacyNebulaWorld` | mechanical / continuous | blob scale and shared particle response made cloud mass pump | layered depth cloud masses + filaments + dust; geometry is time-owned, audio affects light only |
+| `grid` | dedicated `LegacyGridWorld` | one-way flow / mechanical | generic particles diluted perspective identity | perspective ground plane + side architecture with monotonic time-owned depth scroll |
+| `starfield` | dedicated `LegacyStarfieldWorld` | one-way flow | global transient push/scale modified all stars | deterministic world-space stars with monotonic z travel and depth streaks; audio only brightness |
+| `rays` | dedicated `LegacyRaysWorld` | mechanical / burst accents | transient expansion and audio-scaled beam geometry | multilayer volumetric shafts with time-owned targeting; transient envelope affects flare/light only |
 | `vortex` | dedicated `LegacyVortexWorld` | one-way flow | raw energy previously changed shared-particle radius ("breathing") | projected helical ribbons + one-way tracers; audio affects light only |
 | `liquid` | ProceduralLiquidFX | mechanical / continuous deformation | absolute-time speed multiplied by energy; field frequency changed with bass | fixed phase rate; audio only bounded material/warp/highlight response |
 | `spectrum` | shared spectrum Graphics | rhythmic deformation | extra whole-band amplitude multiplies the already musical spectrum | keep spectrum authoritative; smooth envelope only for staging/light |
@@ -33,6 +33,18 @@ This audit is the implementation companion to `WORLD_BACKGROUND_REHABILITATION_P
 - Liquid phase speed and field topology no longer multiply absolute time/spatial frequency by audio.
 - `WorldColorContext` is now a pure engine-core contract for representative/title-safe luminance, highlight risk, busyness, polarity hysteresis and outline-support pressure.
 
+## Dedicated Phase-B fidelity rebuilds now in candidate
+
+The five worst motion offenders are isolated from the generic shared layer stack:
+
+- `vortex` → `LegacyVortexWorld`: projected helix ribbons, depth hoops and one-way tracers;
+- `rays` → `LegacyRaysWorld`: authored volumetric shafts with slow time-owned targeting and event-only flare response;
+- `starfield` → `LegacyStarfieldWorld`: deterministic world-space star depth with one-way z travel and perspective streaks;
+- `nebula` → `LegacyNebulaWorld`: layered cloud masses, coherent filaments and autonomous dust parallax;
+- `grid` → `LegacyGridWorld`: perspective ground plane, monotonic depth-scroll rows and side wireframe architecture.
+
+All five consume semantic `VisualPalette` roles. Their geometry/phase/direction is timestamp-owned; smoothed legacy audio is restricted to light/material emphasis.
+
 ## Next implementation slice
 
-`vortex` is now isolated in `LegacyVortexWorld`. Continue with dedicated `rays`, `starfield`, `nebula` and `grid` renderers in that order, preserving preset IDs while removing dependence on the generic shared layer stack.
+Continue dedicated fidelity work on `cinematic`, `liquid`, `spectrum`, `sparks`, `lyrics` and `minimal`, then rebuild the four `ArtDirectionWorlds` presets. After the world identities are stable, wire per-world `WorldColorContext` into typography treatment with contrast floors and polarity hysteresis.
