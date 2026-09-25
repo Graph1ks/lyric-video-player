@@ -46,6 +46,30 @@ export interface TypographyCompositionPlan {
   words: WordCompositionPlacement[];
 }
 
+export interface TypographyWordBounds {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+  width: number;
+  height: number;
+}
+
+export interface TypographyCollision {
+  a: number;
+  b: number;
+  overlapX: number;
+  overlapY: number;
+  overlapRatio: number;
+}
+
+export interface TypographyCompositionAssessment {
+  bounds: TypographyWordBounds[];
+  overflowCount: number;
+  collisions: TypographyCollision[];
+  maxOverlapRatio: number;
+}
+
 const AUTO_LAYOUTS: Record<SceneMode, TypographyLayoutId[]> = {
   poster: ["editorial", "vertical-accent", "split-stage", "crossword", "directional-stage"],
   neon: ["directional-stage", "split-stage", "editorial", "center-stack", "vertical-accent"],
@@ -95,11 +119,11 @@ function isVertical(rotation: number) {
   return Math.abs(Math.abs(rotation) - Math.PI / 2) < 0.2;
 }
 
-function boundsFor(
+export function measureTypographyWordBounds(
   placement: WordCompositionPlacement,
   wordWidth: number,
   wordHeight: number,
-) {
+): TypographyWordBounds {
   const vertical = isVertical(placement.rotation);
   const w = (vertical ? wordHeight : wordWidth) * placement.scale;
   const h = (vertical ? wordWidth : wordHeight) * placement.scale;
@@ -112,6 +136,8 @@ function boundsFor(
     height: h,
   };
 }
+
+const boundsFor = measureTypographyWordBounds;
 
 function clampToAttentionField(
   placement: WordCompositionPlacement,
@@ -139,6 +165,54 @@ function overlapAmount(
     x: Math.min(a.right, b.right) - Math.max(a.left, b.left),
     y: Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top),
   };
+}
+
+export function assessTypographyComposition(
+  plan: TypographyCompositionPlan,
+  wordWidths: number[],
+  wordHeight: number,
+): TypographyCompositionAssessment {
+  const bounds = plan.words.map((word, index) => (
+    measureTypographyWordBounds(word, Math.max(1, wordWidths[index] ?? 1), Math.max(1, wordHeight))
+  ));
+  const field = plan.attentionField;
+  const fieldLeft = field.x - field.width * 0.5;
+  const fieldRight = field.x + field.width * 0.5;
+  const fieldTop = field.y - field.height * 0.5;
+  const fieldBottom = field.y + field.height * 0.5;
+
+  let overflowCount = 0;
+  for (const box of bounds) {
+    if (
+      box.left < fieldLeft - 0.5
+      || box.right > fieldRight + 0.5
+      || box.top < fieldTop - 0.5
+      || box.bottom > fieldBottom + 0.5
+    ) {
+      overflowCount += 1;
+    }
+  }
+
+  const collisions: TypographyCollision[] = [];
+  let maxOverlapRatio = 0;
+  for (let a = 0; a < bounds.length; a++) {
+    for (let b = a + 1; b < bounds.length; b++) {
+      const overlapX = Math.min(bounds[a].right, bounds[b].right) - Math.max(bounds[a].left, bounds[b].left);
+      const overlapY = Math.min(bounds[a].bottom, bounds[b].bottom) - Math.max(bounds[a].top, bounds[b].top);
+      if (overlapX <= 0 || overlapY <= 0) continue;
+
+      const overlapArea = overlapX * overlapY;
+      const smallerArea = Math.max(1, Math.min(
+        bounds[a].width * bounds[a].height,
+        bounds[b].width * bounds[b].height,
+      ));
+      const overlapRatio = overlapArea / smallerArea;
+      maxOverlapRatio = Math.max(maxOverlapRatio, overlapRatio);
+      collisions.push({ a, b, overlapX, overlapY, overlapRatio });
+    }
+  }
+
+  return { bounds, overflowCount, collisions, maxOverlapRatio };
 }
 
 function stabilizeComposition(
