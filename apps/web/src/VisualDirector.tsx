@@ -39,7 +39,7 @@ export function VisualDirector({
   const t = (en: string, german: string) => copy(state.uiLanguage, en, german);
 
   const sections: { id: DirectorSection; label: string; hint: string }[] = [
-    { id: "presets", label: t("Presets", "Presets"), hint: t("Curated", "Kuratiert") },
+    { id: "presets", label: t("Presets", "Presets"), hint: t("User-built", "User-built") },
     { id: "scene", label: t("Scene", "Szene"), hint: t("Direction", "Regie") },
     { id: "type", label: t("Type", "Typo"), hint: t("Words", "Wörter") },
     { id: "motion", label: t("Motion", "Motion"), hint: t("Movement", "Bewegung") },
