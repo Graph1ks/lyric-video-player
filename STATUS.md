@@ -1,13 +1,13 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `db14f45bf1a682e2526d1d4b0764b8e051f871ab`  
-**Active candidate:** `feat/worlds-07-08-vortex-waveform-v2`  
-**Current phase/milestone:** WORLD_07 / WORLD_08 implementation
+**Last known good merged baseline:** `32c3dce154ebbe8f5bf2634b29c9002393cb2af3`  
+**Active candidate:** none  
+**Current phase/milestone:** WORLD_05–08 visual acceptance
 
 ## Current objective
 
-Continue the 13-world expansion with WORLD_07 Particle Spiral Vortex and WORLD_08 Minimal Rainbow Waveform while preserving the projected-3D / motion-semantics quality bar established by the WORLD_05/06 rebuild.
+Visually accept the projected-3D WORLD_05/06 rebuild and merged WORLD_07 Particle Spiral Vortex / WORLD_08 Minimal Rainbow Waveform while preparing the next WORLD_09/10 pair.
 
 ## Current state
 
@@ -202,11 +202,10 @@ Continue the 13-world expansion with WORLD_07 Particle Spiral Vortex and WORLD_0
 
 ## Next concrete action
 
-1. Finish Linux + Windows CI for WORLD_07/WORLD_08 and merge only after all gates pass.
-2. User can later test the rebuilt WORLD_05/06; no acceptance pause is required before continuing.
-3. Test **Particle Spiral Vortex** for obvious 3D arm depth, clean inward funnel motion and a bright chromatic core.
-4. Test **Minimal Rainbow Waveform** with real music for precise mirrored spectrum response, smooth bins and large negative space.
-5. Continue to WORLD_09/WORLD_10 after 07/08 merge.
+1. User can test rebuilt **Fractal Hex Spiral Mosaic** and **Soft Hex Cell Field** later; both now use explicit projected 3D geometry rather than flat screen warps.
+2. Test **Particle Spiral Vortex** for obvious 3D arm depth, clean inward funnel motion and a bright chromatic core.
+3. Test **Minimal Rainbow Waveform** with real music for precise mirrored spectrum response, smooth bins and large negative space.
+4. Continue to WORLD_09 Neon Equalizer Grid City and WORLD_10 Holographic Audio Terrain.
 
 ### Previous visual-acceptance queue
 
