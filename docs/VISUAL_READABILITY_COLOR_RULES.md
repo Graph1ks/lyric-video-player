@@ -146,3 +146,23 @@ Current baseline rate: **2.4 degrees/second** (about 150 seconds for a full hue 
 ### 7. AUTO remains deterministic
 
 Mood, harmony, Color Canvas, composition and motion AUTO routing must be reproducible from scene/cue/time state. No history-dependent random layout or color decisions are permitted.
+
+
+## Planned next milestone — world-aware contrast
+
+The existing OKLCH palette system enforces primary/secondary/muted contrast against the nominal semantic canvas/background. That remains the baseline, but it is no longer sufficient for animated worlds whose visible title-safe region can be much brighter than the canvas role.
+
+The legacy-world rehabilitation milestone will add a **World Color / Readability Context**.
+
+Requirements:
+
+- worlds consume the semantic OKLCH palette for their materials;
+- worlds report/estimate representative hue/chroma and title-safe luminance/highlight risk;
+- typography preserves mood/harmony while adapting OKLCH lightness/chroma and, when necessary, light/dark polarity;
+- ordinary lyrics, persistent typography, outlines/echoes and relevant Lower Third treatment use the resolved context;
+- primary / secondary / muted contrast floors remain 7:1 / 4.5:1 / 3:1;
+- polarity uses smoothing/hysteresis and should preferably remain phrase/cue-stable;
+- a short bright transient must not make typography flip white ↔ black every frame;
+- synchronous per-frame GPU readback is not the default design.
+
+Detailed plan: `docs/WORLD_BACKGROUND_REHABILITATION_PLAN.md`.

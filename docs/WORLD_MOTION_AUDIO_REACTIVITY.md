@@ -101,3 +101,30 @@ Before mapping any audio band to geometry, classify the target as:
 - intentionally rhythmic deformation.
 
 The implementation must preserve that motion class under noisy real music input.
+
+
+## Legacy background rehabilitation scope
+
+This contract explicitly applies to the pre-reference-set background stack as well as the newer WORLD_XX implementations.
+
+The next rehabilitation pass covers:
+
+- `cinematic`
+- `nebula`
+- `grid`
+- `starfield`
+- `rays`
+- `vortex`
+- `liquid`
+- `spectrum`
+- `sparks`
+- `lyrics`
+- `minimal`
+- `editorial`
+- `print`
+- `architecture`
+- `aurora`
+
+Current shared legacy code contains raw-audio scale/push/breathe mappings that violate this contract. Those paths are now considered known technical debt and must be removed/re-authored rather than preserved for compatibility.
+
+See `docs/WORLD_BACKGROUND_REHABILITATION_PLAN.md`.

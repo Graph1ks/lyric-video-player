@@ -1,13 +1,13 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `df5e5c34f2ddf5de2ddec5e6fe7dad6da01592f1`  
-**Active candidate:** none  
-**Current phase/milestone:** WORLD_05–08 visual acceptance
+**Last known good merged baseline:** `739a5d150e70ee8fcf5c59037e273e2823060a0d`  
+**Active candidate:** `docs/legacy-world-rehabilitation-handover`  
+**Current phase/milestone:** legacy world/background rehabilitation planning
 
 ## Current objective
 
-Visually accept the projected-3D WORLD_05/06 rebuild and merged WORLD_07 Particle Spiral Vortex / WORLD_08 Minimal Rainbow Waveform while preparing the next WORLD_09/10 pair.
+Rehabilitate all 15 legacy Background presets before WORLD_09/10: remove raw-audio twitch/pump/reversal behavior, perform a hard fidelity upgrade, route worlds through the semantic OKLCH palette, and make lyric typography contrast adapt to the actual rendered world rather than only the nominal canvas color.
 
 ## Current state
 
@@ -28,6 +28,11 @@ Visually accept the projected-3D WORLD_05/06 rebuild and merged WORLD_07 Particl
 - WORLD_06 now uses mathematically packed axial hex placement, real prism heights, look-at camera projection, controlled narrow gaps, depth sorting and side/top geometry.
 - WORLD_07 Particle Spiral Vortex is merged in PR #68 and uses projected 3D particles moving autonomously inward/deeper along several spiral arms.
 - WORLD_08 Minimal Rainbow Waveform is merged in PR #68 and consumes the real renderer spectrum buffer, applies per-bin smoothing and draws mirrored rainbow spikes with restrained glow.
+- **Legacy rehabilitation is the next runtime milestone:** all pre-reference-set presets (`cinematic`, `nebula`, `grid`, `starfield`, `rays`, `vortex`, `liquid`, `spectrum`, `sparks`, `lyrics`, `minimal`, `editorial`, `print`, `architecture`, `aurora`) must be audited/rebuilt before WORLD_09/10.
+- Current code confirms the failure is systemic: shared legacy layers directly map raw bass/energy/transient into blob scale, vortex breathing, ray expansion, particle push/scale and art-world pulse geometry. This is the same motion-semantics class that previously broke Neon Energy Burst Tunnel.
+- The fidelity target is not merely smoothing: generic shared blobs/particles/rings/beams must be replaced or isolated where they prevent each preset from having a strong paused-frame identity and authored motion grammar.
+- Color becomes two-way: OKLCH `VisualPalette` drives world materials, while each world exposes a cheap smoothed readability/color context so typography can maintain its existing contrast floors against the **actual world tone**, not only `palette.background`.
+- Durable plan: `docs/WORLD_BACKGROUND_REHABILITATION_PLAN.md`.
 - Durable 3D architecture is now captured in `docs/3D_WORLD_RENDERING_ARCHITECTURE.md`: world-space state, camera projection, perspective, depth sorting, Graphics-vs-Mesh-vs-raymarch-vs-Three escalation, performance rules and concrete WORLD_09/10 plans.
 - Motion/audio semantics are durable in `docs/WORLD_MOTION_AUDIO_REACTIVITY.md`.
 - Rendering-tech research keeps both in Pixi custom shaders for now; WORLD_03 escalates to a Three.js comparison only if local acceptance still requires true projected-room geometry/parallax.
@@ -203,13 +208,12 @@ Visually accept the projected-3D WORLD_05/06 rebuild and merged WORLD_07 Particl
 
 ## Next concrete action
 
-1. Continue in a fresh thread with **WORLD_09 Neon Equalizer Grid City** and **WORLD_10 Holographic Audio Terrain**.
-2. Read `docs/3D_WORLD_RENDERING_ARCHITECTURE.md` before implementation; do not restart the Pixi-vs-Three research.
-3. WORLD_09 should begin as projected/batched 3D equalizer geometry sharing one perspective camera with its floor grid.
-4. WORLD_10 should begin as a dynamic Pixi Mesh/Geometry heightfield driven by live spectrum/history.
-5. User feedback for WORLD_05–08 can arrive asynchronously and should be folded into later tuning.
-
-For the next thread, start with the resume protocol plus `docs/3D_WORLD_RENDERING_ARCHITECTURE.md`.
+1. Start a fresh thread with **Phase A** from `docs/WORLD_BACKGROUND_REHABILITATION_PLAN.md`.
+2. Audit all legacy raw-audio → phase/position/scale/topology mappings and introduce shared smoothed world-audio/event primitives with deterministic seek/discontinuity handling.
+3. Define the `WorldColorContext` / background-aware typography treatment contract before doing one-off color fixes.
+4. Fix the worst motion offenders first: `vortex`, `rays`, `starfield`, `nebula`, `grid`.
+5. Continue through all 15 legacy presets with dedicated fidelity upgrades and semantic OKLCH palette integration.
+6. Only after the legacy stack inherits the new motion/color/readability contracts continue WORLD_09/10.
 
 ### Previous visual-acceptance queue
 
