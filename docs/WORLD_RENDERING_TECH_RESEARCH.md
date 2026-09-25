@@ -107,6 +107,17 @@ Before adding Three.js, prototype those with Pixi `Mesh`/custom shaders and comp
 4. memory overhead;
 5. renderer/compositor integration risk.
 
+## Motion/audio-reactivity finding
+
+The visual renderer is not the only fidelity boundary: **motion semantics matter as much as shading**.
+
+WORLD_03/04 local acceptance exposed two failure modes:
+
+- direct audio in mirrorball radius/angular velocity makes a mechanically continuous object stutter;
+- multiplying absolute time by raw audio in tunnel phase terms creates discontinuous phase jumps that can look like direction reversal.
+
+The durable contract is now `docs/WORLD_MOTION_AUDIO_REACTIVITY.md`: mechanical motion stays time-driven, one-way flows keep monotonic phase, and true bursts use positive event envelopes rather than inhale/exhale oscillation.
+
 ## Current implementation direction
 
 ### WORLD_01 Prism Stage Beams v2
@@ -158,7 +169,7 @@ The shader implements spherical-coordinate facet quantization, metallic/Fresnel 
 
 Escalation criterion: if real-display acceptance requires physically coherent wall projection, moving camera parallax or actual mirror reflection geometry, prototype the same scene in Three.js and compare fidelity/GPU/memory before merging a second renderer.
 
-### WORLD_04 Neon Energy Burst Tunnel candidate
+### WORLD_04 Neon Energy Burst Tunnel — motion-corrected
 
 Technique: **full-screen polar/log-depth procedural shader**.
 
@@ -172,9 +183,39 @@ The shader combines:
 - central aperture bloom and flare;
 - power/detail scaling without per-streak display objects.
 
+The original candidate incorrectly multiplied absolute time by raw bass in several phase terms. That caused phase jumps and visible expand/retract motion. The corrected implementation integrates a monotonically increasing travel phase and uses transient rising edges to start a positive one-way burst/shock envelope.
+
 This is a direct fit for a Pixi custom Filter; a 3D scene graph adds no useful capability for the supplied target.
 
-## Rule for the remaining 9 worlds
+### WORLD_05 Fractal Hex Spiral Mosaic
+
+Technique: **full-screen analytic hex-grid + recursive domain-warp shader**.
+
+The shader combines:
+
+- exact reusable hex-cell coordinates and thick graphic cell borders;
+- three slowly moving vortex domains;
+- sink-dependent cell-density compression so cells recursively subdivide toward spiral centers;
+- rainbow screen-print palette logic;
+- inset center hexes and beveled/extruded edge shading.
+
+Audio does not drive geometry. It adds local color/light accents only, following `docs/WORLD_MOTION_AUDIO_REACTIVITY.md`.
+
+### WORLD_06 Soft Hex Cell Field
+
+Technique: **layered analytic variable-size hex fields**.
+
+The shader combines:
+
+- near/far hex layers at different frequencies;
+- per-cell size variation that preserves black gaps;
+- slow parallax and subtle domain warp;
+- pastel color variation plus deliberately muted/dark cells;
+- soft bevel shading and selective white facet glints.
+
+The field remains mechanically smooth; audio changes illumination/highlights rather than cell size/position.
+
+## Rule for the remaining 7 worlds
 
 Do not prototype a reference-grade world using only primitive `Graphics` shapes unless the reference itself is graphic/flat.
 
