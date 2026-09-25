@@ -199,8 +199,9 @@ export class PersistentTypographySequences {
         : readability?.motion.scaleExcursion ?? 1;
       const directedScale = 1 + (placement.scale - 1) * scaleExcursion;
       const desiredScale = directedScale * activeLift;
-      const baseWidth = Math.max(1, node.width * desiredScale);
-      const baseHeight = Math.max(1, node.height * desiredScale);
+      const localBounds = node.getLocalBounds();
+      const baseWidth = Math.max(1, localBounds.width * desiredScale);
+      const baseHeight = Math.max(1, localBounds.height * desiredScale);
       const cos = Math.abs(Math.cos(placement.rotation));
       const sin = Math.abs(Math.sin(placement.rotation));
       const rotatedWidth = baseWidth * cos + baseHeight * sin;
