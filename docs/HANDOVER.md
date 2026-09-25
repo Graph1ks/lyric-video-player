@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-09-25  
 **Merged baseline:** `120c247de32316ece937d0f2abe1bb374f3dc196`  
-**Active candidate:** `feat/legacy-world-rehab-phase-a` — draft PR #74 (`38c15ba07701d27f2712518c12e372ede77d6826`)  
+**Active candidate:** `feat/legacy-world-rehab-phase-a` — draft PR #74  
 **Current phase/milestone:** legacy world/background rehabilitation
 
 ## Current objective
@@ -72,8 +72,15 @@ The Color Director remains the art-direction source of truth:
 - Raw bass/transient whole-geometry pumping is removed from shared blob/ring/beam/particle scale/push paths and from editorial/architecture whole-form scaling.
 - `ProceduralLiquidFX` no longer multiplies absolute-time phase speed or field spatial frequency by audio.
 - `WorldColorContext` is defined in engine-core with title-safe luminance, highlight risk, busyness/chroma pressure, stable text-polarity recommendation and outline-support pressure.
-- Legacy `vortex` is now isolated in `LegacyVortexWorld`: projected helix ribbons + depth hoops establish paused-frame identity, and monotonic timestamp tracers provide one-way motion. Audio is restricted to lighting/glow.
-- Vortex remains **visual-acceptance pending**; do not describe it as fidelity-accepted until real browser/Desktop review passes.
+- The five Phase-B worst offenders are now isolated as dedicated worlds instead of shared-stack variants:
+  - `vortex` → `LegacyVortexWorld`: projected helix ribbons, depth hoops and monotonic one-way tracers;
+  - `rays` → `LegacyRaysWorld`: multilayer volumetric shafts, autonomous target drift and event-only flare response;
+  - `starfield` → `LegacyStarfieldWorld`: deterministic world-space stars, perspective streaks and monotonic z travel;
+  - `nebula` → `LegacyNebulaWorld`: layered depth cloud masses, coherent filaments and autonomous dust parallax;
+  - `grid` → `LegacyGridWorld`: explicit perspective floor, monotonic depth-scroll rows and side wireframe architecture.
+- Those five preset IDs are included in the specialized-world isolation set, so generic particles/blobs/rings/beams no longer dilute them.
+- All five consume semantic `VisualPalette` roles. Geometry/phase/direction are timestamp-owned; smoothed legacy audio only affects light/material response, and Rays uses the positive transient envelope for flare brightness only.
+- All five remain **visual-acceptance pending**; do not describe them as fidelity-accepted until real browser/Desktop review passes.
 
 ## Merged baseline — Resource lifetime + physical-edge safety v0.11.2
 
@@ -768,15 +775,16 @@ Windows packaging remains a separate required gate.
 
 PR #51 Linux validation and Windows packaging passed: typecheck, build, tests, publication audit, Node 22/24 launcher smokes, NSIS, portable x64 and artifact upload.
 
-Draft PR #74 code head `38c15ba`: Linux typecheck/build/tests/publication audit passed; Windows Node 22/24 dev-launcher smokes passed. Full Windows packaging remains a required gate, and real-display Vortex acceptance remains separate from CI.
+Draft PR #74 earlier Vortex-only head `38c15ba`: Linux typecheck/build/tests/publication audit passed; Windows Node 22/24 dev-launcher smokes passed. The newer Phase-B head adds Rays/Starfield/Nebula/Grid and requires a fresh CI run. Full Windows packaging and real-display acceptance remain separate gates.
 
 ## Next concrete work
 
-1. Run real browser/Desktop visual acceptance of legacy `vortex` at 1080p/1440p/4K in Performance and Cinema, including 0%, 100% and high World Power/Detail stress.
-2. If Vortex is accepted, keep its preset ID and continue directly with dedicated `rays`; if rejected, iterate its depth composition rather than restoring generic shared layers.
-3. Continue `starfield` → `nebula` → `grid`, preserving deterministic seek-safe motion and semantic palette roles.
-4. Rehabilitate the remaining legacy presets, then connect per-world `WorldColorContext` into contrast-safe typography treatment.
-5. Do not resume WORLD_09/10 until the full legacy motion/color/readability acceptance matrix is complete.
+1. Run real browser/Desktop visual acceptance of legacy `vortex`, `rays`, `starfield`, `nebula` and `grid` at 1080p/1440p/4K in Performance and Cinema, including low/normal/extreme World Power and World Detail.
+2. If a world is rejected, iterate its dedicated renderer rather than restoring generic shared layers or audio-driven geometry.
+3. Continue dedicated rebuilds for `cinematic`, `liquid`, `spectrum`, `sparks`, `lyrics` and `minimal`.
+4. Rebuild `editorial`, `print`, `architecture` and `aurora` to the same fidelity/motion/palette floor.
+5. Connect per-world `WorldColorContext` into contrast-safe typography treatment with smoothing/polarity hysteresis and verify the 7:1 / 4.5:1 / 3:1 floors against actual world context.
+6. Do not resume WORLD_09/10 until the full legacy motion/color/readability acceptance matrix is complete.
 
 ## Resume instruction
 
