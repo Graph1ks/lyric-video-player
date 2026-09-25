@@ -1,13 +1,13 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `9b9cbedf33193bf156ae2dc33d0dff0a4383144a`  
-**Active candidate:** `fix/dev-runtime-color-variety-v0.8`  
+**Last known good merged baseline:** `b17be7bbee7839fd842cf8a29b07fc4dd77c1b69`  
+**Active candidate:** none  
 **Current phase/milestone:** v0.8 lyric-scene composition + color direction
 
 ## Current objective
 
-Remove the remaining local-dev startup race and broaden color polarity so AUTO no longer collapses into white type on near-black backgrounds.
+Visually accept the merged Color Canvas variety and Step 4 worlds on real Enhanced LRC tracks, then continue the remaining typography primitives.
 
 ## Current state
 
@@ -82,13 +82,15 @@ Remove the remaining local-dev startup race and broaden color polarity so AUTO n
 - Composition Motion: Windows full build, NSIS packaging, portable x64 packaging and artifact upload — passed.
 - Readability + Mood Color Direction: Linux install/typecheck/build/tests/publication audit — passed.
 - Readability + Mood Color Direction: Windows full build, NSIS packaging, portable x64 packaging and artifact upload — passed.
+- Dev Runtime + Color Canvas Variety: Linux install/typecheck/build/tests/publication audit — passed.
+- Dev Runtime + Color Canvas Variety: Windows full build, NSIS packaging, portable x64 packaging and artifact upload — passed.
 
 ## Next concrete action
 
-1. Get the dev-runtime + Color Canvas candidate green on Linux and Windows.
-2. Visually verify AUTO moves through Color Field / Night / Paper / Poster without rapid flicker and keeps lyric contrast.
-3. Continue real-track acceptance of Editorial / Print / Architecture / Aurora.
-4. Tune narrow/mobile composition combinations, then finish remaining typography primitives and scene-stack serialization.
+1. Visually verify AUTO moves through Color Field / Night / Paper / Poster without rapid flicker and keeps lyric contrast on real tracks.
+2. Continue real-track acceptance of Editorial / Print / Architecture / Aurora.
+3. Tune narrow/mobile composition combinations.
+4. Finish soft-3D/inflate, brush/stroke reveal and dissolve/smear exits, then stabilize scene-stack serialization.
 
 ## Do not redo
 

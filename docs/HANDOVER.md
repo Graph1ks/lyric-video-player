@@ -1,13 +1,13 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `9b9cbedf33193bf156ae2dc33d0dff0a4383144a`  
-**Active candidate:** `fix/dev-runtime-color-variety-v0.8`  
+**Merged baseline:** `b17be7bbee7839fd842cf8a29b07fc4dd77c1b69`  
+**Active candidate:** none  
 **Current phase/milestone:** v0.8 lyric-scene composition + color direction
 
 ## Current objective
 
-Land the dev-runtime startup fix and Color Canvas polarity layer, then resume real-track acceptance of the Step 4 worlds.
+Use the merged dev-runtime + Color Canvas baseline for real-track acceptance, then continue the remaining typography and scene-stack work.
 
 ## Current implementation state
 
@@ -141,7 +141,7 @@ This does **not** replace real visual acceptance. It catches geometric regressio
 
 Manual acceptance is documented in `docs/VISUAL_ACCEPTANCE_MATRIX.md`.
 
-### Active local-development fix
+### Merged local-development runtime baseline
 
 The React app always probes `/api/runtime`. Vite proxies that to `127.0.0.1:3040`.
 
@@ -208,11 +208,10 @@ Windows packaging remains a separate required gate.
 
 ## Next concrete work
 
-1. Get the active dev-runtime + Color Canvas candidate through Linux + Windows CI.
-2. Test AUTO canvas changes across real songs; confirm Paper/Poster genuinely use dark typography and light/chromatic fields.
-3. Resume Editorial / Print / Architecture / Aurora acceptance and dense mobile lyric testing.
-4. Add the next distinct world only after identifying a missing visual grammar.
-5. Complete remaining typography primitives and then stabilize scene-stack serialization.
+1. Test AUTO canvas changes across real songs; confirm Paper/Poster genuinely use dark typography and light/chromatic fields.
+2. Resume Editorial / Print / Architecture / Aurora acceptance and dense mobile lyric testing.
+3. Add the next distinct world only after identifying a missing visual grammar.
+4. Complete remaining typography primitives and then stabilize scene-stack serialization.
 
 ## Resume instruction
 
