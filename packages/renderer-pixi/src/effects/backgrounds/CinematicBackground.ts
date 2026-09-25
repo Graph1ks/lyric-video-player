@@ -80,6 +80,7 @@ export class CinematicBackground {
   private intensity = 1;
   private worldIntensity = 1;
   private worldDetail = 1;
+  private impactPulse = 1;
   private impact = 0;
   private previousTime = 0;
   private palette?: VisualPalette;
@@ -188,6 +189,11 @@ export class CinematicBackground {
     this.syncWorldPower();
   }
 
+  setImpactPulse(value: number) {
+    this.impactPulse = Math.max(0, Math.min(3, value));
+    if (this.impactPulse <= 0.001) this.impact = 0;
+  }
+
   setWorldIntensity(value: number) {
     this.worldIntensity = Math.max(0, Math.min(3, value));
     this.syncWorldPower();
@@ -252,7 +258,10 @@ export class CinematicBackground {
     this.updateRings(time, audio, cx, cy, bass, energy);
     this.updateBeams(time, audio, cx, cy, energy);
 
-    this.flash.alpha = Math.max(0, this.impact * 0.12 + transient * 0.045);
+    this.flash.alpha = Math.max(
+      0,
+      (this.impact * 0.12 + transient * 0.045) * this.impactPulse,
+    );
     const dt = this.previousTime
       ? Math.min(0.08, Math.max(1 / 240, Math.abs(time - this.previousTime)))
       : 1 / 60;
@@ -470,7 +479,7 @@ export class CinematicBackground {
         particle.g.alpha = 0.08 + particle.depth * 0.5 + audio.treble * 0.18;
       }
 
-      const push = 1 + transient * (0.18 + particle.depth * 0.35) + this.impact * 0.08;
+      const push = 1 + (transient * (0.18 + particle.depth * 0.35) + this.impact * 0.08) * this.impactPulse;
       particle.g.position.set(cx + (x - cx) * push, cy + (y - cy) * push);
       const scale = particle.size
         * scaleBoost
