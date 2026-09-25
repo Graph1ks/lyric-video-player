@@ -89,6 +89,8 @@ export class CameraRig {
     const directedX = (this.cinematicPlan?.offsetX ?? 0) * this.width * 0.5;
     const directedY = (this.cinematicPlan?.offsetY ?? 0) * this.height * 0.5;
     const directedRotation = this.cinematicPlan?.rotation ?? 0;
+    const directedSkewX = this.cinematicPlan?.skewX ?? 0;
+    const directedSkewY = this.cinematicPlan?.skewY ?? 0;
 
     this.target.position.set(
       this.centerX + directedX + driftX + this.xImpulse,
@@ -98,6 +100,8 @@ export class CameraRig {
       + legacyRotation * microMotionScale
       + this.rotationImpulse
       + (audio.transient - 0.08) * 0.0045 * this.intensity * microMotionScale;
+    this.target.skew.x = lerp(this.target.skew.x || 0, directedSkewX, 0.09);
+    this.target.skew.y = lerp(this.target.skew.y || 0, directedSkewY, 0.09);
 
     const bassZoom = audio.bass
       * (this.mode === "vortex" ? 0.024 : 0.011)
