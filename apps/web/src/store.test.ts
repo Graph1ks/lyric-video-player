@@ -84,28 +84,75 @@ describe("Operator + presentation state", () => {
     useUiStore.setState({
       directorCues: [],
       typographySequence: "spiral-depth",
-      lowerThirdMode: "rotate",
+      lowerThirdMode: "scheduled",
       lowerThirdPreset: "poster-stamp",
     });
     useUiStore.getState().addDirectorCue(24, "SPIRAL");
     const cue = useUiStore.getState().directorCues[0];
     expect(cue.snapshot.typographySequence).toBe("spiral-depth");
-    expect(cue.snapshot.lowerThirdMode).toBe("rotate");
+    expect(cue.snapshot.lowerThirdMode).toBe("scheduled");
     expect(cue.snapshot.lowerThirdPreset).toBe("poster-stamp");
   });
 
   it("keeps UI language and lower-third controls in shared Director state", () => {
     useUiStore.getState().setUiLanguage("de");
-    useUiStore.getState().setLowerThirdMode("rotate");
+    useUiStore.getState().setLowerThirdMode("always");
     useUiStore.getState().setLowerThirdPreset("glass-plate");
+    useUiStore.getState().setLowerThirdStartSeconds(10);
+    useUiStore.getState().setLowerThirdDurationSeconds(9);
+    useUiStore.getState().setLowerThirdOutroEnabled(true);
+    useUiStore.getState().setLowerThirdOutroLeadSeconds(12);
     useUiStore.getState().setLowerThirdArtistOverride("KÜNSTLER");
     useUiStore.getState().setLowerThirdTitleOverride("SONG");
 
     const state = useUiStore.getState();
     expect(state.uiLanguage).toBe("de");
-    expect(state.lowerThirdMode).toBe("rotate");
+    expect(state.lowerThirdMode).toBe("always");
     expect(state.lowerThirdPreset).toBe("glass-plate");
+    expect(state.lowerThirdStartSeconds).toBe(10);
+    expect(state.lowerThirdDurationSeconds).toBe(9);
+    expect(state.lowerThirdOutroEnabled).toBe(true);
+    expect(state.lowerThirdOutroLeadSeconds).toBe(12);
     expect(state.lowerThirdArtistOverride).toBe("KÜNSTLER");
     expect(state.lowerThirdTitleOverride).toBe("SONG");
+  });
+
+  it("activates a curated performance preset by returning visual axes to constrained AUTO", () => {
+    const preset = useUiStore.getState().performancePresets.find(item => item.id === "rage-fast");
+    expect(preset).toBeTruthy();
+
+    useUiStore.getState().setMode("neon");
+    useUiStore.getState().setTypographyPreset("wave");
+    useUiStore.getState().setBackgroundPreset("aurora");
+    useUiStore.getState().activatePerformancePreset("rage-fast");
+
+    const state = useUiStore.getState();
+    expect(state.activePerformancePresetId).toBe("rage-fast");
+    expect(state.mode).toBe("auto");
+    expect(state.typographyPreset).toBe("auto");
+    expect(state.typographySequence).toBe("auto");
+    expect(state.typographyLayout).toBe("auto");
+    expect(state.compositionMotion).toBe("auto");
+    expect(state.backgroundPreset).toBe("auto");
+    expect(state.colorHarmony).toBe("auto");
+    expect(state.colorMood).toBe("auto");
+    expect(state.colorCanvas).toBe("auto");
+    expect(state.intensity).toBe(preset?.intensity);
+  });
+
+  it("keeps at least one allowed choice in every editable preset pool", () => {
+    useUiStore.getState().activatePerformancePreset("calm-slow");
+    const before = useUiStore.getState().performancePresets.find(item => item.id === "calm-slow");
+    expect(before?.auto.scenes?.length).toBeGreaterThan(0);
+
+    const only = before?.auto.scenes?.[0];
+    if (!only) throw new Error("Expected calm-slow scene pool");
+    for (const scene of [...(before?.auto.scenes ?? [])].slice(1)) {
+      useUiStore.getState().togglePerformancePresetPool("calm-slow", "scenes", scene);
+    }
+    useUiStore.getState().togglePerformancePresetPool("calm-slow", "scenes", only);
+
+    const after = useUiStore.getState().performancePresets.find(item => item.id === "calm-slow");
+    expect(after?.auto.scenes).toHaveLength(1);
   });
 });
