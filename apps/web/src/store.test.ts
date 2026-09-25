@@ -117,60 +117,75 @@ describe("Operator + presentation state", () => {
     expect(state.lowerThirdTitleOverride).toBe("SONG");
   });
 
-  it("activates a curated performance preset by returning visual axes to constrained AUTO", () => {
-    const preset = useUiStore.getState().performancePresets.find(item => item.id === "rage-fast");
-    expect(preset).toBeTruthy();
+  it("creates and activates a user-authored performance preset", () => {
+    useUiStore.setState({
+      performancePresets: [],
+      activePerformancePresetId: null,
+      mode: "neon",
+      typographyPreset: "wave",
+      typographySequence: "off",
+      typographyLayout: "center-stack",
+      compositionMotion: "handoff",
+      backgroundPreset: "aurora",
+      colorHarmony: "analogous",
+      colorMood: "dream",
+      colorCanvas: "night",
+      colorFlow: "rainbow",
+      intensity: 1.12,
+    });
 
-    useUiStore.getState().setMode("neon");
-    useUiStore.getState().setTypographyPreset("wave");
-    useUiStore.getState().setBackgroundPreset("aurora");
-    useUiStore.getState().activatePerformancePreset("rage-fast");
+    useUiStore.getState().createPerformancePreset();
+    const created = useUiStore.getState().performancePresets[0];
+    expect(created).toBeTruthy();
+    expect(created.auto.scenes).toEqual(["neon"]);
+    expect(created.auto.backgrounds).toEqual(["aurora"]);
+
+    useUiStore.getState().setMode("poster");
+    useUiStore.getState().activatePerformancePreset(created.id);
 
     const state = useUiStore.getState();
-    expect(state.activePerformancePresetId).toBe("rage-fast");
+    expect(state.activePerformancePresetId).toBe(created.id);
     expect(state.mode).toBe("auto");
     expect(state.typographyPreset).toBe("auto");
-    expect(state.typographySequence).toBe("auto");
-    expect(state.typographyLayout).toBe("auto");
-    expect(state.compositionMotion).toBe("auto");
     expect(state.backgroundPreset).toBe("auto");
-    expect(state.colorHarmony).toBe("auto");
-    expect(state.colorMood).toBe("auto");
-    expect(state.colorCanvas).toBe("auto");
-    expect(state.intensity).toBe(preset?.intensity);
-    expect(state.fxRack).toEqual(preset?.fx);
+    expect(state.intensity).toBe(created.intensity);
+    expect(state.fxRack).toEqual(created.fx);
   });
 
   it("allows an AUTO pool to be emptied to mean unrestricted ANY", () => {
-    useUiStore.getState().activatePerformancePreset("calm-slow");
-    const before = useUiStore.getState().performancePresets.find(item => item.id === "calm-slow");
-    expect(before?.auto.scenes?.length).toBeGreaterThan(0);
+    const id = useUiStore.getState().performancePresets[0]?.id;
+    if (!id) throw new Error("Expected user preset");
+    const before = useUiStore.getState().performancePresets.find(item => item.id === id);
+    expect(before?.auto.scenes).toEqual(["neon"]);
 
-    const only = before?.auto.scenes?.[0];
-    if (!only) throw new Error("Expected calm-slow scene pool");
-    for (const scene of [...(before?.auto.scenes ?? [])].slice(1)) {
-      useUiStore.getState().togglePerformancePresetPool("calm-slow", "scenes", scene);
-    }
-    useUiStore.getState().togglePerformancePresetPool("calm-slow", "scenes", only);
+    useUiStore.getState().togglePerformancePresetPool(id, "scenes", "neon");
 
-    const after = useUiStore.getState().performancePresets.find(item => item.id === "calm-slow");
+    const after = useUiStore.getState().performancePresets.find(item => item.id === id);
     expect(after?.auto.scenes).toHaveLength(0);
-
-    useUiStore.getState().resetPerformancePreset("calm-slow");
   });
 
-  it("lets a preset switch hidden renderer effects fully off", () => {
-    useUiStore.getState().activatePerformancePreset("rage-fast");
-    useUiStore.getState().setPerformancePresetFx("rage-fast", "displacement", 0);
-    useUiStore.getState().setPerformancePresetFx("rage-fast", "impactPulse", 0);
+  it("lets a preset switch renderer effects fully off", () => {
+    const id = useUiStore.getState().performancePresets[0]?.id;
+    if (!id) throw new Error("Expected user preset");
+    useUiStore.getState().activatePerformancePreset(id);
+    useUiStore.getState().setPerformancePresetFx(id, "displacement", 0);
+    useUiStore.getState().setPerformancePresetFx(id, "impactPulse", 0);
 
     const state = useUiStore.getState();
-    const preset = state.performancePresets.find(item => item.id === "rage-fast");
+    const preset = state.performancePresets.find(item => item.id === id);
     expect(preset?.fx.displacement).toBe(0);
     expect(preset?.fx.impactPulse).toBe(0);
     expect(state.fxRack.displacement).toBe(0);
     expect(state.fxRack.impactPulse).toBe(0);
+  });
 
-    useUiStore.getState().resetPerformancePreset("rage-fast");
+  it("resets the global FX rack to the original authored factory balance", () => {
+    useUiStore.getState().setFxRackValue("displacement", 0);
+    useUiStore.getState().setFxRackValue("feedback", 2.7);
+    useUiStore.getState().setFxRackValue("screenBloom", 0.2);
+    useUiStore.getState().resetFxRack();
+
+    const rack = useUiStore.getState().fxRack;
+    for (const value of Object.values(rack)) expect(value).toBe(1);
   });
 });
