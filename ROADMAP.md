@@ -50,8 +50,8 @@
 - inflated / soft-3D type — next
 - handwritten / stroke reveal — next
 - particle dissolve and smear exits — next
-- word-level composition planner — active v0.8 candidate
-- Center Stack / Directional Stage / Editorial / Vertical Accent / Split Stage / Crossword — active v0.8 candidate
+- word-level composition planner — complete baseline
+- Center Stack / Directional Stage / Editorial / Vertical Accent / Split Stage / Crossword — complete baseline
 
 ## Milestone 0.6 — Advanced backgrounds — complete baseline
 - preset routing independent from scene family — complete baseline
@@ -64,7 +64,7 @@
 - sparks / trails — complete baseline
 - recursive typography backgrounds — complete baseline
 
-## Cross-cutting v0.8 — Composition + Color Direction — active candidate
+## Cross-cutting v0.8 — Composition + Color Direction — complete baseline
 - typography composition separated from glyph motion
 - deterministic composition AUTO routing
 - word placement / orientation / scale / entry vectors

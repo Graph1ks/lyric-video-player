@@ -1,13 +1,13 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `4e0e30d09596a57ed628ddbf9827f4850c4be7fc`  
-**Active candidate:** `feature/composition-palette-v0.8`  
+**Last known good merged baseline:** `fdb8889d6898e34c2c6094baebddbe5e9eab726e`  
+**Active candidate:** none  
 **Current phase/milestone:** v0.8 lyric-scene composition + color direction
 
 ## Current objective
 
-Move E-MO from "animated text over effects" toward designed lyric-video scenes. The active candidate implements the first two steps of `docs/LYRIC_VISUALIZATION_ENGINE_PLAN.md`: word-level typography composition and a shared OKLCH palette/contrast director.
+Continue from the merged composition/palette foundation into Step 3: word/layout-level motion grammar, then broaden art-direction worlds and complete remaining typography primitives.
 
 ## Current state
 
@@ -15,7 +15,7 @@ Move E-MO from "animated text over effects" toward designed lyric-video scenes. 
 - Compositor baseline is merged: RenderTexture composition, deterministic feedback, displacement, velocity smear, threshold bloom and cinematic post-FX.
 - Selector-driven typography and the existing typography/background visual families are merged.
 - Visual Accents (Sparks/Trails + Recursive Lyrics) are merged and CI-verified.
-- Active v0.8 candidate adds a **Typography Composition Engine**:
+- v0.8 adds a merged **Typography Composition Engine**:
   - Center Stack
   - Directional Stage
   - Editorial
@@ -24,7 +24,7 @@ Move E-MO from "animated text over effects" toward designed lyric-video scenes. 
   - Crossword
 - Composition operates above glyph effects: complete words receive independent placement, orientation, scale and entry vectors. 90° words and mixed directional/zoom entrances are first-class.
 - Layout AUTO is deterministic from scene family + cue index.
-- Active v0.8 candidate also adds an **OKLCH Palette Director**:
+- v0.8 also adds a merged **OKLCH Palette Director**:
   - Split Complement
   - Analogous
   - Complement
@@ -37,16 +37,15 @@ Move E-MO from "animated text over effects" toward designed lyric-video scenes. 
 
 ## Last verified checks
 
-- Main before v0.8: Linux validation and Windows packaging are green through Visual Accents.
-- v0.8 candidate requires fresh Linux + Windows gates before merge.
+- v0.8 Composition + Palette: Linux install/typecheck/build/tests/publication audit — passed.
+- v0.8 Composition + Palette: Windows full build, NSIS packaging, portable x64 packaging and artifact upload — passed.
 
 ## Next concrete action
 
-1. Get v0.8 composition/palette CI green and merge.
-2. Build Step 3: word/layout-level motion grammar (push, handoff, takeover, collapse, flip, portal).
-3. Expand Step 4 art-direction worlds using the palette-role contract rather than hard-coded scene colors.
-4. Finish remaining typography primitives.
-5. Stabilize serializable scene-stack directives before editor work.
+1. Build Step 3: word/layout-level motion grammar (push, handoff, takeover, collapse, flip, portal).
+2. Expand Step 4 art-direction worlds using the palette-role contract rather than hard-coded scene colors.
+3. Finish remaining typography primitives.
+4. Stabilize serializable scene-stack directives before editor work.
 
 ## Do not redo
 
