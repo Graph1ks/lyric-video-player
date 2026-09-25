@@ -101,17 +101,17 @@ vec3 streakField(
 
   float yJitter = (h1 - 0.5) * 0.64;
   float headX = mix(-0.08, 0.34, h2);
-  float length = mix(0.18, 0.48, h1);
+  float tailLength = mix(0.18, 0.48, h1);
   float bend = sin((local.x + h0) * 4.2 + h2 * 6.28318) * 0.030;
 
   vec2 shaped = local;
   shaped.y -= yJitter * 0.28 + bend;
 
-  vec2 tail = vec2(headX - length, 0.0);
+  vec2 tail = vec2(headX - tailLength, 0.0);
   vec2 head = vec2(headX, 0.0);
   float d = sdSegment(shaped, tail, head);
 
-  float along = clamp((shaped.x - tail.x) / max(length, 0.001), 0.0, 1.0);
+  float along = clamp((shaped.x - tail.x) / max(tailLength, 0.001), 0.0, 1.0);
   float gate = step(tail.x, shaped.x) * step(shaped.x, head.x);
   float taper = pow(along, 1.6);
 
