@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { DEFAULT_VISUAL_FX_RACK } from "@graph1ks/emo-engine-core";
 import type {
   BackgroundPreset,
   BackgroundPresetId,
@@ -21,6 +22,7 @@ import type {
   ResolvedTypographySequence,
   VisualMode,
   VisualPalette,
+  VisualAutoProfile,
   VisualFxRack,
   VisualFxRackKey,
 } from "@graph1ks/emo-engine-core";
@@ -31,10 +33,7 @@ import {
 } from "./directorPlanning";
 import type { LowerThirdMode, LowerThirdPreset } from "./lowerThirds";
 import {
-  builtinPerformancePreset,
   createCustomPerformancePreset,
-  defaultPerformancePresets,
-  isBuiltinPerformancePreset,
   loadPerformancePresets,
   savePerformancePresets,
   type PerformancePresetDefinition,
@@ -107,6 +106,7 @@ export interface UiState {
   setMode(value: VisualMode): void;
   setIntensity(value: number): void;
   setFxRackValue(key: VisualFxRackKey, value: number): void;
+  resetFxRack(): void;
   setQuality(value: QualityMode): void;
   setTypographyPreset(value: TypographyPreset): void;
   setTypographySequence(value: TypographySequenceMode): void;
@@ -123,7 +123,6 @@ export interface UiState {
   activatePerformancePreset(id: string | null): void;
   createPerformancePreset(): void;
   deletePerformancePreset(id: string): void;
-  resetPerformancePreset(id: string): void;
   setPerformancePresetLabel(id: string, label: string): void;
   setPerformancePresetIntensity(id: string, value: number): void;
   setPerformancePresetColorFlow(id: string, value: ColorFlowMode): void;
@@ -168,21 +167,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   directorDetachedOpen: false,
   mode: "auto",
   intensity: 1,
-  fxRack: {
-    cameraMotion: 0.75,
-    impactPulse: 0.65,
-    displacement: 0.55,
-    smear: 0.45,
-    bloom: 0.7,
-    feedback: 0.35,
-    postFx: 0.55,
-    worldIntensity: 1,
-    worldDetail: 1,
-    screenBloom: 0.55,
-    scanlines: 0.35,
-    grain: 0.35,
-    vignette: 0.55,
-  },
+  fxRack: { ...DEFAULT_VISUAL_FX_RACK },
   quality: "cinema",
   typographyPreset: "auto",
   typographySequence: "auto",
@@ -239,6 +224,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   setFxRackValue: (key, value) => set(state => ({
     fxRack: { ...state.fxRack, [key]: Math.max(0, Math.min(3, value)) },
   })),
+  resetFxRack: () => set({ fxRack: { ...DEFAULT_VISUAL_FX_RACK } }),
   setQuality: quality => set({ quality }),
   setTypographyPreset: typographyPreset => set({ typographyPreset }),
   setTypographySequence: typographySequence => set({ typographySequence }),
@@ -277,12 +263,31 @@ export const useUiStore = create<UiState>((set, get) => ({
   },
   createPerformancePreset: () => {
     const state = get();
-    const source = state.performancePresets.find(item => item.id === state.activePerformancePresetId)
-      ?? state.performancePresets[0]
-      ?? defaultPerformancePresets()[0];
-    if (!source) return;
-    const customCount = state.performancePresets.filter(item => !isBuiltinPerformancePreset(item.id)).length;
-    const created = createCustomPerformancePreset(source, customCount + 1);
+    const source = state.performancePresets.find(item => item.id === state.activePerformancePresetId);
+    const ordinal = state.performancePresets.length + 1;
+    const auto: VisualAutoProfile = {
+      scenes: state.mode === "auto" ? [] : [state.mode],
+      typographyPresets: state.typographyPreset === "auto" ? [] : [state.typographyPreset],
+      sequences: state.typographySequence === "auto" ? [] : [state.typographySequence],
+      layouts: state.typographyLayout === "auto" ? [] : [state.typographyLayout],
+      motions: state.compositionMotion === "auto" ? [] : [state.compositionMotion],
+      backgrounds: state.backgroundPreset === "auto" ? [] : [state.backgroundPreset],
+      harmonies: state.colorHarmony === "auto" ? [] : [state.colorHarmony],
+      moods: state.colorMood === "auto" ? [] : [state.colorMood],
+      canvases: state.colorCanvas === "auto" ? [] : [state.colorCanvas],
+    };
+    const seed: PerformancePresetDefinition = {
+      id: `custom-seed-${ordinal}`,
+      label: `Custom ${ordinal}`,
+      emotion: "Custom",
+      pace: "mid",
+      description: "User-authored Director performance profile",
+      intensity: state.intensity,
+      colorFlow: state.colorFlow,
+      auto,
+      fx: { ...state.fxRack },
+    };
+    const created = createCustomPerformancePreset(source ?? seed, ordinal);
     const performancePresets = [...state.performancePresets, created];
     savePerformancePresets(performancePresets);
     set({
@@ -303,7 +308,6 @@ export const useUiStore = create<UiState>((set, get) => ({
     });
   },
   deletePerformancePreset: id => {
-    if (isBuiltinPerformancePreset(id)) return;
     const state = get();
     const performancePresets = state.performancePresets.filter(item => item.id !== id);
     savePerformancePresets(performancePresets);
@@ -312,21 +316,8 @@ export const useUiStore = create<UiState>((set, get) => ({
       activePerformancePresetId: state.activePerformancePresetId === id ? null : state.activePerformancePresetId,
     });
   },
-  resetPerformancePreset: id => {
-    const builtin = builtinPerformancePreset(id);
-    if (!builtin) return;
-    const state = get();
-    const performancePresets = state.performancePresets.map(item => item.id === id ? builtin : item);
-    savePerformancePresets(performancePresets);
-    const active = state.activePerformancePresetId === id;
-    set({
-      performancePresets,
-      ...(active ? { intensity: builtin.intensity, colorFlow: builtin.colorFlow, fxRack: { ...builtin.fx } } : {}),
-    });
-  },
   setPerformancePresetLabel: (id, label) => {
     const state = get();
-    if (isBuiltinPerformancePreset(id)) return;
     const performancePresets = state.performancePresets.map(item =>
       item.id === id ? { ...item, label: label.slice(0, 80) } : item
     );
