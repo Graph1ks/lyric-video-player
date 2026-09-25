@@ -258,6 +258,21 @@ The user's `Graph1ks/website` repo was inspected. Its Circuit Grid already demon
 
 Both are first-class specialized Background presets and suppress generic legacy layers.
 
+## Durable 3D world architecture
+
+The reusable 3D findings are now centralized in `docs/3D_WORLD_RENDERING_ARCHITECTURE.md`.
+
+Important continuation facts:
+
+- `Graph1ks/website` was inspected as an internal benchmark. Its Circuit Grid gets convincing 3D from explicit world coordinates, relief, tilt, camera distance and perspective projection; its fullscreen effects use structural/raymarched shaders. Three.js is not a prerequisite for convincing depth.
+- WORLD_05 v1 proved that a flat domain warp is not acceptable when the reference depends on parallax, occlusion, thickness and independent object motion.
+- E-MO projected-3D Graphics currently uses world coordinates → camera/view transform → perspective projection → depth sort → draw. This is appropriate for simple convex independent objects but is not a substitute for a general depth buffer.
+- Pixi Mesh/Geometry is the next escalation for shared-vertex surfaces, dense grids and terrain.
+- Three.js remains an escalation only when E-MO genuinely needs a depth buffer, arbitrary mesh interpenetration, instancing, scene-graph transforms, complex materials/lights/reflections or would otherwise be rebuilding a 3D engine.
+- WORLD_09 should start as a projected/batched neon equalizer city with one coherent floor/camera space.
+- WORLD_10 should start as a dynamic heightfield Mesh where x=frequency, z=history/depth and y=smoothed amplitude.
+- Do not invent numeric object-count budgets before profiling. The target remains realtime 1080p60; optimize the measured bottleneck.
+
 ## Current implementation state
 
 ## Merged baseline — Cinematic sequence direction
