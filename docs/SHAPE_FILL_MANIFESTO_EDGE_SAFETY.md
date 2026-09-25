@@ -1,6 +1,6 @@
 # Shape Fill, Manifesto Wall and Edge Safety
 
-**Status:** merged spatial baseline + active v0.11.2 resource/edge correction  
+**Status:** merged baseline — PR #48 + PR #51 + PR #53 / `89f2ac1680d13f6ec126ab3258ad4659507e2272`  
 **Started:** 2026-09-25  
 **Scope:** correct calligram semantics, progressive page typography, shared spatial metrics, and final output-edge safety.
 
