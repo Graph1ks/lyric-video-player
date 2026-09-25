@@ -2228,3 +2228,31 @@ kbd { min-width: 19px; height: 19px; display: inline-grid; place-items: center; 
 .director-cues-empty b {
   font-size: 12px;
 }
+
+
+/* Visible player-shell copy also follows the no-micro-font rule. */
+.mini-button,
+.ui-restore,
+.drop-kicker,
+.drop-hint,
+.project-drawer__head span,
+.project-row span,
+.director-footnote,
+.shortcut-hint {
+  font-size: 10px;
+}
+kbd {
+  min-width: 22px;
+  height: 22px;
+  font-size: 9px;
+}
+.project-row strong {
+  font-size: 12px;
+}
+.track-text strong {
+  font-size: max(12px, .76rem);
+}
+.track-text span,
+.time {
+  font-size: max(10px, .64rem);
+}
