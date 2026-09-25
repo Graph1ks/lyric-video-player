@@ -15,3 +15,6 @@ export * from "./effects/backgrounds/LaserCanopyGridWorld.js";
 
 export * from "./effects/backgrounds/DiscoMirrorballRoomWorld.js";
 export * from "./effects/backgrounds/NeonEnergyBurstTunnelWorld.js";
+
+export * from "./effects/backgrounds/FractalHexSpiralMosaicWorld.js";
+export * from "./effects/backgrounds/SoftHexCellFieldWorld.js";
