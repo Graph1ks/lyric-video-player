@@ -1,6 +1,6 @@
 # Shape Fill, Manifesto Wall and Edge Safety
 
-**Status:** merged baseline — PR #48 + PR #51 / `f217908125be62c4a9ab848eb7f4008ee0813da8`  
+**Status:** merged spatial baseline + active v0.11.2 resource/edge correction  
 **Started:** 2026-09-25  
 **Scope:** correct calligram semantics, progressive page typography, shared spatial metrics, and final output-edge safety.
 
@@ -150,6 +150,22 @@ The goal is not to create a visible "safe frame". The transition is gradual and 
 Bloom, scanline and grain overlays retain overscan but now also fade toward the physical edge.
 
 Vignette remains a deliberate image treatment and sits over an opaque world.
+
+### v0.11.2 acceptance correction
+
+Real-display testing showed that source bleed and shader edge guards were necessary but not sufficient.
+
+The remaining edge artifact came from the **full-frame filter boundary itself**. Pixi filter padding extends a Sprite's filter input outside its actual image with transparent texels. A displacement, smear or barrel/chroma tap can then sample that padded gutter; after RGB processing it appears as a black wave or glitch strip even though the world beneath the filter is opaque.
+
+The corrected full-frame contract is therefore:
+
+- displacement, velocity smear and cinematic post-FX use **zero filter padding**;
+- their shader taps remain clamped and progressively edge-guarded;
+- the render graph keeps one unfiltered copy of the current presented frame underneath the filtered Sprite, so any unexpected filter clipping reveals scene pixels rather than the canvas clear color;
+- the fallback is a Sprite sharing the already-present RenderTexture, not a fourth full-size RenderTexture;
+- Procedural Liquid writes alpha 1 because it is a background surface.
+
+Long-play testing in the same acceptance pass also found a separate Pixi resource-lifetime bug. Dynamic lyric glyph/echo Text objects and Recursive Lyrics backdrop Text objects must be destroyed, not merely detached with `removeChildren()`. Recursive Lyrics backdrop textures are now created only while that preset is active and are reused while their text/style/viewport key is unchanged.
 
 ## Research framing
 

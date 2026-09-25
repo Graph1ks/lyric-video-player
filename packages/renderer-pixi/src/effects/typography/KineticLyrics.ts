@@ -429,13 +429,24 @@ export class KineticLyrics {
   }
 
   private clear() {
-    this.echoLayer.removeChildren();
-    this.chromaLayer.removeChildren();
-    this.mainLayer.removeChildren();
-    this.accentLayer.removeChildren();
+    this.destroyEchoLayers();
+
+    // A lyric line owns a large number of high-resolution Pixi Text textures.
+    // removeChildren() only detaches display objects; it does not release those
+    // text resources. Destroy the outgoing word trees explicitly so line changes
+    // cannot accumulate GPU/CPU text backing stores over a song.
+    for (const word of this.words) {
+      word.slot.removeFromParent();
+      word.slot.destroy({ children: true });
+    }
+    for (const child of this.mainLayer.removeChildren()) {
+      child.destroy({ children: true });
+    }
+    for (const child of this.accentLayer.removeChildren()) {
+      child.destroy({ children: true });
+    }
+
     this.words = [];
-    this.echoes = [];
-    this.chromaEchoes = [];
     this.glyphCount = 0;
   }
 
@@ -520,12 +531,28 @@ export class KineticLyrics {
   }
 
   private rebuildEchoLayers() {
-    this.echoLayer.removeChildren();
-    this.chromaLayer.removeChildren();
-    this.echoes = [];
-    this.chromaEchoes = [];
+    this.destroyEchoLayers();
     this.buildEchoes();
     this.layoutEchoes();
+  }
+
+  private destroyEchoLayers() {
+    for (const echo of this.echoes) {
+      echo.removeFromParent();
+      echo.destroy({ style: true });
+    }
+    for (const echo of this.chromaEchoes) {
+      echo.removeFromParent();
+      echo.destroy({ style: true });
+    }
+
+    // Keep the layers themselves alive, but dispose of any untracked child that
+    // may have been inserted while experimenting with a typography treatment.
+    for (const child of this.echoLayer.removeChildren()) child.destroy();
+    for (const child of this.chromaLayer.removeChildren()) child.destroy();
+
+    this.echoes = [];
+    this.chromaEchoes = [];
   }
 
   private resolvePreset() {

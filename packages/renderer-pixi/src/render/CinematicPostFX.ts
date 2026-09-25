@@ -161,7 +161,11 @@ export class CinematicPostFX {
         },
       },
     });
-    this.filter.padding = 18;
+    // This is a full-frame filter. Pixi padding creates transparent texels
+    // outside the source sprite; spatial taps can then pull that gutter back
+    // into view as a black edge. Sampling is already clamped/edge-guarded, so
+    // the correct full-screen contract is zero filter padding.
+    this.filter.padding = 0;
   }
 
   setMode(mode: SceneMode) {

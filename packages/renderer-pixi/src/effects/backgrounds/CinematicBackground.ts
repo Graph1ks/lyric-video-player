@@ -56,6 +56,7 @@ export class CinematicBackground {
   private geometry = new Graphics();
   private lyricBackdropLayer = new Container();
   private lyricBackdrop: Text[] = [];
+  private lyricBackdropKey = "";
   private sparkLayer = new Graphics();
   private spectrumLayer = new Graphics();
   private blobLayer = new Container();
@@ -596,11 +597,26 @@ export class CinematicBackground {
   }
 
   private rebuildLyricBackdrop() {
-    this.lyricBackdropLayer.removeChildren();
-    this.lyricBackdrop = [];
-    if (!this.currentLine?.text) return;
+    const text = this.currentLine?.text?.toUpperCase() ?? "";
+    const shouldBuild = this.resolvedPreset === "lyrics" && Boolean(text);
+    const key = shouldBuild
+      ? [
+          text,
+          this.mode,
+          this.quality,
+          Math.round(this.w),
+          Math.round(this.h),
+          this.palette?.accentA ?? -1,
+          this.palette?.background ?? -1,
+        ].join("|")
+      : "";
 
-    const text = this.currentLine.text.toUpperCase();
+    if (key === this.lyricBackdropKey) return;
+
+    this.destroyLyricBackdrop();
+    this.lyricBackdropKey = key;
+    if (!shouldBuild) return;
+
     const count = this.quality === "cinema" ? 14 : 8;
     const textLength = Math.max(6, text.length);
     const fontSize = Math.max(22, Math.min(68, this.w / Math.max(10, textLength * 0.58)));
@@ -634,6 +650,15 @@ export class CinematicBackground {
       this.lyricBackdropLayer.addChild(echo);
       this.lyricBackdrop.push(echo);
     }
+  }
+
+  private destroyLyricBackdrop() {
+    for (const echo of this.lyricBackdrop) {
+      echo.removeFromParent();
+      echo.destroy({ style: true });
+    }
+    for (const child of this.lyricBackdropLayer.removeChildren()) child.destroy();
+    this.lyricBackdrop = [];
   }
 
   private updateLyricBackdrop(time: number, audio: AudioBands) {

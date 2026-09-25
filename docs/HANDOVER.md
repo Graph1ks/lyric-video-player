@@ -1,13 +1,32 @@
 # Handover
 
 **Last updated:** 2026-09-25  
-**Merged baseline:** `f217908125be62c4a9ab848eb7f4008ee0813da8`  
-**Active candidate:** none  
-**Current phase/milestone:** spatial typography + progressive Manifesto visual acceptance
+**Merged baseline:** `bf7a358ce22adab13f1ed81dd498e15e9f55036c`  
+**Active candidate:** `fix/memory-edge-safety-v0.11.2`  
+**Current phase/milestone:** renderer resource lifetime + physical-edge safety
 
 ## Current objective
 
-Use merged PR #51 as the spatial-typography baseline for real-track acceptance, then continue cinematic sequencing without reintroducing heuristic word sizing or the obsolete masonry interpretation.
+Use merged PR #51 as the spatial-typography baseline, but first close the two failures found by real-track acceptance: memory growth during lyric playback and black edge reveals under full-frame spatial filters.
+
+## Active candidate — Resource lifetime + physical-edge safety v0.11.2
+
+The long-play memory growth is not caused by the bounded typography metric cache. The renderer was repeatedly detaching high-resolution Pixi `Text` display objects without destroying them:
+
+- ordinary `KineticLyrics` creates one high-resolution `Text` per glyph plus multiple full-line echo textures on every lyric-line rebuild;
+- `clear()` / echo rebuild previously used `removeChildren()` only;
+- Recursive Lyrics also rebuilt 8–14 full-line `Text` objects even when that background was not active, and likewise detached old objects without explicit destruction.
+
+The candidate explicitly destroys outgoing word trees and echo `Text` resources, makes Recursive Lyrics allocation lazy/keyed, and destroys backdrop text/style resources when replaced. The expected acceptance behavior is a bounded plateau after warm-up rather than memory growth proportional to elapsed lyric lines.
+
+The remaining physical-edge failure is compositor-level rather than world-geometry-level. The full-frame displacement/smear/post filters requested Pixi filter padding. Padding expands the filter input with transparent texels outside the actual scene Sprite; clamped warped samples can therefore still sample that transparent gutter and display it as black. The candidate:
+
+- sets full-frame displacement, velocity-smear and post-FX padding to zero;
+- retains existing UV clamp + shader edge guards;
+- adds one unfiltered current-frame Sprite under the filtered output as a fail-closed presentation plane, without adding another RenderTexture;
+- forces the generated Liquid background pass opaque.
+
+Regression source-contract tests cover explicit text destruction, zero full-frame filter padding, the fallback presentation plane and opaque Liquid output.
 
 ## Current implementation state
 

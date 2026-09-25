@@ -90,6 +90,13 @@ Git history remains the complete technical history. This file records meaningful
 - Cinematic camera consumes the actually resolved/manual persistent grammar instead of the AUTO bundle's nominated grammar.
 - GSAP remains excluded because the planned visual-editor direction could intersect its visual-animation-builder restriction.
 
+### Fixed
+
+- Explicitly destroy transient high-resolution Pixi lyric glyph/echo resources when a lyric line or echo treatment is rebuilt, preventing detached Text textures from accumulating over long playback sessions.
+- Recursive Lyrics backdrop text is now lazy: it is allocated only while that background is actually active, reused for an unchanged visual key, and explicitly destroyed when replaced.
+- Full-frame displacement, velocity-smear and cinematic post filters no longer request transparent Pixi filter padding; the compositor also keeps an unfiltered current-frame safety plane beneath filtered output.
+- Procedural Liquid now guarantees an opaque background output so downstream warps cannot expose the canvas clear color.
+
 ### Security / Privacy
 
 - Electron renderer runs with context isolation, no Node integration and sandboxing; privileged folder selection is exposed only through a narrow preload bridge.

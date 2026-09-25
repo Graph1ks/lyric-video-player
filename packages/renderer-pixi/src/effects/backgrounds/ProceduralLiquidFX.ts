@@ -113,7 +113,9 @@ void main(void) {
     color *= 0.68 + vignette * 0.38;
     color *= 0.8 + uIntensity * 0.2;
 
-    gl_FragColor = vec4(max(color, vec3(0.0)), source.a);
+    // The liquid pass is a background surface, not a translucent overlay.
+    // Keep it opaque so no downstream warp can reveal the HTML/canvas clear color.
+    gl_FragColor = vec4(max(color, vec3(0.0)), 1.0);
 }
 `;
 
