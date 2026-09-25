@@ -66,6 +66,8 @@ Git history remains the complete technical history. This file records meaningful
 - Explicit Visual FX Rack for camera motion, impact/pulse, displacement, smear, bloom, temporal feedback, cinematic post FX, world power/detail and DOM screen finishing.
 - **Prism Stage Beams** world with a visible central fixture hub, multi-layer volumetric rainbow/RGB beams, haze, hot cores and audio-reactive flare.
 - **Laser Canopy Grid** world with an overhead rig, crisp red/cyan/mint laser architecture, floor hit-points and audio-reactive canopy sweeps.
+- User-authored-only Performance Presets; the previously shipped emotion/pace preset library is removed.
+- FX Rack factory reset that restores the original pre-exposure renderer/compositor balance.
 
 ### Changed
 
@@ -98,6 +100,7 @@ Git history remains the complete technical history. This file records meaningful
 - Performance Preset pools may now be left empty to mean unrestricted ANY; compositor/screen FX use explicit 0–300% amounts where 0% is fully off.
 - Curated emotion/pace presets were tightened into smaller visual vocabularies and now include explicit renderer FX racks instead of inheriting hidden effects.
 - Background World Power and World Detail now span from effectively absent through deliberately extreme performance-showpiece ranges, with density affecting actual structural detail.
+- Prism Stage Beams and Laser Canopy Grid are upgraded from primitive Graphics prototypes to dedicated full-screen GPU shader worlds.
 - Detached Director transport uses a two-row responsive control bar so playback, seek, metadata and volume are no longer crushed by operator actions.
 - GSAP remains excluded because the planned visual-editor direction could intersect its visual-animation-builder restriction.
 
@@ -110,6 +113,9 @@ Git history remains the complete technical history. This file records meaningful
 - Player HUD text button now owns an explicit auto-width border box instead of inheriting the square icon-button width.
 - Detached Director playback telemetry no longer depends on the main Pixi requestAnimationFrame loop; media events plus a transport heartbeat keep playback time/duration current, while the Director interpolates its visible playhead locally.
 - Scheduled Lower Third timing therefore continues to advance even when the detached Director has focus and the main renderer window is background-throttled.
+- FX exposure no longer reduces the default cinematic look: factory values match the original authored 1.0 strength, background Impact/Pulse is no longer applied twice, and DOM screen FX retain their original audio-reactive behavior.
+- CinematicPostFX restores its missing source sample before the true-bypass blend, preventing the post shader from compiling with an undefined variable at runtime.
+- Performance Preset deletion now requires an explicit second click instead of deleting on the first action.
 
 ### Security / Privacy
 
