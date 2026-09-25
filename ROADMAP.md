@@ -30,12 +30,15 @@
 - first custom GPU filter pass: chromatic split / channel offsets — complete baseline
 - audio/transient-directed multi-tap smear — complete baseline
 - local glow approximation, barrel warp, scanline, grain and vignette — complete baseline
-- RenderTexture composition — next
-- FX chain interface — next
-- true displacement pass — next
-- multi-pass glow / bloom treatment — next
+- explicit RenderTexture scene composition — complete baseline
+- manual clock-owned Pixi frame rendering — complete baseline
+- additive blurred bloom presentation layer — complete baseline
+- centered virtual-camera composition — complete baseline
 - frame-feedback ping-pong buffer — next
-- per-effect quality budgets — partial
+- true displacement pass — next
+- dedicated velocity-smear pass — next
+- thresholded multi-pass bloom — evaluate after profiling
+- per-effect quality budgets — active
 
 ## Milestone 0.5 — Typography Engine
 - line / word / glyph hierarchy
