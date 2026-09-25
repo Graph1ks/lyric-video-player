@@ -52,12 +52,14 @@ test("lyric mood palettes keep dark fields near-neutral instead of muddy brown",
   const rage = createVisualPalette({
     harmony: "split-complement",
     mood: "rage",
+    canvas: "night",
     scene: "poster",
     lineIndex: 0,
   });
   const tension = createVisualPalette({
     harmony: "complement",
     mood: "tension",
+    canvas: "night",
     scene: "poster",
     lineIndex: 1,
   });
