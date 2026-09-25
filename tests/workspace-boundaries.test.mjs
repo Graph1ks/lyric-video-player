@@ -83,7 +83,7 @@ test("emo.project/v1 selects nested media and carries visual defaults", async ()
       defaults: {
         visualMode: "vortex",
         typographyPreset: "tunnel",
-        backgroundPreset: "liquid",
+        backgroundPreset: "lyrics",
         intensity: 1.25,
         quality: "cinema",
         syncMs: 80,
@@ -97,7 +97,7 @@ test("emo.project/v1 selects nested media and carries visual defaults", async ()
     assert.equal(found.lyrics?.relativePath, "manifest-song/lyrics/enhanced.lrc");
     assert.equal(found.manifest?.defaults?.visualMode, "vortex");
     assert.equal(found.manifest?.defaults?.typographyPreset, "tunnel");
-    assert.equal(found.manifest?.defaults?.backgroundPreset, "liquid");
+    assert.equal(found.manifest?.defaults?.backgroundPreset, "lyrics");
     assert.equal(found.manifest?.defaults?.syncMs, 80);
     assert.ok(found.assets.some(asset => asset.relativePath.endsWith("assets/cover.webp")));
   } finally {

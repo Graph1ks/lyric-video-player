@@ -21,6 +21,8 @@ export type ProjectBackgroundPreset =
   | "vortex"
   | "liquid"
   | "spectrum"
+  | "sparks"
+  | "lyrics"
   | "minimal";
 
 export interface EmoProjectDefaults {

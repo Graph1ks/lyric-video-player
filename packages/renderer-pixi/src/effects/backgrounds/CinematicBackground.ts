@@ -1,12 +1,13 @@
-import { Container, Graphics } from "pixi.js";
+import { Container, Graphics, Text, TextStyle } from "pixi.js";
 import type { AudioBands } from "@graph1ks/emo-audio-web";
 import type {
   BackgroundPreset,
   BackgroundPresetId,
+  LineCue,
   QualityMode,
   SceneMode,
 } from "@graph1ks/emo-engine-core";
-import { seeded } from "@graph1ks/emo-engine-core";
+import { hash01, seeded } from "@graph1ks/emo-engine-core";
 import { ProceduralLiquidFX } from "./ProceduralLiquidFX.js";
 
 const EMPTY_SPECTRUM = new Float32Array(0);
@@ -31,9 +32,9 @@ interface Blob {
 }
 
 const AUTO_BACKGROUND_PRESETS: Record<SceneMode, BackgroundPresetId[]> = {
-  poster: ["cinematic", "grid", "spectrum", "minimal", "rays"],
-  neon: ["nebula", "liquid", "spectrum", "starfield", "grid", "rays"],
-  vortex: ["vortex", "starfield", "liquid", "spectrum", "nebula", "cinematic"],
+  poster: ["cinematic", "lyrics", "grid", "spectrum", "sparks", "minimal", "rays"],
+  neon: ["nebula", "liquid", "spectrum", "sparks", "lyrics", "starfield", "grid", "rays"],
+  vortex: ["vortex", "starfield", "lyrics", "liquid", "sparks", "spectrum", "nebula", "cinematic"],
 };
 
 export class CinematicBackground {
@@ -43,6 +44,9 @@ export class CinematicBackground {
   private liquidSurface = new Graphics();
   private liquidFX = new ProceduralLiquidFX();
   private geometry = new Graphics();
+  private lyricBackdropLayer = new Container();
+  private lyricBackdrop: Text[] = [];
+  private sparkLayer = new Graphics();
   private spectrumLayer = new Graphics();
   private blobLayer = new Container();
   private particleLayer = new Container();
@@ -59,6 +63,7 @@ export class CinematicBackground {
   private preset: BackgroundPreset = "auto";
   private resolvedPreset: BackgroundPresetId = "nebula";
   private lineIndex = -1;
+  private currentLine?: LineCue;
   private quality: QualityMode = "cinema";
   private intensity = 1;
   private impact = 0;
@@ -68,15 +73,18 @@ export class CinematicBackground {
     this.container.addChild(
       this.base,
       this.liquidSurface,
+      this.lyricBackdropLayer,
       this.blobLayer,
       this.geometry,
       this.ringLayer,
       this.beamLayer,
       this.particleLayer,
+      this.sparkLayer,
       this.spectrumLayer,
       this.flash,
     );
     this.liquidSurface.filters = [this.liquidFX.filter];
+    this.sparkLayer.blendMode = "add";
     this.spectrumLayer.blendMode = "add";
     this.createBlobs();
     this.createParticles();
@@ -95,6 +103,7 @@ export class CinematicBackground {
     this.resolvePreset();
     this.applyModePalette();
     this.applyPresetVisibility();
+    this.rebuildLyricBackdrop();
     this.hit(previous === this.resolvedPreset ? 0.55 : 0.85);
   }
 
@@ -105,6 +114,7 @@ export class CinematicBackground {
     this.resolvePreset();
     this.applyPresetVisibility();
     this.redrawBase();
+    this.rebuildLyricBackdrop();
     if (previous !== this.resolvedPreset) this.hit(0.78);
   }
 
@@ -114,6 +124,12 @@ export class CinematicBackground {
 
   getResolvedPreset() {
     return this.resolvedPreset;
+  }
+
+  setLine(line: LineCue | undefined, index: number) {
+    this.currentLine = line;
+    this.setLineIndex(index);
+    this.rebuildLyricBackdrop();
   }
 
   setLineIndex(index: number) {
@@ -146,6 +162,7 @@ export class CinematicBackground {
     this.redrawBase();
     this.redrawLiquidSurface();
     this.liquidFX.resize(w, h);
+    this.rebuildLyricBackdrop();
   }
 
   update(time: number, audio: AudioBands, spectrum: Float32Array = EMPTY_SPECTRUM) {
@@ -158,6 +175,8 @@ export class CinematicBackground {
 
     if (this.liquidSurface.visible) this.liquidFX.update(time, audio);
     this.updateGeometry(time, audio);
+    this.updateLyricBackdrop(time, audio);
+    this.updateSparks(time, audio);
     this.updateSpectrum(time, audio, spectrum);
     this.updateBlobs(time, audio, cx, cy, bass, energy);
     this.updateParticles(time, audio, cx, cy, transient, energy);
@@ -189,6 +208,8 @@ export class CinematicBackground {
   private applyPresetVisibility() {
     const cinema = this.quality === "cinema";
     this.liquidSurface.visible = this.resolvedPreset === "liquid";
+    this.lyricBackdropLayer.visible = this.resolvedPreset === "lyrics";
+    this.sparkLayer.visible = this.resolvedPreset === "sparks";
     this.spectrumLayer.visible = this.resolvedPreset === "spectrum";
     const particleStride = this.resolvedPreset === "minimal"
       ? cinema ? 4 : 7
@@ -196,7 +217,11 @@ export class CinematicBackground {
         ? cinema ? 4 : 7
         : this.resolvedPreset === "spectrum"
           ? cinema ? 5 : 8
-          : this.resolvedPreset === "rays"
+          : this.resolvedPreset === "sparks"
+            ? cinema ? 5 : 9
+            : this.resolvedPreset === "lyrics"
+              ? cinema ? 6 : 10
+              : this.resolvedPreset === "rays"
             ? cinema ? 3 : 5
             : this.resolvedPreset === "grid"
               ? cinema ? 2 : 4
@@ -499,7 +524,11 @@ export class CinematicBackground {
         ? 0x010306
         : this.resolvedPreset === "spectrum"
           ? this.mode === "vortex" ? 0x090207 : 0x010609
-          : this.resolvedPreset === "starfield"
+          : this.resolvedPreset === "sparks"
+            ? this.mode === "vortex" ? 0x070204 : 0x010305
+            : this.resolvedPreset === "lyrics"
+              ? this.mode === "poster" ? 0x070707 : this.mode === "vortex" ? 0x080204 : 0x020608
+              : this.resolvedPreset === "starfield"
         ? 0x01040a
         : this.resolvedPreset === "nebula"
           ? this.mode === "vortex" ? 0x080209 : 0x020910
@@ -520,6 +549,132 @@ export class CinematicBackground {
       .clear()
       .rect(0, 0, this.w, this.h)
       .fill({ color: 0xffffff, alpha: 1 });
+  }
+
+  private rebuildLyricBackdrop() {
+    this.lyricBackdropLayer.removeChildren();
+    this.lyricBackdrop = [];
+    if (!this.currentLine?.text) return;
+
+    const text = this.currentLine.text.toUpperCase();
+    const count = this.quality === "cinema" ? 14 : 8;
+    const textLength = Math.max(6, text.length);
+    const fontSize = Math.max(22, Math.min(68, this.w / Math.max(10, textLength * 0.58)));
+    const primary = this.mode === "poster"
+      ? 0xffffff
+      : this.mode === "vortex"
+        ? 0xff4960
+        : 0x65fff2;
+
+    for (let index = 0; index < count; index++) {
+      const style = new TextStyle({
+        fontFamily: "Arial Black, Impact, Helvetica Neue, Arial, sans-serif",
+        fontWeight: "900",
+        fontSize: fontSize * (1 + index * 0.012),
+        fill: this.mode === "poster" ? 0x050505 : 0x020405,
+        stroke: {
+          color: primary,
+          width: index % 3 === 0 ? 1.4 : 0.7,
+        },
+        letterSpacing: -1,
+      });
+      const echo = new Text({ text, style });
+      echo.anchor.set(0.5);
+      this.lyricBackdropLayer.addChild(echo);
+      this.lyricBackdrop.push(echo);
+    }
+  }
+
+  private updateLyricBackdrop(time: number, audio: AudioBands) {
+    if (!this.lyricBackdropLayer.visible || !this.lyricBackdrop.length) return;
+    const cx = this.w * 0.5;
+    const cy = this.h * 0.5;
+
+    this.lyricBackdrop.forEach((echo, index) => {
+      const t = index / Math.max(1, this.lyricBackdrop.length - 1);
+      if (this.mode === "poster") {
+        const row = index - (this.lyricBackdrop.length - 1) * 0.5;
+        echo.position.set(
+          cx + Math.sin(time * 0.18 + index) * 10,
+          cy + row * echo.height * 0.88,
+        );
+        echo.rotation = (index % 2 ? -1 : 1) * 0.008;
+        echo.scale.set(0.82 + t * 0.11);
+        echo.alpha = 0.045 + (1 - Math.abs(t - 0.5) * 2) * 0.08 + audio.energy * 0.025;
+      } else if (this.mode === "vortex") {
+        const scale = 2.8 - t * 2.55;
+        const direction = index % 2 ? -1 : 1;
+        echo.position.set(
+          cx + Math.cos(time * 0.13 + index) * (1 - t) * 28,
+          cy + Math.sin(time * 0.11 + index * 0.7) * (1 - t) * 28,
+        );
+        echo.rotation = direction * (time * 0.035 + index * 0.018);
+        echo.scale.set(Math.max(0.12, scale * (1 + audio.bass * 0.035)));
+        echo.alpha = 0.028 + t * 0.16 + audio.energy * 0.025;
+      } else {
+        const row = index - (this.lyricBackdrop.length - 1) * 0.5;
+        echo.position.set(
+          cx + row * 11 + Math.sin(time * 0.23 + index * 0.5) * 18,
+          cy + row * echo.height * 0.62,
+        );
+        echo.rotation = row * 0.004;
+        echo.scale.set(0.9 + t * 0.16 + audio.bass * 0.015);
+        echo.alpha = 0.035 + audio.energy * 0.055;
+      }
+    });
+  }
+
+  private updateSparks(time: number, audio: AudioBands) {
+    this.sparkLayer.clear();
+    if (!this.sparkLayer.visible) return;
+
+    const cx = this.w * 0.5;
+    const cy = this.h * 0.5;
+    const count = this.quality === "cinema" ? 76 : 38;
+    const radiusMax = Math.hypot(this.w, this.h) * 0.46;
+    const primary = this.mode === "poster"
+      ? 0xffffff
+      : this.mode === "vortex"
+        ? 0xff4259
+        : 0x69fff2;
+    const secondary = this.mode === "poster"
+      ? 0xff5260
+      : this.mode === "vortex"
+        ? 0xff9a69
+        : 0x9b76ff;
+    const burst = 0.35 + audio.treble * 0.9 + audio.transient * 2.4 + this.impact * 0.55;
+
+    for (let index = 0; index < count; index++) {
+      const seed = hash01((this.lineIndex + 17) * 131.7 + index * 43.19);
+      const speed = 0.18 + hash01(seed * 97 + 3.7) * 0.42;
+      const life = (seed * 4.3 + time * speed) % 1;
+      const angle = seed * Math.PI * 2
+        + this.lineIndex * 0.31
+        + Math.sin(time * 0.19 + index) * 0.08;
+      const radius = Math.pow(life, 1.38) * radiusMax;
+      const bend = (hash01(seed * 181 + 8.2) - 0.5) * 0.28 * life;
+      const a = angle + bend;
+      const x = cx + Math.cos(a) * radius;
+      const y = cy + Math.sin(a) * radius;
+      const length = (6 + hash01(seed * 211 + 1.3) * 34)
+        * burst
+        * (1 - life * 0.72)
+        * this.intensity;
+      const width = 0.55 + hash01(seed * 71 + 4.8) * 1.35;
+      const alpha = Math.max(0, (1 - life) * (0.08 + burst * 0.16));
+      const color = index % 5 === 0 ? secondary : primary;
+
+      this.sparkLayer
+        .moveTo(x, y)
+        .lineTo(x - Math.cos(a) * length, y - Math.sin(a) * length)
+        .stroke({ width, color, alpha });
+
+      if (index % 6 === 0) {
+        this.sparkLayer
+          .circle(x, y, 0.8 + burst * 0.7)
+          .fill({ color, alpha: alpha * 0.7 });
+      }
+    }
   }
 
   private updateSpectrum(time: number, audio: AudioBands, spectrum: Float32Array) {
@@ -593,7 +748,12 @@ export class CinematicBackground {
     const cx = w * 0.5;
     const cy = h * 0.5;
 
-    if (this.resolvedPreset === "liquid" || this.resolvedPreset === "spectrum") return;
+    if (
+      this.resolvedPreset === "liquid"
+      || this.resolvedPreset === "spectrum"
+      || this.resolvedPreset === "sparks"
+      || this.resolvedPreset === "lyrics"
+    ) return;
 
     if (this.resolvedPreset === "minimal") {
       for (let index = 0; index < 3; index++) {
