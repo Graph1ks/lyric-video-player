@@ -143,6 +143,7 @@ type FxUniforms = {
 export class CinematicPostFX {
   readonly filter: Filter;
   private intensity = 1;
+  private mix = 1;
   private quality: QualityMode = "cinema";
   private mode: SceneMode = "neon";
 
@@ -177,6 +178,10 @@ export class CinematicPostFX {
     this.intensity = Math.max(0.2, Math.min(1.8, value));
   }
 
+  setMix(value: number) {
+    this.mix = Math.max(0, Math.min(3, value));
+  }
+
   setQuality(quality: QualityMode) {
     this.quality = quality;
     this.write("uQuality", quality === "cinema" ? 1 : 0);
@@ -184,7 +189,7 @@ export class CinematicPostFX {
 
   update(time: number, audio: AudioBands) {
     this.write("uTime", time);
-    this.write("uAmount", this.intensity * (this.quality === "cinema" ? 1 : 0.72));
+    this.write("uAmount", this.intensity * this.mix * (this.quality === "cinema" ? 1 : 0.72));
     this.write("uBass", audio.bass);
     this.write("uEnergy", audio.energy);
     this.write("uTransient", audio.transient);
