@@ -26,7 +26,17 @@ export class AudioEngine {
   async load(file: File) {
     if (this.objectUrl) URL.revokeObjectURL(this.objectUrl);
     this.objectUrl = URL.createObjectURL(file);
-    this.element.src = this.objectUrl;
+    await this.loadSource(this.objectUrl);
+  }
+
+  async loadUrl(url: string) {
+    if (this.objectUrl) URL.revokeObjectURL(this.objectUrl);
+    this.objectUrl = undefined;
+    await this.loadSource(url);
+  }
+
+  private async loadSource(url: string) {
+    this.element.src = url;
     this.element.load();
 
     await new Promise<void>((resolve, reject) => {

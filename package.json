@@ -1,6 +1,6 @@
 {
   "name": "@graph1ks/emo-engine",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -11,19 +11,27 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "dev": "vite",
-    "build:packages": "tsc -b packages/engine-core packages/app-contracts packages/audio-web packages/platform-node packages/renderer-pixi apps/server",
-    "typecheck:packages": "tsc -b packages/engine-core packages/app-contracts packages/audio-web packages/platform-node packages/renderer-pixi apps/server --pretty false",
-    "typecheck": "npm run typecheck:packages && tsc -b --pretty false",
-    "build": "npm run build:packages && tsc -b && vite build",
-    "test": "npm run build:packages && node --test tests/*.test.mjs",
+    "dev": "npm --workspace @graph1ks/emo-web run dev",
+    "dev:legacy": "vite",
+    "build:packages": "tsc -b packages/engine-core packages/app-contracts packages/audio-web packages/platform-node packages/platform-web packages/renderer-pixi apps/server",
+    "typecheck:packages": "tsc -b packages/engine-core packages/app-contracts packages/audio-web packages/platform-node packages/platform-web packages/renderer-pixi apps/server --pretty false",
+    "build:web": "npm --workspace @graph1ks/emo-web run build",
+    "build:desktop": "npm --workspace @graph1ks/emo-desktop run build",
+    "typecheck:web": "npm --workspace @graph1ks/emo-web run typecheck",
+    "typecheck:desktop": "npm --workspace @graph1ks/emo-desktop run typecheck",
+    "typecheck": "npm run typecheck:packages && npm run typecheck:web && npm run typecheck:desktop && tsc -b --pretty false",
+    "build": "npm run build:packages && npm run build:web && npm run build:desktop && tsc -b && vite build",
+    "test": "npm run build:packages && node --test tests/*.test.mjs && npm --workspace @graph1ks/emo-web test",
     "server": "node apps/server/dist/index.js",
-    "preview": "vite preview"
+    "server:build-run": "npm run build && node apps/server/dist/index.js",
+    "desktop:start": "npm run build && npm --workspace @graph1ks/emo-desktop start",
+    "desktop:dist": "npm run build && npm --workspace @graph1ks/emo-desktop dist",
+    "preview": "npm --workspace @graph1ks/emo-web exec vite preview"
   },
   "dependencies": {
-    "@graph1ks/emo-audio-web": "0.4.0",
-    "@graph1ks/emo-engine-core": "0.4.0",
-    "@graph1ks/emo-renderer-pixi": "0.4.0",
+    "@graph1ks/emo-audio-web": "0.5.0",
+    "@graph1ks/emo-engine-core": "0.5.0",
+    "@graph1ks/emo-renderer-pixi": "0.5.0",
     "pixi.js": "8.21.0"
   },
   "devDependencies": {

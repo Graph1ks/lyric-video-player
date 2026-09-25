@@ -2,38 +2,54 @@
 
 ## Scope and posture
 
-Graph1ks Lyric Video Player / E-MOE-CHAIN is currently a local-first browser application. The core runtime does not require accounts, telemetry, cloud uploads, hosted processing, or application secrets.
+E-MO-Engine is designed for local files, self-hosted project roots and a standalone Electron application. The core product does not require accounts, telemetry, third-party uploads or application secrets.
 
-Local audio and LRC files are still untrusted input. File content must be parsed as data and must never be executed.
+Audio, LRC, manifests and project assets are untrusted input and must always be treated as data.
 
-## Supported version
+## Server boundary
 
-The current `main` branch and the latest published alpha are the supported development line. Older unreleased snapshots are not maintained as separate security branches.
+The hosted/runtime server may read only below the explicitly configured E-MO project root.
+
+Security requirements:
+
+- reject path traversal and absolute-path escape;
+- address normal media through discovered project/asset IDs rather than raw client-supplied filesystem paths;
+- bind to loopback by default;
+- do not silently expose write APIs;
+- keep security headers enabled;
+- do not introduce remote uploads or public network binding without a separate threat-model decision.
+
+## Electron boundary
+
+The desktop renderer is unprivileged:
+
+- `contextIsolation: true`;
+- `nodeIntegration: false`;
+- renderer sandbox enabled;
+- filesystem/native operations are not directly available to page code;
+- privileged actions use a narrow typed preload/IPC surface;
+- the normal media/project path is the shared loopback E-MO server.
+
+Do not broaden the preload bridge with arbitrary filesystem or shell execution APIs.
 
 ## Reporting a vulnerability
 
 Do not publish exploitable vulnerability details in a public Issue.
 
-Use GitHub's private vulnerability-reporting/security-advisory interface for this repository when it is available. If the interface is not available, contact Graph1ks through a contact channel publicly listed on the Graph1ks GitHub profile and initially provide only enough information to establish a private reporting path.
+Use GitHub private vulnerability reporting/security advisories when available. If that interface is unavailable, establish a private reporting channel through contact information publicly provided on the Graph1ks GitHub profile before sharing exploit details.
 
-Non-sensitive bugs that do not expose users, files, credentials, or execution boundaries may be reported through normal Issues.
+## Repository hygiene
 
-## Project security rules
+Never commit:
 
-Never commit or intentionally log:
+- API keys, access tokens, passwords, cookies, credentials or private keys;
+- user-loaded audio/LRC/private assets;
+- private local filesystem paths or unnecessary personal identifiers;
+- raw private conversations;
+- packaged binaries unless an explicit release workflow calls for them.
 
-- API keys, access tokens, passwords, cookies, private keys, or credentials;
-- user-loaded audio, lyric files, or other private media;
-- private local paths or unnecessary personal identifiers;
-- raw private conversations or unrelated sensitive content.
+If a secret is ever committed, assume exposure and rotate/revoke it; removing only the newest copy is insufficient.
 
-The project should:
+## Dependency and packaging policy
 
-- keep imported media local unless the owner explicitly changes the architecture;
-- avoid hidden network requests, tracking, telemetry, or uploads;
-- validate file types and parser boundaries;
-- keep dependencies minimal and reviewed for maintenance, cost, and licensing;
-- avoid executing user-supplied lyric/metadata content as HTML or code;
-- sanitize future exported filenames/paths where filesystem APIs are introduced.
-
-If a secret is ever committed, assume exposure and revoke/rotate it; deleting only the latest copy is insufficient.
+Every new dependency, binary and asset requires cost/license/security review. Electron/Chromium and installer dependencies must be updated deliberately rather than opportunistically. FFmpeg and codec/export binaries require a dedicated redistribution/license review before adoption.

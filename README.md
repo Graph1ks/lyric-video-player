@@ -1,42 +1,85 @@
 # E-MO-Engine — Extensive Motion Engine for Enhanced LRC files
 
-Local-first realtime kinetic-lyrics and motion-graphics player for MP3/M4A/AAC audio plus Enhanced LRC.
+E-MO-Engine is a realtime motion-graphics player/engine for MP3/M4A/AAC audio synchronized to Enhanced LRC. It combines deterministic lyric timing with PixiJS typography, camera motion, audio-reactive backgrounds and GPU post-processing.
 
-The motion engine is framework-independent: PixiJS owns GPU rendering, Web Audio provides live analysis, and E-MO-Engine evaluates lyric motion from the playback clock. The accepted product shell is React + TypeScript + Vite, while React remains outside the frame-critical render loop.
+## Current status — v0.5 alpha
 
-## Current status — v0.3.0 alpha
+The project now has three product surfaces backed by the same engine:
 
-Implemented:
+- **React web app** — the main application/editor shell.
+- **Node server** — serves the web app and projects from a configured directory.
+- **Electron desktop** — starts the same server locally, loads the same React app, and can target a directory through a native folder picker.
 
-- MP3 / M4A / AAC local loading
-- drag-and-drop ingestion for audio + `.lrc`
-- Enhanced LRC parsing
-  - `[mm:ss.xxx]` line timestamps
-  - angle-bracket word timestamps with minute/second/millisecond precision
-  - `[offset:+/-ms]`
-  - fallback word timing for line-only LRC
-- audio as the single master clock
-- manual live lyric-sync trim from `-1500 ms` to `+1500 ms`
-- Web Audio FFT bands: bass / mid / treble / energy / transient
-- PixiJS realtime renderer
-- deterministic timestamp-driven word/glyph motion without a second animation clock
-- glyph-level lyric rendering and word-level kinetic hits
-- audio-reactive particles, rings, beams, geometry and scene palettes
-- deterministic Auto Director based on lyric structure and repeated hook lines
-- dedicated camera rig with line hits, word hits, drift, bass zoom and transient rotation
-- first custom GPU post-FX pass: scene-aware chromatic split, transient smear, local glow, barrel warp, scanlines, grain and vignette
+Frame-critical motion remains outside React. PixiJS, Web Audio and the E-MO clock/cue system own realtime rendering.
+
+## Implemented
+
+- MP3 / M4A / AAC playback
+- local drag-and-drop audio + Enhanced LRC
+- server/Desktop project loading from a configured directory
+- Enhanced LRC line timestamps, word timestamps, offsets and line-only fallback timing
+- manual live lyric-sync trim
+- bass / mid / treble / energy / transient analysis
+- deterministic timestamp-driven glyph/word motion
 - Poster / Neon / Vortex visual families
-- responsive glass/HUD player shell
-- fullscreen mode
-- Cinema / Performance render quality modes
-- UI visibility hotkey: **Ctrl + Shift + H**
+- deterministic Auto Director
+- virtual camera impulses
+- audio-reactive particles, geometry and backgrounds
+- custom GPU post-FX with RGB split, transient smear, glow sampling, barrel warp, scanlines, grain and vignette
+- responsive HUD
+- fullscreen
+- Cinema / Performance quality
+- **Ctrl + Shift + H** full-HUD hide/show
+
+## Architecture
+
+```text
+                 React / TypeScript / Vite
+                         control plane
+                              |
+             +----------------+----------------+
+             |                                 |
+       local browser                     server / desktop
+             |                                 |
+      platform-web                    Node project server
+             |                                 |
+             +---------------+-----------------+
+                             |
+                        engine-core
+                   LRC / Clock / Director
+                             |
+                     renderer-pixi
+                 PixiJS / shader / camera
+                             |
+                        audio-web
+                  Web Audio / HTMLAudio
+```
+
+Workspace layout:
+
+```text
+apps/
+  web/        React application
+  server/     hosted/root-targeting Node runtime
+  desktop/    Electron main + preload
+
+packages/
+  engine-core/
+  renderer-pixi/
+  audio-web/
+  platform-web/
+  platform-node/
+  app-contracts/
+```
+
+See `docs/PLATFORM_ARCHITECTURE.md` and `docs/DECISIONS.md`.
 
 ## Keyboard
 
 | Key | Action |
 | --- | --- |
 | `Space` | play / pause |
-| `Ctrl + Shift + H` | hide / show the complete HUD |
+| `Ctrl + Shift + H` | hide / show complete HUD |
 | `F` | fullscreen |
 | `M` | mute |
 | `←` / `→` | seek 5 seconds |
@@ -46,81 +89,71 @@ Implemented:
 | `,` / `.` | lyric sync -/+ 50 ms |
 | `Esc` | restore hidden HUD |
 
-## Run
+## Install and verify
 
-Requirements: Node.js 22.5+.
+Node.js 22.12+ is the current baseline.
 
 ```bash
 npm install
-npm run dev
-```
-
-Production verification:
-
-```bash
 npm run typecheck
 npm run build
+npm test
 ```
 
-## Architecture
+## Hosted project-root mode
+
+After building:
+
+```bash
+node apps/server/dist/index.js --root /path/to/projects
+```
+
+A project root can either itself contain a project or contain project directories. Current automatic discovery recognizes audio + Enhanced LRC, or an explicit `emo.project.json` manifest.
+
+Example:
 
 ```text
-HTML player shell
-        │
-        ├── local audio file
-        │       ↓
-        │   Web Audio analysis
-        │       ↓
-        ├── MasterClock ───────┐
-        │                      │
-Enhanced LRC                   │
-        ↓                      │
-cue / word timing              │
-        ↓                      │
-SceneDirector                  │
-        ↓                      │
-PixiJS render graph ← CameraRig┘
-        ↓
-KineticLyrics + CinematicBackground
-        ↓
-CinematicPostFX
-        ↓
-E-MOE timestamp motion + audio reactions
+projects/
+  song-a/
+    track.m4a
+    lyrics.lrc
+    assets/
 ```
 
-The HTML audio element is the timing source of truth. Lyric entry and word-punch transforms are calculated from timestamps, so seeking does not start or depend on a second wall-clock animation timeline.
+The server confines reads to the configured root and serves media with byte-range support for seeking.
 
-## Platform baseline
+## Desktop
 
-The accepted cross-platform application architecture reuses the current RhymeLab stack:
+Development after a normal install:
 
-- React 19 + TypeScript + Vite for the app/editor shell
-- Base UI + Motion for application chrome
-- Zustand + TanStack Query for UI/session and async platform state
-- PixiJS for all frame-critical motion graphics
-- Node.js for hosted/server mode
-- Electron for the standalone Windows application and local directory targeting
-- npm workspace packages separating engine-core, renderer and platform adapters
+```bash
+npm run build
+npm --workspace @graph1ks/emo-desktop start -- --root /path/to/projects
+```
 
-See `docs/PLATFORM_ARCHITECTURE.md`.
+Windows packaging:
 
-## Near-term build plan
+```bash
+npm run desktop:dist
+```
 
-1. RenderTexture composition graph and feedback ping-pong buffers
-2. dedicated displacement / velocity-smear / bloom passes (the first single-pass cinematic shader is already in)
-3. selector system inspired by After Effects text animators
-4. additional background families: fluid/noise, star tunnel, ribbons, typography feedback
-5. scene JSON project format
-6. section-level art direction for verse / chorus / bridge
-7. optional 3D renderer after a concrete scene requires it
-8. editor surface after the player/render engine is stable
+The desktop renderer has no Node integration. Native directory selection is exposed through a narrow preload bridge, while project/media serving stays behind the shared loopback E-MO server.
 
-React is not part of the render engine. A future editor may use React as a UI shell, but rendering and timing remain independent.
+## Near-term work
+
+1. visual/browser acceptance of the React cutover
+2. real Windows NSIS + portable packaging smoke test
+3. retire the temporary root legacy UI
+4. multi-pass RenderTexture compositor and ping-pong feedback
+5. displacement, velocity smear and stronger bloom/glow
+6. selector-driven typography system
+7. scene/project JSON and timeline/editor surfaces
+8. offline fixed-frame rendering/export architecture
 
 ## Licensing
 
-This project uses the same licensing model as Graph1ks RhymeLab: **source-available, not OSI Open Source**.
+E-MO-Engine uses the same licensing model as Graph1ks RhymeLab: **source-available, not OSI Open Source**.
 
-Graph1ks Material is governed by `LICENSE` and `COMMERCIAL_LICENSE.md`. Third-party material retains its own license and attribution requirements and is not relicensed by the repository root license.
+Graph1ks Material is governed by `LICENSE` and `COMMERCIAL_LICENSE.md`. Third-party material retains its own license and attribution requirements.
 
 See `LICENSE`, `COMMERCIAL_LICENSE.md`, `LICENSES.md`, `COPYRIGHT`, and `THIRD_PARTY_NOTICES.md`.
