@@ -56,6 +56,7 @@ export function App() {
   const t = (en: string, de: string) => copy(uiLanguage, en, de);
   const mode = useUiStore(state => state.mode);
   const intensity = useUiStore(state => state.intensity);
+  const fxRack = useUiStore(state => state.fxRack);
   const quality = useUiStore(state => state.quality);
   const typographyPreset = useUiStore(state => state.typographyPreset);
   const typographySequence = useUiStore(state => state.typographySequence);
@@ -196,17 +197,23 @@ export function App() {
       if (timeRef.current) timeRef.current.textContent = `${fmt(time)} / ${fmt(clock.duration)}`;
     });
 
+    const syncPlaybackTelemetry = () => {
+      setDirectorPlayback(clock.time, clock.duration);
+    };
     const onPlay = () => {
+      syncPlaybackTelemetry();
       setPlaying(true);
       setDirectorPlaying(true);
       setEngineStatus("PLAYING LIVE");
     };
     const onPause = () => {
+      syncPlaybackTelemetry();
       setPlaying(false);
       setDirectorPlaying(false);
       setEngineStatus(audio.hasSource ? "PAUSED" : "ENGINE READY");
     };
     const onEnded = () => {
+      syncPlaybackTelemetry();
       setPlaying(false);
       setDirectorPlaying(false);
       setEngineStatus("ENDED");
@@ -217,11 +224,22 @@ export function App() {
       setDirectorVolume(audio.volume);
     };
 
+    const playbackEvents: Array<keyof HTMLMediaElementEventMap> = [
+      "timeupdate",
+      "durationchange",
+      "loadedmetadata",
+      "seeking",
+      "seeked",
+      "ratechange",
+    ];
     audio.element.addEventListener("play", onPlay);
     audio.element.addEventListener("pause", onPause);
     audio.element.addEventListener("ended", onEnded);
     audio.element.addEventListener("volumechange", onVolumeChange);
+    playbackEvents.forEach(event => audio.element.addEventListener(event, syncPlaybackTelemetry));
+    const playbackTimer = window.setInterval(syncPlaybackTelemetry, 125);
     onVolumeChange();
+    syncPlaybackTelemetry();
 
     void renderer.init(stage).then(() => {
       if (disposed) return;
@@ -230,6 +248,7 @@ export function App() {
         item => item.id === initialState.activePerformancePresetId,
       );
       renderer.setAutoProfile(initialProfile?.auto);
+      renderer.setFxRack(initialState.fxRack);
       renderer.setVisualMode(initialState.mode);
       renderer.setTypographyPreset(useUiStore.getState().typographyPreset);
       renderer.setTypographySequence(useUiStore.getState().typographySequence);
@@ -260,6 +279,8 @@ export function App() {
       audio.element.removeEventListener("pause", onPause);
       audio.element.removeEventListener("ended", onEnded);
       audio.element.removeEventListener("volumechange", onVolumeChange);
+      playbackEvents.forEach(event => audio.element.removeEventListener(event, syncPlaybackTelemetry));
+      window.clearInterval(playbackTimer);
       rendererRef.current = null;
       clockRef.current = null;
       stage.replaceChildren();
@@ -277,6 +298,16 @@ export function App() {
   useEffect(() => {
     rendererRef.current?.setVisualMode(mode);
   }, [mode]);
+
+  useEffect(() => {
+    rendererRef.current?.setFxRack(fxRack);
+    const shell = shellRef.current;
+    if (!shell) return;
+    shell.style.setProperty("--screen-bloom-level", String(fxRack.screenBloom));
+    shell.style.setProperty("--screen-scanline-level", String(fxRack.scanlines));
+    shell.style.setProperty("--screen-grain-level", String(fxRack.grain));
+    shell.style.setProperty("--screen-vignette-level", String(fxRack.vignette));
+  }, [fxRack]);
 
   useEffect(() => {
     rendererRef.current?.setTypographyPreset(typographyPreset);
