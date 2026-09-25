@@ -121,15 +121,16 @@ float roomReflectionLayer(vec2 p, float scale, float phase, float zoneBias, out 
     float twinkle = 0.48 + 0.52 * sin(
         uTime * (0.75 + seed * 2.8)
         + seed * 41.0
-        + uTreble * 2.0
     );
-    float transientSpark = 1.0 + uTransient * smoothstep(0.72, 1.0, seed) * 1.8;
+    float transientSpark = 1.0 + uTransient * smoothstep(0.72, 1.0, seed) * 1.15;
 
     float rotation = (seed - 0.5) * 0.55 + sin(uTime * 0.14 + seed * 7.0) * 0.08;
     local = rotate2(local, rotation);
 
-    float size = mix(0.075, 0.17, seed) * mix(0.86, 1.18, uBass);
-    float glowSize = size * (1.55 + uEnergy * 0.35);
+    // Projection geometry is motor-driven, not audio-driven. Music may light
+    // the room, but it must not resize/jitter the reflection tiles.
+    float size = mix(0.075, 0.17, seed);
+    float glowSize = size * 1.72;
     float spot = squareGlow(local, size, glowSize) * active * zone * twinkle * transientSpark;
 
     tint = reflectionColor(fract(seed + phase * 0.17 + uTime * 0.008));
@@ -181,7 +182,9 @@ void main(void) {
 
     // Mirrorball: analytic sphere with quantized spherical facets.
     vec2 ballCenter = vec2(0.0, -0.12);
-    float ballRadius = 0.305 * (1.0 + uBass * 0.025);
+    // A physical mirrorball is mechanically stable. Do not let raw audio
+    // change its radius or angular velocity; those reactions read as stutter.
+    float ballRadius = 0.305;
     vec2 bp = (p - ballCenter) / ballRadius;
     float r2 = dot(bp, bp);
     float sphereMask = 1.0 - smoothstep(0.985, 1.005, r2);
@@ -189,7 +192,7 @@ void main(void) {
     if (r2 < 1.02) {
         float z = sqrt(max(0.0, 1.0 - min(r2, 1.0)));
         vec3 normal = normalize(vec3(bp.x, bp.y, z));
-        normal = rotateY(normal, uTime * (0.20 + uEnergy * 0.055));
+        normal = rotateY(normal, uTime * 0.205);
         normal = rotateX(normal, -0.18 + sin(uTime * 0.09) * 0.04);
 
         float lon = atan(normal.z, normal.x) / TAU + 0.5;
@@ -293,6 +296,11 @@ export class DiscoMirrorballRoomWorld {
   private intensity = 1;
   private detail = 1;
   private quality: QualityMode = "cinema";
+  private lastTime = Number.NaN;
+  private smoothedBass = 0;
+  private smoothedTreble = 0;
+  private smoothedEnergy = 0;
+  private smoothedTransient = 0;
 
   constructor() {
     this.filter = new Filter({
@@ -339,15 +347,37 @@ export class DiscoMirrorballRoomWorld {
   }
 
   update(time: number, audio: AudioBands) {
-    if (!this.container.visible) return;
+    if (!this.container.visible) {
+      this.lastTime = Number.NaN;
+      return;
+    }
+
+    const dt = Number.isFinite(this.lastTime)
+      ? Math.max(0, Math.min(0.1, time - this.lastTime))
+      : 1 / 60;
+    const discontinuity = !Number.isFinite(this.lastTime) || time < this.lastTime || time - this.lastTime > 0.5;
+    this.lastTime = time;
+
+    if (discontinuity) {
+      this.smoothedBass = audio.bass;
+      this.smoothedTreble = audio.treble;
+      this.smoothedEnergy = audio.energy;
+      this.smoothedTransient = audio.transient;
+    } else {
+      this.smoothedBass = smoothEnvelope(this.smoothedBass, audio.bass, dt, 0.10, 0.34);
+      this.smoothedTreble = smoothEnvelope(this.smoothedTreble, audio.treble, dt, 0.07, 0.22);
+      this.smoothedEnergy = smoothEnvelope(this.smoothedEnergy, audio.energy, dt, 0.14, 0.42);
+      this.smoothedTransient = smoothEnvelope(this.smoothedTransient, audio.transient, dt, 0.025, 0.16);
+    }
+
     this.write("uTime", time);
     this.write("uPower", this.intensity);
     this.write("uDetail", this.detail);
-    this.write("uBass", audio.bass);
+    this.write("uBass", this.smoothedBass);
     this.write("uMid", audio.mid);
-    this.write("uTreble", audio.treble);
-    this.write("uEnergy", audio.energy);
-    this.write("uTransient", audio.transient);
+    this.write("uTreble", this.smoothedTreble);
+    this.write("uEnergy", this.smoothedEnergy);
+    this.write("uTransient", this.smoothedTransient);
     this.write("uAspect", this.width / this.height);
     this.write("uQuality", this.quality === "cinema" ? 1 : 0);
     this.container.alpha = clamp(this.intensity, 0, 1);
@@ -357,6 +387,18 @@ export class DiscoMirrorballRoomWorld {
     const uniforms = (this.filter.resources.mirrorballUniforms as { uniforms: Uniforms }).uniforms;
     uniforms[name] = value;
   }
+}
+
+function smoothEnvelope(
+  current: number,
+  target: number,
+  dt: number,
+  attackSeconds: number,
+  releaseSeconds: number,
+) {
+  const tau = target > current ? attackSeconds : releaseSeconds;
+  const amount = 1 - Math.exp(-dt / Math.max(0.001, tau));
+  return current + (target - current) * amount;
 }
 
 function clamp(value: number, min: number, max: number) {
