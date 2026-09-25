@@ -1,8 +1,8 @@
 # Project Status
 
 **Last updated:** 2026-09-25  
-**Last known good merged baseline:** `d46776cb35e881839abc139fc0075d487c970de6`  
-**Active candidate:** `feat/legacy-world-rehab-spectrum-sparks` — draft PR #76  
+**Last known good merged baseline:** `ccb0859ad415b806cd7fbcb742d460925e74f8e4`  
+**Active candidate:** `feat/legacy-world-rehab-lyrics-minimal` — next rehabilitation slice  
 **Current phase/milestone:** legacy world/background rehabilitation
 
 ## Current objective
@@ -11,7 +11,7 @@ Rehabilitate all 15 legacy Background presets before WORLD_09/10: remove raw-aud
 
 ## Current state
 
-- **Merged PR #74 established the rehabilitation foundation:** `WorldAudioReactivity` provides seek/discontinuity-safe attack/release bands, rising-edge transient events, a positive decay envelope and long-energy smoothing for the legacy stack.\n- **Merged PR #75 raises the remaining-world fidelity floor and rebuilds `cinematic` + `liquid`:** Cinematic is now a dedicated fullscreen atmospheric/lens-light shader world; Liquid is a semantic-palette raymarched smooth-min implicit surface with real normals/Fresnel/specular lighting. Both are isolated from generic fallback blobs/rings/beams/particles and keep geometry time-owned.\n- **Draft PR #76 rebuilds `spectrum` + `sparks`:** Spectrum becomes a real-FFT projected 3D frequency topography; Sparks becomes deterministic analytic ballistic trajectories with history-derived trails and transient response restricted to fresh emission/accent.
+- **Merged PR #74 established the rehabilitation foundation:** `WorldAudioReactivity` provides seek/discontinuity-safe attack/release bands, rising-edge transient events, a positive decay envelope and long-energy smoothing for the legacy stack.\n- **Merged PR #75 raises the remaining-world fidelity floor and rebuilds `cinematic` + `liquid`:** Cinematic is now a dedicated fullscreen atmospheric/lens-light shader world; Liquid is a semantic-palette raymarched smooth-min implicit surface with real normals/Fresnel/specular lighting. Both are isolated from generic fallback blobs/rings/beams/particles and keep geometry time-owned.\n- **Merged PR #76 rebuilds `spectrum` + `sparks`:** Spectrum is a real-FFT projected 3D frequency topography; Sparks is deterministic analytic ballistic motion with history-derived trails and transient response restricted to fresh emission/accent.\n- **Active slice rebuilds `lyrics` + `minimal`:** Lyrics becomes a dedicated perspective typography corridor with one-way time-owned z travel, cropped editorial fragments and explicit Text destruction; Minimal becomes a fullscreen precision-material shader built around negative space, an asymmetric material plane, optical aperture, controlled rules and microtexture.
 - The first systemic corrections remove raw bass/transient whole-geometry pumping from shared blobs, particles, rings, beams, editorial/architecture geometry and liquid absolute-time phase/topology.
 - `WorldColorContext` now exists as the pure engine-core contract for representative/title-safe luminance, highlight risk, chroma/busyness pressure, polarity hysteresis and outline-support pressure; renderer-to-typography wiring is still pending.
 - **The five worst legacy motion offenders are now dedicated fidelity worlds:** `LegacyVortexWorld`, `LegacyRaysWorld`, `LegacyStarfieldWorld`, `LegacyNebulaWorld` and `LegacyGridWorld` replace the shared generic stack for those preset IDs.
