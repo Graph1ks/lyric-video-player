@@ -9,7 +9,7 @@
 
 Finish and accept the React/server/Electron platform cutover without changing frame-critical motion semantics. After visual/Desktop acceptance, remove the temporary legacy root application and return to RenderTexture/post-FX/editor work.
 
-## What is implemented
+## Current implementation state
 
 ### Shared packages
 
