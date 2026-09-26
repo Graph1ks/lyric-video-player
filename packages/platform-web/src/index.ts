@@ -1,4 +1,6 @@
 import type {
+  MilkdropLibraryResponse,
+  MilkdropPresetSourceResponse,
   ProjectDescriptor,
   ProjectListResponse,
   RuntimeInfo,
@@ -16,6 +18,20 @@ export function fetchRuntimeInfo() {
 
 export function fetchProjects() {
   return fetchJson<ProjectListResponse>("/api/projects");
+}
+
+export function fetchMilkdropLibrary() {
+  return fetchJson<MilkdropLibraryResponse>("/api/milkdrop/library");
+}
+
+export function fetchMilkdropPresetSource(presetId: string) {
+  return fetchJson<MilkdropPresetSourceResponse>(
+    `/api/milkdrop/presets/${encodeURIComponent(presetId)}/source`,
+  );
+}
+
+export function milkdropTextureUrl(textureId: string) {
+  return `/api/milkdrop/textures/${encodeURIComponent(textureId)}`;
 }
 
 export function projectAssetUrl(projectId: string, assetId: string) {
