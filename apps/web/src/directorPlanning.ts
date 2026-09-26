@@ -13,6 +13,8 @@ import type {
   VisualFxRack,
 } from "@graph1ks/emo-engine-core";
 import type { LowerThirdMode, LowerThirdPreset } from "./lowerThirds";
+import type { BackgroundEngine, MilkdropRenderScale } from "./milkdrop";
+import type { TypographyFontId } from "./typographyFonts";
 
 export interface DirectorControlSnapshot {
   activePerformancePresetId: string | null;
@@ -25,6 +27,14 @@ export interface DirectorControlSnapshot {
   typographyLayout: TypographyLayoutPreset;
   compositionMotion: CompositionMotionPreset;
   backgroundPreset: BackgroundPreset;
+  backgroundEngine: BackgroundEngine;
+  milkdropPresetId: string | null;
+  milkdropOpacity: number;
+  milkdropPaletteInfluence: number;
+  milkdropRenderScale: MilkdropRenderScale;
+  milkdropFxaa: boolean;
+  milkdropBlendSeconds: number;
+  typographyFont: TypographyFontId;
   colorHarmony: ColorHarmonyMode;
   colorMood: ColorMoodMode;
   colorCanvas: ColorCanvasMode;
