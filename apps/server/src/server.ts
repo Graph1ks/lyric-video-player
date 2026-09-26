@@ -3,6 +3,7 @@ import { access, readFile, stat } from "node:fs/promises";
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 import { basename, extname, resolve, sep } from "node:path";
 import type {
+  MilkdropLibraryResponse,
   ProjectListResponse,
   RuntimeCapabilities,
   RuntimeInfo,
@@ -35,7 +36,7 @@ export class EmoServer {
   private readonly capabilities: RuntimeCapabilities;
   private milkdropPresetRoot?: string;
   private milkdropTextureRoot?: string;
-  private milkdropLibraryCache?: Awaited<ReturnType<EmoServer["buildMilkdropLibrary"]>>;
+  private milkdropLibraryCache?: MilkdropLibraryResponse;
 
   constructor(options: EmoServerOptions) {
     this.projectRoot = resolve(options.projectRoot);
