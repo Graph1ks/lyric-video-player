@@ -14,6 +14,12 @@ Git history remains the complete technical history. This file records meaningful
 
 ### Added
 
+- Generic user-selected MilkDrop library support powered by Butterchurn, with recursive folder indexing, virtualized search, on-demand `.milk` conversion, explicit rescan and compatibility diagnostics.
+- Optional user-selected MilkDrop texture roots with custom sampler resolution and missing-texture degradation reporting.
+- Butterchurn background controls for opacity, OKLCH palette influence, preset blend duration, 1x/1.5x/2x render scale and native FXAA.
+- Real-frame Butterchurn title-safe luminance/highlight/chroma/busyness analysis feeding the existing hysteresis-based lyric readability treatment.
+- Curated self-hosted lyric fonts across sans, display, condensed, serif, mono, handwritten and graphic categories.
+
 - React 19 / Vite 8 application shell preserving the E-MO player HUD and `Ctrl + Shift + H`.
 - Hosted project-root discovery and byte-range media serving.
 - Server project browser that loads Enhanced LRC and audio directly into the engine.
