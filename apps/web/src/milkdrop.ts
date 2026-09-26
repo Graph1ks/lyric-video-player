@@ -12,6 +12,7 @@ export type MilkdropCompatibility =
   | "converting"
   | "ready"
   | "missing-textures"
+  | "unsupported"
   | "conversion-error"
   | "runtime-error";
 
@@ -91,18 +92,23 @@ export async function loadMilkdropTextureImages(
   const references = extractMilkdropTextureReferences(source);
   const { resolved, missing } = resolveMilkdropTextures(references, library.textures);
   const images: Record<string, { data: string; width: number; height: number }> = {};
+  const failed = [...missing];
 
   await Promise.all(resolved.map(async ({ sampler, texture }) => {
     const url = milkdropTextureUrl(texture.id);
-    const dimensions = await imageDimensions(url);
-    images[sampler] = {
-      data: url,
-      width: dimensions.width,
-      height: dimensions.height,
-    };
+    try {
+      const dimensions = await imageDimensions(url);
+      images[sampler] = {
+        data: url,
+        width: dimensions.width,
+        height: dimensions.height,
+      };
+    } catch {
+      failed.push(sampler);
+    }
   }));
 
-  return { images, missing };
+  return { images, missing: [...new Set(failed)].sort((a, b) => a.localeCompare(b)) };
 }
 
 function imageDimensions(url: string) {
