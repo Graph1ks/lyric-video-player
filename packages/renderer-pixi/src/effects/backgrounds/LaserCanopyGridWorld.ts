@@ -166,7 +166,7 @@ vec3 beamVolume(
   // Real club beams have a bright optical core plus a much wider haze body.
   // The body expands away from the fixture and broadens again near the floor.
   float perspective = clamp(6.8 / mix(sourceDepth, targetDepth, h), 0.52, 1.42);
-  float width = mix(0.010, 0.032, h) * perspective;
+  float width = mix(0.014, 0.048, h) * perspective;
   float floorBloom = smoothstep(0.76, 1.0, h);
   width *= 1.0 + floorBloom * 0.34;
 
@@ -291,7 +291,7 @@ void main(void) {
       * lightResponse
       * (0.28 + uTransient * 0.18);
 
-    float ringEnable = 1.0 - step(0.5, abs(beamIndex - 1.5));
+    float ringEnable = 1.0 - step(0.5, beamIndex);
     float ringPhase = 0.72 + 0.12 * sin(uTime * 0.24 + fixtureIndex * 0.8);
     float ring = ellipseRing(
       p,
