@@ -42,7 +42,7 @@ export class PersistentTypographySequences {
   private h = 1;
   private baseFontSize = 84;
   private fontFamily = '"Inter Variable", "Arial Black", Impact, "Helvetica Neue", Arial, sans-serif';
-  private fontWeight = "900";
+  private fontWeight: "400" | "700" | "800" | "900" = "900";
   private scopeMetrics = new Map<string, TypographySpatialMetrics>();
   private staticLayout?: Map<string, TypographyPackingSlot>;
   private staticLayoutKey = "";
@@ -100,7 +100,7 @@ export class PersistentTypographySequences {
     };
   }
 
-  setFont(family: string, weight = "900") {
+  setFont(family: string, weight: "400" | "700" | "800" | "900" = "900") {
     if (this.fontFamily === family && this.fontWeight === weight) return;
     this.fontFamily = family;
     this.fontWeight = weight;
