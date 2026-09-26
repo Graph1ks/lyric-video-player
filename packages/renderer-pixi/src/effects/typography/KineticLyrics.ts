@@ -113,7 +113,7 @@ export class KineticLyrics {
   private wordHitListeners = new Set<(index: number, audio: AudioBands) => void>();
 
   private fontFamily = '"Inter Variable", "Arial Black", Impact, "Helvetica Neue", Arial, sans-serif';
-  private fontWeight = "900";
+  private fontWeight: "400" | "700" | "800" | "900" = "900";
 
   private mainStyle = new TextStyle({
     fontFamily: this.fontFamily,
@@ -247,7 +247,7 @@ export class KineticLyrics {
     if (this.line) this.rebuild(false);
   }
 
-  setFont(family: string, weight = "900") {
+  setFont(family: string, weight: "400" | "700" | "800" | "900" = "900") {
     if (this.fontFamily === family && this.fontWeight === weight) return;
     this.fontFamily = family;
     this.fontWeight = weight;
