@@ -74,6 +74,11 @@ export function MilkdropLibraryPanel() {
     if (result) queryClient.setQueryData(["milkdrop-library"], result);
   }
 
+  async function rescanLibrary() {
+    const result = await fetchMilkdropLibrary(true);
+    queryClient.setQueryData(["milkdrop-library"], result);
+  }
+
   function randomPreset() {
     if (!filtered.length) return;
     const index = Math.floor(Math.random() * filtered.length);
@@ -98,6 +103,9 @@ export function MilkdropLibraryPanel() {
               <button onClick={() => void choosePresetRoot()}>{t("PRESET FOLDER", "PRESET-ORDNER")}</button>
               <button onClick={() => void chooseTextureRoot()}>{t("TEXTURE FOLDER", "TEXTUR-ORDNER")}</button>
             </>
+          )}
+          {library?.configured && (
+            <button onClick={() => void rescanLibrary()}>{t("RESCAN", "NEU SCANNEN")}</button>
           )}
           <button
             className={backgroundEngine === "emo" ? "is-active" : ""}
@@ -210,6 +218,13 @@ export function MilkdropLibraryPanel() {
               </button>
             </div>
           </div>
+
+          {selectedId && statuses[selectedId]?.message && (
+            <div className="milkdrop-library__diagnostic">
+              <b>{statuses[selectedId].compatibility.replaceAll("-", " ").toUpperCase()}</b>
+              <span>{statuses[selectedId].message}</span>
+            </div>
+          )}
 
           <div className="milkdrop-library__foot">
             <span>
