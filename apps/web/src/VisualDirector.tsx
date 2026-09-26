@@ -20,6 +20,8 @@ import {
   type DirectorCatalogItem,
 } from "./directorCatalog";
 import { copy, localizeDirectorItem } from "./directorI18n";
+import { MilkdropLibraryPanel } from "./MilkdropLibraryPanel";
+import { TYPOGRAPHY_FONTS } from "./typographyFonts";
 import { LOWER_THIRD_PRESETS, type LowerThirdPresetInfo } from "./lowerThirds";
 import { type PerformancePresetPoolKey } from "./performancePresets";
 import { useUiStore } from "./store";
