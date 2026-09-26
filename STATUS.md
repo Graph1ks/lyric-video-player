@@ -1,15 +1,25 @@
 # Project Status
 
 **Last updated:** 2026-09-26  
-**Last known good merged baseline:** `9d9c062e88d156a1e4e8ce3251299f72278d99c9`  
-**Active candidate:** `feat/rebuild-laser-canopy-moving-heads` — draft PR #81
-**Current phase/milestone:** legacy world/background rehabilitation
+**Last known good merged baseline:** `698ac586ee94569021454c763f37b8ae569a801c` — includes merged PR #81  
+**Active candidate:** `feat/milkdrop-butterchurn-library` — PR #82
+**Current phase/milestone:** generic MilkDrop / Butterchurn background-source integration
 
 ## Current objective
 
 Rehabilitate all 15 legacy Background presets before WORLD_09/10: remove raw-audio twitch/pump/reversal behavior, perform a hard fidelity upgrade, route worlds through the semantic OKLCH palette, and make lyric typography contrast adapt to the actual rendered world rather than only the nominal canvas color.
 
 ## Current state
+
+- **PR #82 is the active candidate:** generic, user-selected MilkDrop `.milk` library support via Butterchurn. No preset or texture corpus is bundled, linked or required.
+- Desktop can select independent preset and texture roots; server mode can opt in with environment-configured roots. Only relative metadata/stable IDs cross the filesystem boundary.
+- Large libraries use a cached recursive index plus TanStack Virtual search/folder browsing; conversion is on-demand and session-cached.
+- Butterchurn is a dedicated background source beneath the lyric camera, uses the existing Web Audio source, supports 1x/1.5x/2x render scale + native FXAA, and exposes opacity/blend/OKLCH influence controls.
+- Butterchurn frame analysis feeds title-safe luminance/highlight/chroma/busyness into the existing smoothed `WorldColorContext` lyric treatment.
+- Optional custom textures are resolved from the user-selected texture root; missing/unsupported/conversion/runtime failures remain visible as compatibility diagnostics.
+- Lyric typography now supports a curated self-hosted font set across sans/display/condensed/serif/mono/handwritten/graphic categories.
+- Full implementation contract: `docs/MILKDROP_BUTTERCHURN.md`.
+- The legacy world rehabilitation remains the next native-world milestone after this cross-cutting background-source candidate lands.
 
 - **Merged PR #74 established the rehabilitation foundation:** `WorldAudioReactivity` provides seek/discontinuity-safe attack/release bands, rising-edge transient events, a positive decay envelope and long-energy smoothing for the legacy stack.
 - **Merged PR #75 raised the fidelity floor and rebuilt `cinematic` + `liquid`:** Cinematic is a dedicated fullscreen atmospheric/lens-light shader world; Liquid is a semantic-palette raymarched smooth-min implicit surface with real normals/Fresnel/specular lighting.
