@@ -41,6 +41,11 @@ import type {
   WorldColorContext,
 } from "@graph1ks/emo-engine-core";
 import { CinematicBackground } from "../effects/backgrounds/CinematicBackground";
+import {
+  ButterchurnBackground,
+  type ButterchurnImageData,
+  type MilkdropRenderSettings,
+} from "../effects/backgrounds/ButterchurnBackground";
 import { KineticLyrics } from "../effects/typography/KineticLyrics";
 import { PersistentTypographySequences } from "../effects/typography/PersistentTypographySequences";
 import { CameraRig } from "./CameraRig";
@@ -59,6 +64,8 @@ export class EngineRenderer {
   private scene = new Container();
   private camera = new Container();
   private background = new CinematicBackground();
+  private milkdrop = new ButterchurnBackground();
+  private backgroundEngine: "emo" | "milkdrop" = "emo";
   private sequenceLyrics = new PersistentTypographySequences();
   private lyrics = new KineticLyrics();
   private director = new SceneDirector();
@@ -140,7 +147,9 @@ export class EngineRenderer {
       this.sequenceLyrics.container,
       this.lyrics.container,
     );
-    this.scene.addChild(this.background.container, this.camera);
+    // External visualizers are a background source, never an overlay. The camera
+    // containing all lyric typography is intentionally the final scene child.
+    this.scene.addChild(this.milkdrop.container, this.background.container, this.camera);
     this.root.addChild(this.renderGraph.output);
     this.app.stage.addChild(this.root);
 
@@ -339,6 +348,34 @@ export class EngineRenderer {
     this.emitBackgroundPreset();
   }
 
+  setBackgroundEngine(engine: "emo" | "milkdrop") {
+    if (this.backgroundEngine === engine) return;
+    this.backgroundEngine = engine;
+    this.background.container.visible = engine === "emo";
+    this.milkdrop.setActive(engine === "milkdrop");
+    this.worldColorContext = undefined;
+    this.renderGraph.resetFeedback();
+    this.host?.setAttribute("data-background-engine", engine);
+  }
+
+  initMilkdrop(audioContext: AudioContext, audioNode: AudioNode) {
+    this.milkdrop.init(audioContext, audioNode);
+    if (this.currentPalette) this.milkdrop.setPalette(this.currentPalette);
+  }
+
+  loadMilkdropPreset(preset: unknown, blendSeconds = 2.7) {
+    this.milkdrop.loadPreset(preset, blendSeconds);
+    this.setBackgroundEngine("milkdrop");
+  }
+
+  loadMilkdropImages(images: Record<string, ButterchurnImageData>) {
+    this.milkdrop.loadExtraImages(images);
+  }
+
+  setMilkdropSettings(settings: Partial<MilkdropRenderSettings>) {
+    this.milkdrop.setSettings(settings);
+  }
+
   onBackgroundPresetChange(listener: (preset: BackgroundPresetId) => void) {
     this.backgroundListeners.add(listener);
     return () => this.backgroundListeners.delete(listener);
@@ -524,7 +561,11 @@ export class EngineRenderer {
     this.velocitySmearFX.update(time, audio);
     this.bloomThresholdFX.update(time, audio);
     this.postFX.update(time, audio);
-    this.background.update(time, audio, spectrum);
+    if (this.backgroundEngine === "milkdrop") {
+      this.milkdrop.update();
+    } else {
+      this.background.update(time, audio, spectrum);
+    }
     this.updateWorldTypographyContext(dt, discontinuity);
     this.lyrics.update(lyricTime, audio);
     this.sequenceLyrics.update(lyricTime, audio);
@@ -547,6 +588,7 @@ export class EngineRenderer {
     if (this.fullscreenListener) document.removeEventListener("fullscreenchange", this.fullscreenListener);
     if (this.visualViewportListener) window.visualViewport?.removeEventListener("resize", this.visualViewportListener);
     this.resizeObserver?.disconnect();
+    this.milkdrop.destroy();
     this.renderGraph.destroy();
     this.app.destroy();
   }
@@ -630,6 +672,7 @@ export class EngineRenderer {
     });
     this.currentPalette = palette;
     this.background.setPalette(palette, !dynamic);
+    this.milkdrop.setPalette(palette);
     this.sequenceLyrics.setPalette(palette, !dynamic);
     this.lyrics.setPalette(palette, !dynamic);
     this.host?.setAttribute("data-harmony", palette.resolvedHarmony);
@@ -656,9 +699,9 @@ export class EngineRenderer {
     const palette = this.currentPalette;
     if (!palette) return;
 
-    const target = this.background.getWorldColorContext(
-      this.worldColorContext?.recommendedPolarity,
-    );
+    const target = this.backgroundEngine === "milkdrop"
+      ? this.milkdrop.getWorldColorContext(this.worldColorContext?.recommendedPolarity)
+      : this.background.getWorldColorContext(this.worldColorContext?.recommendedPolarity);
     if (!target) return;
 
     const previous = this.worldColorContext;
@@ -783,6 +826,7 @@ export class EngineRenderer {
     const w = this.app.renderer.width / this.app.renderer.resolution;
     const h = this.app.renderer.height / this.app.renderer.resolution;
     this.background.resize(w, h);
+    this.milkdrop.resize(w, h);
     this.sequenceLyrics.resize(w, h);
     this.lyrics.resize(w, h);
     this.cameraRig.setViewport(w, h);
