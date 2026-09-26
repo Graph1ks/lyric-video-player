@@ -9,6 +9,8 @@ import {
 } from "@graph1ks/emo-engine-core";
 import {
   classifyDroppedFiles,
+  fetchMilkdropLibrary,
+  fetchMilkdropPresetSource,
   fetchProjectLyrics,
   fetchProjects,
   fetchRuntimeInfo,
@@ -30,6 +32,14 @@ import { LowerThirdOverlay } from "./LowerThirdOverlay";
 import { copy } from "./directorI18n";
 import { listenDirectorCommands } from "./directorSync";
 import { useUiStore } from "./store";
+import {
+  convertMilkdropPreset,
+  loadMilkdropTextureImages,
+} from "./milkdrop";
+import {
+  ensureTypographyFont,
+  typographyFontProfile,
+} from "./typographyFonts";
 
 const EMPTY_LYRICS: ParsedLyrics = { offsetMs: 0, lines: [], meta: {} };
 
@@ -50,6 +60,7 @@ export function App() {
   const audioNameRef = useRef("");
   const lyricsNameRef = useRef("");
   const directorTelemetryRef = useRef(-1);
+  const milkdropLoadTokenRef = useRef(0);
 
   const hudVisible = useUiStore(state => state.hudVisible);
   const uiLanguage = useUiStore(state => state.uiLanguage);
@@ -63,6 +74,14 @@ export function App() {
   const typographyLayout = useUiStore(state => state.typographyLayout);
   const compositionMotion = useUiStore(state => state.compositionMotion);
   const backgroundPreset = useUiStore(state => state.backgroundPreset);
+  const backgroundEngine = useUiStore(state => state.backgroundEngine);
+  const milkdropPresetId = useUiStore(state => state.milkdropPresetId);
+  const milkdropOpacity = useUiStore(state => state.milkdropOpacity);
+  const milkdropPaletteInfluence = useUiStore(state => state.milkdropPaletteInfluence);
+  const milkdropRenderScale = useUiStore(state => state.milkdropRenderScale);
+  const milkdropFxaa = useUiStore(state => state.milkdropFxaa);
+  const milkdropBlendSeconds = useUiStore(state => state.milkdropBlendSeconds);
+  const typographyFont = useUiStore(state => state.typographyFont);
   const colorHarmony = useUiStore(state => state.colorHarmony);
   const colorMood = useUiStore(state => state.colorMood);
   const colorCanvas = useUiStore(state => state.colorCanvas);
@@ -82,6 +101,8 @@ export function App() {
   const setTypographyLayout = useUiStore(state => state.setTypographyLayout);
   const setCompositionMotion = useUiStore(state => state.setCompositionMotion);
   const setBackgroundPreset = useUiStore(state => state.setBackgroundPreset);
+  const setBackgroundEngine = useUiStore(state => state.setBackgroundEngine);
+  const setMilkdropPresetStatus = useUiStore(state => state.setMilkdropPresetStatus);
   const setColorHarmony = useUiStore(state => state.setColorHarmony);
   const setColorMood = useUiStore(state => state.setColorMood);
   const setColorCanvas = useUiStore(state => state.setColorCanvas);
@@ -131,6 +152,87 @@ export function App() {
     () => performancePresets.find(item => item.id === activePerformancePresetId),
     [activePerformancePresetId, performancePresets],
   );
+
+  async function activateMilkdropPreset(presetId: string) {
+    const renderer = rendererRef.current;
+    if (!renderer) return;
+
+    const loadToken = ++milkdropLoadTokenRef.current;
+    setMilkdropPresetStatus(presetId, { compatibility: "converting" });
+
+    let library;
+    let sourceResponse;
+    try {
+      [library, sourceResponse] = await Promise.all([
+        fetchMilkdropLibrary(),
+        fetchMilkdropPresetSource(presetId),
+      ]);
+      queryClient.setQueryData(["milkdrop-library"], library);
+    } catch (error) {
+      if (loadToken !== milkdropLoadTokenRef.current) return;
+      setMilkdropPresetStatus(presetId, {
+        compatibility: "runtime-error",
+        message: error instanceof Error ? error.message : String(error),
+      });
+      return;
+    }
+
+    const preset = library.presets.find(item => item.id === presetId);
+    if (!preset) {
+      setMilkdropPresetStatus(presetId, {
+        compatibility: "runtime-error",
+        message: "Preset disappeared from the selected MilkDrop library.",
+      });
+      return;
+    }
+
+    let converted: unknown;
+    try {
+      converted = await convertMilkdropPreset(preset, sourceResponse.source);
+    } catch (error) {
+      if (loadToken !== milkdropLoadTokenRef.current) return;
+      setMilkdropPresetStatus(presetId, {
+        compatibility: "conversion-error",
+        message: error instanceof Error ? error.message : String(error),
+      });
+      return;
+    }
+
+    try {
+      const [{ audioContext, node }, textures] = await Promise.all([
+        audioRef.current.visualizerSource(),
+        loadMilkdropTextureImages(library, sourceResponse.source),
+      ]);
+      if (loadToken !== milkdropLoadTokenRef.current) return;
+
+      const state = useUiStore.getState();
+      renderer.initMilkdrop(audioContext, node);
+      renderer.setMilkdropSettings({
+        opacity: state.milkdropOpacity,
+        paletteInfluence: state.milkdropPaletteInfluence,
+        renderScale: state.milkdropRenderScale,
+        fxaa: state.milkdropFxaa,
+      });
+      renderer.loadMilkdropImages(textures.images);
+      renderer.loadMilkdropPreset(converted, state.milkdropBlendSeconds);
+      renderer.setBackgroundEngine("milkdrop");
+      setBackgroundEngine("milkdrop");
+      setMilkdropPresetStatus(presetId, textures.missing.length
+        ? {
+            compatibility: "missing-textures",
+            message: `Missing textures: ${textures.missing.join(", ")}`,
+            missingTextures: textures.missing,
+          }
+        : { compatibility: "ready" });
+      setEngineStatus(`MILKDROP · ${preset.name}`);
+    } catch (error) {
+      if (loadToken !== milkdropLoadTokenRef.current) return;
+      setMilkdropPresetStatus(presetId, {
+        compatibility: "runtime-error",
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
 
   useEffect(() => {
     const stage = stageRef.current;
@@ -254,14 +356,28 @@ export function App() {
       renderer.setTypographySequence(useUiStore.getState().typographySequence);
       renderer.setTypographyLayout(useUiStore.getState().typographyLayout);
       renderer.setCompositionMotion(useUiStore.getState().compositionMotion);
-      renderer.setBackgroundPreset(useUiStore.getState().backgroundPreset);
+      renderer.setBackgroundPreset(initialState.backgroundPreset);
+      renderer.setBackgroundEngine(initialState.backgroundEngine);
+      renderer.setMilkdropSettings({
+        opacity: initialState.milkdropOpacity,
+        paletteInfluence: initialState.milkdropPaletteInfluence,
+        renderScale: initialState.milkdropRenderScale,
+        fxaa: initialState.milkdropFxaa,
+      });
+      const initialFont = typographyFontProfile(initialState.typographyFont);
+      void ensureTypographyFont(initialFont).then(() => {
+        if (!disposed) renderer.setTypographyFont(initialFont.family, initialFont.weight);
+      });
       renderer.setColorHarmony(useUiStore.getState().colorHarmony);
       renderer.setColorMood(useUiStore.getState().colorMood);
       renderer.setColorCanvas(useUiStore.getState().colorCanvas);
       renderer.setColorFlow(useUiStore.getState().colorFlow);
       renderer.setIntensity(useUiStore.getState().intensity);
-      renderer.setQuality(useUiStore.getState().quality);
+      renderer.setQuality(initialState.quality);
       clock.start();
+      if (initialState.backgroundEngine === "milkdrop" && initialState.milkdropPresetId) {
+        void activateMilkdropPreset(initialState.milkdropPresetId);
+      }
     });
 
     return () => {
@@ -328,6 +444,35 @@ export function App() {
   useEffect(() => {
     rendererRef.current?.setBackgroundPreset(backgroundPreset);
   }, [backgroundPreset]);
+
+  useEffect(() => {
+    rendererRef.current?.setBackgroundEngine(backgroundEngine);
+  }, [backgroundEngine]);
+
+  useEffect(() => {
+    rendererRef.current?.setMilkdropSettings({
+      opacity: milkdropOpacity,
+      paletteInfluence: milkdropPaletteInfluence,
+      renderScale: milkdropRenderScale,
+      fxaa: milkdropFxaa,
+    });
+  }, [milkdropFxaa, milkdropOpacity, milkdropPaletteInfluence, milkdropRenderScale]);
+
+  useEffect(() => {
+    if (!milkdropPresetId) return;
+    void activateMilkdropPreset(milkdropPresetId);
+  }, [milkdropPresetId]);
+
+  useEffect(() => {
+    const renderer = rendererRef.current;
+    if (!renderer) return;
+    const profile = typographyFontProfile(typographyFont);
+    let cancelled = false;
+    void ensureTypographyFont(profile).then(() => {
+      if (!cancelled) renderer.setTypographyFont(profile.family, profile.weight);
+    });
+    return () => { cancelled = true; };
+  }, [typographyFont]);
 
   useEffect(() => {
     rendererRef.current?.setColorHarmony(colorHarmony);
