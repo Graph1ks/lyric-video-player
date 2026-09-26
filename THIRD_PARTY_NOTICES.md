@@ -10,6 +10,27 @@ Purpose: realtime 2D/WebGL rendering, text, scene graph, RenderTextures and GPU 
 License: MIT License.  
 Upstream: https://github.com/pixijs/pixijs
 
+### Butterchurn 3.0.0-beta.5
+
+Purpose: WebGL2 MilkDrop visualizer runtime for user-selected external presets.  
+License: MIT License.  
+Upstream: https://github.com/jberg/butterchurn
+
+E-MO does not depend on or redistribute `butterchurn-presets`.
+
+### milkdrop-preset-converter 0.1.2
+
+Purpose: local on-demand conversion of user-provided MilkDrop `.milk` files into Butterchurn preset objects.  
+License: MIT License.  
+Upstream: https://github.com/jberg/milkdrop-preset-converter
+
+### Fontsource 5.3.0 / selected Google Fonts
+
+Purpose: self-hosted lyric typography without a runtime Google Fonts request.  
+Selected families: Inter, Space Grotesk, Oswald, Playfair Display, IBM Plex Mono, Caveat and Bangers.  
+Font licenses: upstream open-font licenses (OFL-1.1 for the selected families); see the corresponding Fontsource package metadata and bundled license files.  
+Upstream: https://fontsource.org/
+
 ### React 19.3.0 / React DOM 19.3.0
 
 Purpose: E-MO application/editor shell. React does not own frame-critical renderer state.  
@@ -99,6 +120,6 @@ FFmpeg is not currently a dependency. Offline/video export will receive a separa
 
 ## User-provided media
 
-No bundled song, commercial font, image library, video footage, or third-party lyric corpus is required by the repository. Audio/LRC/assets opened by a user remain external user-provided material and are not relicensed by this repository.
+No bundled song, preset library, texture library, commercial font, image library, video footage, or third-party lyric corpus is required by the repository. Audio/LRC/MilkDrop presets/textures/assets opened by a user remain external user-provided material and are not relicensed by this repository.
 
 When additional assets, shaders, fonts, plugins, sample media, binaries, or data sources are introduced, their provenance and applicable licensing requirements must be recorded before distribution.
