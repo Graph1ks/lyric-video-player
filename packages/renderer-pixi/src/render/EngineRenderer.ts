@@ -179,6 +179,11 @@ export class EngineRenderer {
     return () => this.modeListeners.delete(listener);
   }
 
+  setTypographyFont(family: string, weight = "900") {
+    this.lyrics.setFont(family, weight);
+    this.sequenceLyrics.setFont(family, weight);
+  }
+
   setLyrics(lines: LineCue[]) {
     this.lines = lines;
     this.director.load(lines);
