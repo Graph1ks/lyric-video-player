@@ -179,7 +179,7 @@ export class EngineRenderer {
     return () => this.modeListeners.delete(listener);
   }
 
-  setTypographyFont(family: string, weight = "900") {
+  setTypographyFont(family: string, weight: "400" | "700" | "800" | "900" = "900") {
     this.lyrics.setFont(family, weight);
     this.sequenceLyrics.setFont(family, weight);
   }
@@ -354,12 +354,14 @@ export class EngineRenderer {
   }
 
   setBackgroundEngine(engine: "emo" | "milkdrop") {
-    if (this.backgroundEngine === engine) return;
+    const changed = this.backgroundEngine !== engine;
     this.backgroundEngine = engine;
     this.background.container.visible = engine === "emo";
     this.milkdrop.setActive(engine === "milkdrop");
-    this.worldColorContext = undefined;
-    this.renderGraph.resetFeedback();
+    if (changed) {
+      this.worldColorContext = undefined;
+      this.renderGraph.resetFeedback();
+    }
     this.host?.setAttribute("data-background-engine", engine);
   }
 
