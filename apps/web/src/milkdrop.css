@@ -99,3 +99,25 @@
   .milkdrop-library__browser { grid-template-columns: 1fr; height: 460px; }
   .milkdrop-library__browser aside { max-height: 110px; border-right: 0; border-bottom: 1px solid rgba(255,255,255,.08); }
 }
+
+.milkdrop-library__diagnostic {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border-top: 1px solid rgba(255,255,255,.08);
+  font-size: 11px;
+}
+.milkdrop-library__diagnostic b { letter-spacing: .08em; font-size: 9px; }
+.milkdrop-library__diagnostic span { opacity: .72; overflow-wrap: anywhere; }
+.director-font-card {
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 10px;
+  background: rgba(255,255,255,.04);
+  color: inherit;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+.director-font-card.is-selected {
+  border-color: rgba(116,234,255,.7);
+  background: rgba(93,213,255,.12);
+}
