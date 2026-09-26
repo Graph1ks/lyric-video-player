@@ -41,6 +41,8 @@ export class PersistentTypographySequences {
   private w = 1;
   private h = 1;
   private baseFontSize = 84;
+  private fontFamily = '"Inter Variable", "Arial Black", Impact, "Helvetica Neue", Arial, sans-serif';
+  private fontWeight = "900";
   private scopeMetrics = new Map<string, TypographySpatialMetrics>();
   private staticLayout?: Map<string, TypographyPackingSlot>;
   private staticLayoutKey = "";
@@ -96,6 +98,18 @@ export class PersistentTypographySequences {
       },
       fitScale: this.framingScale,
     };
+  }
+
+  setFont(family: string, weight = "900") {
+    if (this.fontFamily === family && this.fontWeight === weight) return;
+    this.fontFamily = family;
+    this.fontWeight = weight;
+    for (const entry of this.nodes.values()) {
+      entry.node.style = this.styleFor(entry.treatment);
+    }
+    this.scopeMetrics.clear();
+    this.staticLayout = undefined;
+    this.staticLayoutKey = "";
   }
 
   setPalette(palette: VisualPalette, _refreshStatic = true) {
@@ -457,9 +471,9 @@ export class PersistentTypographySequences {
 
     if (treatment === "outline") {
       return new TextStyle({
-        fontFamily: "Arial Black, Impact, Helvetica Neue, Arial, sans-serif",
+        fontFamily: this.fontFamily,
         fontSize: this.baseFontSize,
-        fontWeight: "900",
+        fontWeight: this.fontWeight,
         fill: background,
         stroke: {
           color: textSecondary,
@@ -475,9 +489,9 @@ export class PersistentTypographySequences {
     }
 
     return new TextStyle({
-      fontFamily: "Arial Black, Impact, Helvetica Neue, Arial, sans-serif",
+      fontFamily: this.fontFamily,
       fontSize: this.baseFontSize,
-      fontWeight: "900",
+      fontWeight: this.fontWeight,
       fill: textPrimary,
       stroke: world?.supportLevel
         ? { color: world.supportColor, width: supportWidth }
