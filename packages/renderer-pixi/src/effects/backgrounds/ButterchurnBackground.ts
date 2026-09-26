@@ -1,3 +1,4 @@
+/// <reference path="../../butterchurn.d.ts" />
 import {
   Container,
   Filter,
