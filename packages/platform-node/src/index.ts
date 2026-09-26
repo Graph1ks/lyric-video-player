@@ -7,6 +7,8 @@ import type {
   ProjectAssetDescriptor,
   ProjectAssetKind,
   ProjectDescriptor,
+  MilkdropPresetDescriptor,
+  MilkdropTextureDescriptor,
   ProjectBackgroundPreset,
   ProjectColorCanvas,
   ProjectColorFlow,
@@ -101,6 +103,14 @@ const BACKGROUND_PRESETS = new Set<ProjectBackgroundPreset>([
   "print",
   "architecture",
   "aurora",
+  "prism-stage-beams",
+  "laser-canopy-grid",
+  "disco-mirrorball-room",
+  "neon-energy-burst-tunnel",
+  "fractal-hex-spiral-mosaic",
+  "soft-hex-cell-field",
+  "particle-spiral-vortex",
+  "minimal-rainbow-waveform",
 ]);
 
 function extension(fileName: string) {
@@ -399,4 +409,89 @@ export function findProject(projects: ProjectDescriptor[], id: string) {
 
 export function findProjectAsset(project: ProjectDescriptor, assetId: string) {
   return project.assets.find(asset => asset.id === assetId);
+}
+
+
+const MILKDROP_TEXTURE_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".webp"]);
+
+function milkdropId(kind: "preset" | "texture", relativePath: string) {
+  return createHash("sha256")
+    .update(`${kind}:${relativePath.toLowerCase()}`)
+    .digest("hex")
+    .slice(0, 16);
+}
+
+async function discoverLibraryFiles(root: string, accept: (name: string) => boolean) {
+  const absoluteRoot = resolve(root);
+  const rootInfo = await stat(absoluteRoot);
+  if (!rootInfo.isDirectory()) throw new Error("Configured MilkDrop root is not a directory");
+
+  const files: Array<{ relativePath: string; size: number; modifiedMs: number }> = [];
+  const queue = [""];
+
+  while (queue.length) {
+    const relativeDirectory = queue.shift()!;
+    const fullDirectory = resolveInsideRoot(absoluteRoot, relativeDirectory);
+    const entries = await readdir(fullDirectory, { withFileTypes: true });
+    entries.sort((a, b) => a.name.localeCompare(b.name));
+
+    for (const entry of entries) {
+      if (entry.name.startsWith(".")) continue;
+      const relativePath = [relativeDirectory, entry.name].filter(Boolean).join("/");
+      if (entry.isDirectory()) {
+        queue.push(relativePath);
+        continue;
+      }
+      if (!entry.isFile() || !accept(entry.name)) continue;
+      const info = await stat(resolveInsideRoot(absoluteRoot, relativePath.split("/").join(sep)));
+      files.push({
+        relativePath,
+        size: info.size,
+        modifiedMs: info.mtimeMs,
+      });
+    }
+  }
+
+  return files;
+}
+
+export async function discoverMilkdropPresets(root: string): Promise<MilkdropPresetDescriptor[]> {
+  const files = await discoverLibraryFiles(root, name => extension(name) === ".milk");
+  return files.map(file => {
+    const normalized = file.relativePath.replace(/\\/g, "/");
+    const parts = normalized.split("/");
+    const fileName = parts.pop()!;
+    return {
+      id: milkdropId("preset", normalized),
+      name: fileName.replace(/\.milk$/i, ""),
+      relativePath: normalized,
+      folders: parts,
+      size: file.size,
+      modifiedMs: file.modifiedMs,
+    };
+  });
+}
+
+export async function discoverMilkdropTextures(root: string): Promise<MilkdropTextureDescriptor[]> {
+  const files = await discoverLibraryFiles(root, name => MILKDROP_TEXTURE_EXTENSIONS.has(extension(name)));
+  return files.map(file => {
+    const normalized = file.relativePath.replace(/\\/g, "/");
+    const fileName = normalized.split("/").pop()!;
+    return {
+      id: milkdropId("texture", normalized),
+      name: fileName.replace(/\.(png|jpe?g|webp)$/i, ""),
+      fileName,
+      relativePath: normalized,
+      size: file.size,
+      modifiedMs: file.modifiedMs,
+    };
+  });
+}
+
+export function findMilkdropPreset(presets: MilkdropPresetDescriptor[], id: string) {
+  return presets.find(preset => preset.id === id);
+}
+
+export function findMilkdropTexture(textures: MilkdropTextureDescriptor[], id: string) {
+  return textures.find(texture => texture.id === id);
 }
