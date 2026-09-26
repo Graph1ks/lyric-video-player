@@ -102,6 +102,15 @@ export class AudioEngine {
     this.analyser.connect(this.ctx.destination);
   }
 
+  async visualizerSource() {
+    await this.ensureGraph();
+    if (!this.ctx || !this.sourceNode) throw new Error("Audio graph is unavailable");
+    return {
+      audioContext: this.ctx,
+      node: this.sourceNode as AudioNode,
+    };
+  }
+
   async toggle() {
     if (!this.hasSource) return false;
     await this.ensureGraph();

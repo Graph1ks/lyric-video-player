@@ -32,6 +32,12 @@ import {
   type DirectorCueDraft,
 } from "./directorPlanning";
 import type { LowerThirdMode, LowerThirdPreset } from "./lowerThirds";
+import type {
+  BackgroundEngine,
+  MilkdropPresetStatus,
+  MilkdropRenderScale,
+} from "./milkdrop";
+import type { TypographyFontId } from "./typographyFonts";
 import {
   createCustomPerformancePreset,
   loadPerformancePresets,
@@ -58,6 +64,15 @@ export interface UiState {
   typographyLayout: TypographyLayoutPreset;
   compositionMotion: CompositionMotionPreset;
   backgroundPreset: BackgroundPreset;
+  backgroundEngine: BackgroundEngine;
+  milkdropPresetId: string | null;
+  milkdropOpacity: number;
+  milkdropPaletteInfluence: number;
+  milkdropRenderScale: MilkdropRenderScale;
+  milkdropFxaa: boolean;
+  milkdropBlendSeconds: number;
+  milkdropPresetStatuses: Record<string, MilkdropPresetStatus>;
+  typographyFont: TypographyFontId;
   colorHarmony: ColorHarmonyMode;
   colorMood: ColorMoodMode;
   colorCanvas: ColorCanvasMode;
@@ -113,6 +128,15 @@ export interface UiState {
   setTypographyLayout(value: TypographyLayoutPreset): void;
   setCompositionMotion(value: CompositionMotionPreset): void;
   setBackgroundPreset(value: BackgroundPreset): void;
+  setBackgroundEngine(value: BackgroundEngine): void;
+  setMilkdropPresetId(value: string | null): void;
+  setMilkdropOpacity(value: number): void;
+  setMilkdropPaletteInfluence(value: number): void;
+  setMilkdropRenderScale(value: MilkdropRenderScale): void;
+  setMilkdropFxaa(value: boolean): void;
+  setMilkdropBlendSeconds(value: number): void;
+  setMilkdropPresetStatus(id: string, value: MilkdropPresetStatus): void;
+  setTypographyFont(value: TypographyFontId): void;
   setColorHarmony(value: ColorHarmonyMode): void;
   setColorMood(value: ColorMoodMode): void;
   setColorCanvas(value: ColorCanvasMode): void;
@@ -174,6 +198,15 @@ export const useUiStore = create<UiState>((set, get) => ({
   typographyLayout: "auto",
   compositionMotion: "auto",
   backgroundPreset: "auto",
+  backgroundEngine: "emo",
+  milkdropPresetId: null,
+  milkdropOpacity: 1,
+  milkdropPaletteInfluence: 0.18,
+  milkdropRenderScale: 1,
+  milkdropFxaa: true,
+  milkdropBlendSeconds: 2.7,
+  milkdropPresetStatuses: {},
+  typographyFont: "inter",
   colorHarmony: "auto",
   colorMood: "auto",
   colorCanvas: "auto",
@@ -230,7 +263,25 @@ export const useUiStore = create<UiState>((set, get) => ({
   setTypographySequence: typographySequence => set({ typographySequence }),
   setTypographyLayout: typographyLayout => set({ typographyLayout }),
   setCompositionMotion: compositionMotion => set({ compositionMotion }),
-  setBackgroundPreset: backgroundPreset => set({ backgroundPreset }),
+  setBackgroundPreset: backgroundPreset => set({ backgroundPreset, backgroundEngine: "emo" }),
+  setBackgroundEngine: backgroundEngine => set({ backgroundEngine }),
+  setMilkdropPresetId: milkdropPresetId => set({
+    milkdropPresetId,
+    ...(milkdropPresetId ? { backgroundEngine: "milkdrop" as const } : {}),
+  }),
+  setMilkdropOpacity: milkdropOpacity => set({ milkdropOpacity: Math.max(0, Math.min(1, milkdropOpacity)) }),
+  setMilkdropPaletteInfluence: milkdropPaletteInfluence => set({
+    milkdropPaletteInfluence: Math.max(0, Math.min(1, milkdropPaletteInfluence)),
+  }),
+  setMilkdropRenderScale: milkdropRenderScale => set({ milkdropRenderScale }),
+  setMilkdropFxaa: milkdropFxaa => set({ milkdropFxaa }),
+  setMilkdropBlendSeconds: milkdropBlendSeconds => set({
+    milkdropBlendSeconds: Math.max(0, Math.min(12, milkdropBlendSeconds)),
+  }),
+  setMilkdropPresetStatus: (id, value) => set(state => ({
+    milkdropPresetStatuses: { ...state.milkdropPresetStatuses, [id]: value },
+  })),
+  setTypographyFont: typographyFont => set({ typographyFont }),
   setColorHarmony: colorHarmony => set({ colorHarmony }),
   setColorMood: colorMood => set({ colorMood }),
   setColorCanvas: colorCanvas => set({ colorCanvas }),
@@ -253,6 +304,7 @@ export const useUiStore = create<UiState>((set, get) => ({
       typographyLayout: "auto",
       compositionMotion: "auto",
       backgroundPreset: "auto",
+      backgroundEngine: "emo",
       colorHarmony: "auto",
       colorMood: "auto",
       colorCanvas: "auto",
@@ -299,6 +351,7 @@ export const useUiStore = create<UiState>((set, get) => ({
       typographyLayout: "auto",
       compositionMotion: "auto",
       backgroundPreset: "auto",
+      backgroundEngine: "emo",
       colorHarmony: "auto",
       colorMood: "auto",
       colorCanvas: "auto",
@@ -454,6 +507,15 @@ export type DirectorSharedState = Pick<
   | "typographyLayout"
   | "compositionMotion"
   | "backgroundPreset"
+  | "backgroundEngine"
+  | "milkdropPresetId"
+  | "milkdropOpacity"
+  | "milkdropPaletteInfluence"
+  | "milkdropRenderScale"
+  | "milkdropFxaa"
+  | "milkdropBlendSeconds"
+  | "milkdropPresetStatuses"
+  | "typographyFont"
   | "colorHarmony"
   | "colorMood"
   | "colorCanvas"
@@ -505,6 +567,15 @@ export function directorSharedState(state: UiState): DirectorSharedState {
     typographyLayout: state.typographyLayout,
     compositionMotion: state.compositionMotion,
     backgroundPreset: state.backgroundPreset,
+    backgroundEngine: state.backgroundEngine,
+    milkdropPresetId: state.milkdropPresetId,
+    milkdropOpacity: state.milkdropOpacity,
+    milkdropPaletteInfluence: state.milkdropPaletteInfluence,
+    milkdropRenderScale: state.milkdropRenderScale,
+    milkdropFxaa: state.milkdropFxaa,
+    milkdropBlendSeconds: state.milkdropBlendSeconds,
+    milkdropPresetStatuses: state.milkdropPresetStatuses,
+    typographyFont: state.typographyFont,
     colorHarmony: state.colorHarmony,
     colorMood: state.colorMood,
     colorCanvas: state.colorCanvas,
@@ -557,6 +628,14 @@ function controlSnapshot(state: UiState): DirectorControlSnapshot {
     typographyLayout: state.typographyLayout,
     compositionMotion: state.compositionMotion,
     backgroundPreset: state.backgroundPreset,
+    backgroundEngine: state.backgroundEngine,
+    milkdropPresetId: state.milkdropPresetId,
+    milkdropOpacity: state.milkdropOpacity,
+    milkdropPaletteInfluence: state.milkdropPaletteInfluence,
+    milkdropRenderScale: state.milkdropRenderScale,
+    milkdropFxaa: state.milkdropFxaa,
+    milkdropBlendSeconds: state.milkdropBlendSeconds,
+    typographyFont: state.typographyFont,
     colorHarmony: state.colorHarmony,
     colorMood: state.colorMood,
     colorCanvas: state.colorCanvas,

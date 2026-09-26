@@ -1,14 +1,19 @@
 import { createReadStream } from "node:fs";
-import { access, stat } from "node:fs/promises";
+import { access, readFile, stat } from "node:fs/promises";
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
-import { basename, extname, resolve } from "node:path";
+import { basename, extname, resolve, sep } from "node:path";
 import type {
+  MilkdropLibraryResponse,
   ProjectListResponse,
   RuntimeCapabilities,
   RuntimeInfo,
 } from "@graph1ks/emo-app-contracts";
 import {
+  discoverMilkdropPresets,
+  discoverMilkdropTextures,
   discoverProjects,
+  findMilkdropPreset,
+  findMilkdropTexture,
   findProject,
   findProjectAsset,
   resolveInsideRoot,
@@ -20,6 +25,8 @@ export interface EmoServerOptions {
   mode?: RuntimeCapabilities["mode"];
   canChooseDirectory?: boolean;
   canWriteProjectRoot?: boolean;
+  milkdropPresetRoot?: string;
+  milkdropTextureRoot?: string;
 }
 
 export class EmoServer {
@@ -27,10 +34,15 @@ export class EmoServer {
   private projectRoot: string;
   private readonly webDist: string;
   private readonly capabilities: RuntimeCapabilities;
+  private milkdropPresetRoot?: string;
+  private milkdropTextureRoot?: string;
+  private milkdropLibraryCache?: MilkdropLibraryResponse;
 
   constructor(options: EmoServerOptions) {
     this.projectRoot = resolve(options.projectRoot);
     this.webDist = resolve(options.webDist);
+    this.milkdropPresetRoot = options.milkdropPresetRoot ? resolve(options.milkdropPresetRoot) : undefined;
+    this.milkdropTextureRoot = options.milkdropTextureRoot ? resolve(options.milkdropTextureRoot) : undefined;
     this.capabilities = {
       mode: options.mode ?? "server",
       canChooseDirectory: options.canChooseDirectory ?? false,
@@ -48,6 +60,40 @@ export class EmoServer {
 
   getProjectRoot() {
     return this.projectRoot;
+  }
+
+  setMilkdropPresetRoot(root?: string) {
+    this.milkdropPresetRoot = root ? resolve(root) : undefined;
+    this.milkdropLibraryCache = undefined;
+  }
+
+  setMilkdropTextureRoot(root?: string) {
+    this.milkdropTextureRoot = root ? resolve(root) : undefined;
+    this.milkdropLibraryCache = undefined;
+  }
+
+  async getMilkdropLibrary(refresh = false) {
+    if (refresh) this.milkdropLibraryCache = undefined;
+    if (!this.milkdropLibraryCache) {
+      this.milkdropLibraryCache = await this.buildMilkdropLibrary();
+    }
+    return this.milkdropLibraryCache;
+  }
+
+  private async buildMilkdropLibrary(): Promise<MilkdropLibraryResponse> {
+    const presets = this.milkdropPresetRoot
+      ? await discoverMilkdropPresets(this.milkdropPresetRoot)
+      : [];
+    const textures = this.milkdropTextureRoot
+      ? await discoverMilkdropTextures(this.milkdropTextureRoot)
+      : [];
+    return {
+      configured: Boolean(this.milkdropPresetRoot),
+      rootLabel: this.milkdropPresetRoot ? basename(this.milkdropPresetRoot) : null,
+      textureRootLabel: this.milkdropTextureRoot ? basename(this.milkdropTextureRoot) : null,
+      presets,
+      textures,
+    };
   }
 
   async listProjects(): Promise<ProjectListResponse> {
@@ -99,6 +145,37 @@ export class EmoServer {
       }
 
       if (url.pathname === "/api/projects") return json(res, 200, await this.listProjects());
+
+      if (url.pathname === "/api/milkdrop/library") {
+        return json(res, 200, await this.getMilkdropLibrary(url.searchParams.get("refresh") === "1"));
+      }
+
+      const milkdropPresetMatch = url.pathname.match(/^\/api\/milkdrop\/presets\/([a-f0-9]{16})\/source$/);
+      if (milkdropPresetMatch) {
+        if (!this.milkdropPresetRoot) return json(res, 404, { error: "milkdrop_library_not_configured" });
+        const library = await this.getMilkdropLibrary();
+        const preset = findMilkdropPreset(library.presets, milkdropPresetMatch[1]);
+        if (!preset) return json(res, 404, { error: "milkdrop_preset_not_found" });
+        const fullPath = resolveInsideRoot(
+          this.milkdropPresetRoot,
+          preset.relativePath.split("/").join(sep),
+        );
+        const source = await readFile(fullPath, "utf8");
+        return json(res, 200, { id: preset.id, source, modifiedMs: preset.modifiedMs });
+      }
+
+      const milkdropTextureMatch = url.pathname.match(/^\/api\/milkdrop\/textures\/([a-f0-9]{16})$/);
+      if (milkdropTextureMatch) {
+        if (!this.milkdropTextureRoot) return json(res, 404, { error: "milkdrop_texture_library_not_configured" });
+        const library = await this.getMilkdropLibrary();
+        const texture = findMilkdropTexture(library.textures, milkdropTextureMatch[1]);
+        if (!texture) return json(res, 404, { error: "milkdrop_texture_not_found" });
+        const fullPath = resolveInsideRoot(
+          this.milkdropTextureRoot,
+          texture.relativePath.split("/").join(sep),
+        );
+        return streamWholeFile(res, fullPath);
+      }
 
       const projectMatch = url.pathname.match(/^\/api\/projects\/([a-f0-9]{16})$/);
       if (projectMatch) {

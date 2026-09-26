@@ -1,13 +1,28 @@
 # Handover
 
 **Last updated:** 2026-09-26  
-**Merged baseline:** `9d9c062e88d156a1e4e8ce3251299f72278d99c9`  
-**Active candidate:** `feat/rebuild-laser-canopy-moving-heads` — draft PR #81
-**Current phase/milestone:** legacy world/background rehabilitation
+**Merged baseline:** `698ac586ee94569021454c763f37b8ae569a801c` — includes merged PR #81  
+**Active candidate:** `feat/milkdrop-butterchurn-library` — PR #82
+**Current phase/milestone:** generic MilkDrop / Butterchurn background-source integration
 
 ## Current objective
 
-WORLD_05/06 projected-3D rebuild and WORLD_07/08 are merged. The next runtime milestone is **not WORLD_09/10 yet**: first rehabilitate all legacy backgrounds, fix their systemic raw-audio twitch/pump behavior, raise fidelity substantially, integrate the OKLCH palette into every world, and resolve typography contrast from actual world tone.
+Land PR #82 as a generic external MilkDrop background-source capability without coupling the product to any preset corpus. Preserve the existing audio clock, renderer ownership, OKLCH Director and lyric readability contracts while adding a scalable local library workflow.
+
+After this cross-cutting integration lands, continue the native legacy-world rehabilitation before WORLD_09/10.
+
+## PR #82 implementation state
+
+- Butterchurn is pinned as a renderer dependency; no preset-pack runtime dependency is present.
+- Electron exposes preset/texture directory pickers; the Node runtime owns absolute roots and exposes only sanitized relative metadata/IDs.
+- The library index is recursive, cached and explicitly rescannable. The React list is virtualized for multi-thousand-preset collections.
+- Selected `.milk` files are converted on demand with a session cache; failed/unsupported presets remain searchable with diagnostics.
+- Optional PNG/JPEG/WebP texture roots resolve custom shader samplers; missing/undecodable assets degrade visibly rather than disappearing.
+- Butterchurn uses the existing `AudioEngine` Web Audio source and renders below the lyric camera.
+- Operator controls include opacity, preset blend, 1x/1.5x/2x texture scale, native FXAA and restrained OKLCH palette influence.
+- A 48x27 sampled frame analysis supplies actual title-safe luminance/highlight/chroma/busyness to the existing polarity-hysteresis/readability path.
+- Kinetic and persistent typography share a curated self-hosted font selector with remeasurement after font load.
+- Architecture/distribution details: `docs/MILKDROP_BUTTERCHURN.md`.
 
 ## Next milestone — legacy world/background rehabilitation
 

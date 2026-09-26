@@ -20,6 +20,8 @@ import {
   type DirectorCatalogItem,
 } from "./directorCatalog";
 import { copy, localizeDirectorItem } from "./directorI18n";
+import { MilkdropLibraryPanel } from "./MilkdropLibraryPanel";
+import { TYPOGRAPHY_FONTS } from "./typographyFonts";
 import { LOWER_THIRD_PRESETS, type LowerThirdPresetInfo } from "./lowerThirds";
 import { type PerformancePresetPoolKey } from "./performancePresets";
 import { useUiStore } from "./store";
@@ -178,6 +180,30 @@ export function VisualDirector({
                 </CardGrid>
 
                 <SectionHeading
+                  eyebrow={t("FONT", "SCHRIFT")}
+                  title={t("Typeface library", "Schriftbibliothek")}
+                  description={t(
+                    "Curated self-hosted Google Fonts across sans, display, condensed, serif, mono, handwritten and graphic styles.",
+                    "Kuratierte, selbst gehostete Google Fonts aus Sans, Display, Condensed, Serif, Mono, Handschrift und Graphic.",
+                  )}
+                  resolved={TYPOGRAPHY_FONTS.find(font => font.id === state.typographyFont)?.label.toUpperCase()}
+                  compact
+                />
+                <div className="director-font-grid">
+                  {TYPOGRAPHY_FONTS.map(font => (
+                    <button
+                      key={font.id}
+                      className={`director-font-card ${state.typographyFont === font.id ? "is-selected" : ""}`}
+                      style={{ fontFamily: font.family }}
+                      onClick={() => state.setTypographyFont(font.id)}
+                    >
+                      <b>{font.label}</b>
+                      <small>{font.category}</small>
+                    </button>
+                  ))}
+                </div>
+
+                <SectionHeading
                   eyebrow={t("CINEMATIC SEQUENCE", "CINEMATIC SEQUENCE")}
                   title={t("Multi-cue scenes", "Multi-Cue-Szenen")}
                   description={t(
@@ -258,6 +284,16 @@ export function VisualDirector({
                     "Die Umgebung hinter den Lyrics – von ruhigen Flächen bis zu Architektur und prozeduralen Welten.",
                   )}
                   resolved={state.activeBackground.replaceAll("-", " ").toUpperCase()}
+                />
+                <MilkdropLibraryPanel />
+                <SectionHeading
+                  eyebrow="E-MO WORLDS"
+                  title={t("Native worlds", "Native Welten")}
+                  description={t(
+                    "Switching to any native world disables the external MilkDrop layer.",
+                    "Beim Wechsel auf eine native Welt wird der externe MilkDrop-Layer deaktiviert.",
+                  )}
+                  compact
                 />
                 <div className="director-world-power">
                   <ControlSlider

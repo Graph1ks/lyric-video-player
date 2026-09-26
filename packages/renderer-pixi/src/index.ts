@@ -6,6 +6,7 @@ export * from "./render/ReactiveVelocitySmearFX.js";
 export * from "./render/ReactiveBloomThresholdFX.js";
 export * from "./render/SceneRenderGraph.js";
 export * from "./effects/backgrounds/CinematicBackground.js";
+export * from "./effects/backgrounds/ButterchurnBackground.js";
 export * from "./effects/backgrounds/WorldAudioReactivity.js";
 export * from "./effects/backgrounds/LegacyVortexWorld.js";
 export * from "./effects/backgrounds/LegacyRaysWorld.js";

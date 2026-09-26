@@ -32,16 +32,26 @@ app.whenReady().then(async () => {
 
   ipcMain.handle("emo:choose-project-root", async () => {
     if (!server) return null;
-    const options: OpenDialogOptions = {
-      title: "Choose E-MO project directory",
-      properties: ["openDirectory", "createDirectory"],
-    };
-    const result = mainWindow
-      ? await dialog.showOpenDialog(mainWindow, options)
-      : await dialog.showOpenDialog(options);
-    if (result.canceled || !result.filePaths[0]) return null;
-    server.setProjectRoot(result.filePaths[0]);
+    const selected = await chooseDirectory("Choose E-MO project directory", true);
+    if (!selected) return null;
+    server.setProjectRoot(selected);
     return server.listProjects();
+  });
+
+  ipcMain.handle("emo:choose-milkdrop-preset-root", async () => {
+    if (!server) return null;
+    const selected = await chooseDirectory("Choose MilkDrop preset library");
+    if (!selected) return null;
+    server.setMilkdropPresetRoot(selected);
+    return server.getMilkdropLibrary();
+  });
+
+  ipcMain.handle("emo:choose-milkdrop-texture-root", async () => {
+    if (!server) return null;
+    const selected = await chooseDirectory("Choose MilkDrop texture directory");
+    if (!selected) return null;
+    server.setMilkdropTextureRoot(selected);
+    return server.getMilkdropLibrary();
   });
 
   await createMainWindow();
@@ -122,4 +132,16 @@ function readArg(name: string) {
   if (direct) return direct.slice(name.length + 1);
   const index = process.argv.indexOf(name);
   return index >= 0 ? process.argv[index + 1] : undefined;
+}
+
+
+async function chooseDirectory(title: string, allowCreate = false) {
+  const properties: OpenDialogOptions["properties"] = allowCreate
+    ? ["openDirectory", "createDirectory"]
+    : ["openDirectory"];
+  const options: OpenDialogOptions = { title, properties };
+  const result = mainWindow
+    ? await dialog.showOpenDialog(mainWindow, options)
+    : await dialog.showOpenDialog(options);
+  return result.canceled ? undefined : result.filePaths[0];
 }
