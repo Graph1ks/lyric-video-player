@@ -20,8 +20,10 @@ export function fetchProjects() {
   return fetchJson<ProjectListResponse>("/api/projects");
 }
 
-export function fetchMilkdropLibrary() {
-  return fetchJson<MilkdropLibraryResponse>("/api/milkdrop/library");
+export function fetchMilkdropLibrary(refresh = false) {
+  return fetchJson<MilkdropLibraryResponse>(
+    refresh ? "/api/milkdrop/library?refresh=1" : "/api/milkdrop/library",
+  );
 }
 
 export function fetchMilkdropPresetSource(presetId: string) {
