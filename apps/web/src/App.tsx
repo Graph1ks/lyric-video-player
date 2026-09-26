@@ -80,7 +80,6 @@ export function App() {
   const milkdropPaletteInfluence = useUiStore(state => state.milkdropPaletteInfluence);
   const milkdropRenderScale = useUiStore(state => state.milkdropRenderScale);
   const milkdropFxaa = useUiStore(state => state.milkdropFxaa);
-  const milkdropBlendSeconds = useUiStore(state => state.milkdropBlendSeconds);
   const typographyFont = useUiStore(state => state.typographyFont);
   const colorHarmony = useUiStore(state => state.colorHarmony);
   const colorMood = useUiStore(state => state.colorMood);
