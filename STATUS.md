@@ -1,8 +1,8 @@
 # Project Status
 
 **Last updated:** 2026-09-26  
-**Last known good merged baseline:** `e08d40119d55c28fe50ad8d010f2f9e0b05246e6`  
-**Active candidate:** `feat/world-color-context-typography` — draft PR #80
+**Last known good merged baseline:** `9d9c062e88d156a1e4e8ce3251299f72278d99c9`  
+**Active candidate:** `feat/rebuild-laser-canopy-moving-heads` — draft PR #81
 **Current phase/milestone:** legacy world/background rehabilitation
 
 ## Current objective
@@ -17,9 +17,10 @@ Rehabilitate all 15 legacy Background presets before WORLD_09/10: remove raw-aud
 - **Merged PR #77 rebuilt `lyrics` + `minimal`:** Lyrics is a dedicated perspective typography corridor with one-way time-owned z travel and explicit Text destruction; Minimal is a fullscreen precision-material shader built around negative space, asymmetric material structure and optical detail.
 - **Merged PR #78 finishes the four Art Direction worlds at the same fidelity floor:** `editorial` and `print` are dedicated fullscreen layout/material shaders, `architecture` is a perspective depth world, and `aurora` is a procedural volumetric curtain shader. `CinematicBackground` no longer routes those IDs through the old shared `ArtDirectionWorlds` Graphics renderer.
 - **Real-display rejection after PR #78 exposed two remaining fidelity failures in non-legacy/newer worlds:** `laser-canopy-grid` still read as flat 2D beams from one screen-space rig, and `sparks` read as four repeating baby-firework fountains.
-- **Draft PR #79 supersedes those identities:** Laser Canopy now uses explicit projected 3D club-room coordinates, perspective floor/ceiling truss depth and transverse/longitudinal/diagonal canopy beams; Sparks is now a fullscreen procedural multi-direction spark storm with no fixed emitters or ballistic fountain arcs. Audio is restricted to light/emission response and Laser now consumes semantic `VisualPalette` roles.
+- **Merged PR #79 superseded the first rejected Laser/Sparks pass**, but subsequent real-display review still rejected Laser Canopy: the projected lattice continued to read as thin mostly-static rays rather than animated disco/moving-head lighting.
+- **Draft PR #81 replaces WORLD_02 again from the visual references:** eight ceiling moving-head fixtures drive 32 independently aimed shafts with continuous fan/cross/orbit floor-target choreography, broad haze bodies, hot optical cores, visible fixture lenses, floor-hit blooms, scan rings and saturated room wash. Geometry remains playback-time owned; audio only changes light/emission.
 - The first systemic corrections remove raw bass/transient whole-geometry pumping from shared blobs, particles, rings, beams, editorial/architecture geometry and liquid absolute-time phase/topology.
-- `WorldColorContext` is now wired into the renderer-to-typography path in draft PR #80: each active background gets an analytical title-safe luminance/highlight/busyness/chroma estimate with no GPU readback.
+- **Merged PR #80** wires `WorldColorContext` into the renderer-to-typography path: each active background gets an analytical title-safe luminance/highlight/busyness/chroma estimate with no GPU readback.
 - `EngineRenderer` smooths those world metrics with a 220 ms time constant and recomputes polarity from the smoothed title-safe luminance using hysteresis.
 - `WorldTypographyTreatment` resolves primary/secondary/muted/accent colors against the actual world. Mid-tone cases that cannot mathematically reach 7:1 with any solid fill receive a quantized opposite-polarity support stroke instead of frame-to-frame black/white switching.
 - The same treatment is consumed by both `KineticLyrics` and `PersistentTypographySequences`; style rebuilds occur only on discrete palette/polarity/support-level changes.

@@ -58,7 +58,7 @@ test("Prism Stage Beams uses a GPU volumetric shader instead of cartoon Graphics
   assert.doesNotMatch(prism, /\.circle\(/);
 });
 
-test("Laser Canopy is a projected 3D club lattice with autonomous beam geometry", async () => {
+test("Laser Canopy is an animated moving-head disco rig with volumetric shafts and floor projection", async () => {
   const [background, laser] = await Promise.all([
     source("packages/renderer-pixi/src/effects/backgrounds/CinematicBackground.ts"),
     source("packages/renderer-pixi/src/effects/backgrounds/LaserCanopyGridWorld.ts"),
@@ -66,22 +66,37 @@ test("Laser Canopy is a projected 3D club lattice with autonomous beam geometry"
 
   assert.match(laser, /Filter, GlProgram/);
   assert.match(laser, /vec2 projectPoint\(vec3 world\)/);
-  assert.match(laser, /Perspective dance floor/);
-  assert.match(laser, /Ceiling truss rails and depth slices/);
-  assert.match(laser, /true projected 3D canopy/i);
-  assert.match(laser, /Deep diagonal/);
-  assert.match(laser, /Longitudinal canopy strand/);
-  assert.match(laser, /Reverse diagonal/);
-  assert.match(laser, /Projected fixture pods/);
+  assert.match(laser, /vec3 fixtureWorld\(float fixtureIndex\)/);
+  assert.match(laser, /vec3 movingTarget\(float fixtureIndex, float beamIndex, float time\)/);
+  assert.match(laser, /Continuous moving-head choreography/);
+  assert.match(laser, /wide fan,/i);
+  assert.match(laser, /crossing diagonals/i);
+  assert.match(laser, /rotating floor orbit/i);
+  assert.match(laser, /vec3 beamVolume\(/);
+  assert.match(laser, /bright optical core plus a much wider haze body/i);
+  assert.match(laser, /ellipseSpot/);
+  assert.match(laser, /ellipseRing/);
+  assert.match(laser, /Eight moving heads × four independently aimed shafts/);
+  assert.match(laser, /Moving-head housings and lenses are intentionally visible/);
+  assert.match(laser, /Near-camera haze catches a few shafts as soft colored wash/);
   assert.match(laser, /setPalette\(palette: VisualPalette\)/);
   assert.match(background, /laserCanopyGrid\.setPalette\(palette\)/);
 
-  const geometryStart = laser.indexOf("// The hero: a true projected 3D canopy");
-  const lightStart = laser.indexOf("float lightResponse =", geometryStart);
-  assert.ok(geometryStart >= 0 && lightStart > geometryStart);
-  const geometrySource = laser.slice(geometryStart, lightStart);
+  const geometryStart = laser.indexOf("vec3 movingTarget(");
+  const beamColorStart = laser.indexOf("vec3 beamColor(", geometryStart);
+  assert.ok(geometryStart >= 0 && beamColorStart > geometryStart);
+  const geometrySource = laser.slice(geometryStart, beamColorStart);
   assert.doesNotMatch(geometrySource, /u(?:Bass|Mid|Treble|Energy|Transient)/);
-  assert.doesNotMatch(laser, /fan \* \([^\n]*uBass/);
+
+  const volumeStart = laser.indexOf("vec3 beamVolume(");
+  const spotStart = laser.indexOf("float ellipseSpot", volumeStart);
+  assert.ok(volumeStart >= 0 && spotStart > volumeStart);
+  const volumeSource = laser.slice(volumeStart, spotStart);
+  assert.doesNotMatch(volumeSource, /u(?:Bass|Mid|Treble|Energy|Transient)/);
+
+  assert.doesNotMatch(laser, /true projected 3D canopy/);
+  assert.doesNotMatch(laser, /Longitudinal canopy strand/);
+  assert.doesNotMatch(laser, /Reverse diagonal/);
 });
 
 test("Disco Mirrorball Room uses analytic sphere facets and layered projected reflections", async () => {

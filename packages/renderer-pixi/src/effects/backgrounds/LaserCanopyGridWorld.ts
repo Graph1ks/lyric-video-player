@@ -71,7 +71,7 @@ float noise2(vec2 p) {
   return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
 }
 
-float sdSegment(vec2 p, vec2 a, vec2 b) {
+float lineDistance(vec2 p, vec2 a, vec2 b) {
   vec2 pa = p - a;
   vec2 ba = b - a;
   float h = clamp(dot(pa, ba) / max(dot(ba, ba), 0.00001), 0.0, 1.0);
@@ -79,20 +79,128 @@ float sdSegment(vec2 p, vec2 a, vec2 b) {
 }
 
 vec2 projectPoint(vec3 world) {
-  // Camera sits low in the club and looks into positive Z.
-  float z = max(0.65, world.z);
-  float focal = 1.30;
+  // Low audience camera looking into positive Z. The vertical offset keeps the
+  // dance floor visible while ceiling fixtures remain in the upper third.
+  float z = max(0.72, world.z);
+  float focal = 1.34;
   return vec2(
     world.x / z * focal,
-    -world.y / z * focal + 0.085
+    -world.y / z * focal + 0.055
   );
 }
 
-vec3 canopyColor(float seed) {
-  float phase = fract(seed * 4.7);
-  if (phase < 0.42) return uAccentA;
-  if (phase < 0.82) return uAccentB;
-  return mix(uGlow, uAccentA, 0.24);
+vec3 fixtureWorld(float fixtureIndex) {
+  float row = floor(fixtureIndex / 4.0);
+  float col = mod(fixtureIndex, 4.0);
+  float x = mix(-3.65, 3.65, col / 3.0) + (row - 0.5) * 0.18;
+  float z = 3.0 + row * 2.45;
+  float y = 2.02 + row * 0.24;
+  return vec3(x, y, z);
+}
+
+vec3 movingTarget(float fixtureIndex, float beamIndex, float time) {
+  // Continuous moving-head choreography. The target glides between a wide fan,
+  // crossing diagonals and a rotating floor orbit without phase discontinuities.
+  float fSeed = fixtureIndex * 1.731 + 0.37;
+  float b = beamIndex;
+  float fanSlot = mix(-1.0, 1.0, b / 3.0);
+  float fixtureSide = mix(-1.0, 1.0, mod(fixtureIndex, 4.0) / 3.0);
+
+  float slowSweep = sin(time * (0.24 + hash11(fSeed) * 0.055) + fSeed);
+  float counterSweep = cos(time * (0.19 + hash11(fSeed + 7.0) * 0.045) + fSeed * 1.71);
+  float orbit = time * (0.13 + hash11(fSeed + 13.0) * 0.035) + fSeed * 2.3;
+
+  vec2 fanTarget = vec2(
+    fanSlot * 3.45 + slowSweep * 0.72 + fixtureSide * 0.34,
+    6.2 + beamIndex * 1.55 + counterSweep * 1.25
+  );
+
+  vec2 crossTarget = vec2(
+    -fixtureSide * 2.7 + fanSlot * 1.15 + counterSweep * 0.95,
+    8.6 + slowSweep * 3.15 - beamIndex * 0.42
+  );
+
+  vec2 orbitTarget = vec2(
+    cos(orbit + b * 0.72) * (2.2 + b * 0.34),
+    8.4 + sin(orbit * 0.82 + b * 0.91) * (2.3 + b * 0.22)
+  );
+
+  float choreographyA = 0.5 + 0.5 * sin(time * 0.082 + fixtureIndex * 0.41);
+  float choreographyB = 0.5 + 0.5 * sin(time * 0.061 + fixtureIndex * 0.67 + 1.4);
+  choreographyA = choreographyA * choreographyA * (3.0 - 2.0 * choreographyA);
+  choreographyB = choreographyB * choreographyB * (3.0 - 2.0 * choreographyB);
+
+  vec2 target = mix(fanTarget, crossTarget, choreographyA);
+  target = mix(target, orbitTarget, choreographyB * 0.72);
+
+  // Every second ceiling row sweeps in the opposite spatial rhythm, preventing
+  // the whole rig from reading as one synchronized screen-space fan.
+  float row = floor(fixtureIndex / 4.0);
+  target.x += (row * 2.0 - 1.0) * sin(time * 0.31 + beamIndex * 0.8) * 0.42;
+  target.y = clamp(target.y, 3.7, 13.8);
+
+  return vec3(target.x, -1.58, target.y);
+}
+
+vec3 beamColor(float fixtureIndex, float beamIndex) {
+  float selector = fract(hash11(fixtureIndex * 9.1 + beamIndex * 17.7) * 3.0);
+  if (selector < 0.38) return uAccentA;
+  if (selector < 0.76) return uAccentB;
+  return mix(uGlow, mix(uAccentA, uAccentB, 0.5), 0.20);
+}
+
+vec3 beamVolume(
+  vec2 p,
+  vec2 source,
+  vec2 target,
+  float sourceDepth,
+  float targetDepth,
+  float seed
+) {
+  vec2 axis = target - source;
+  float axisLength2 = max(dot(axis, axis), 0.00001);
+  float h = clamp(dot(p - source, axis) / axisLength2, 0.0, 1.0);
+  vec2 closest = source + axis * h;
+  float distanceToAxis = length(p - closest);
+
+  // Real club beams have a bright optical core plus a much wider haze body.
+  // The body expands away from the fixture and broadens again near the floor.
+  float perspective = clamp(6.8 / mix(sourceDepth, targetDepth, h), 0.52, 1.42);
+  float width = mix(0.014, 0.048, h) * perspective;
+  float floorBloom = smoothstep(0.76, 1.0, h);
+  width *= 1.0 + floorBloom * 0.34;
+
+  float core = exp(-pow(distanceToAxis / max(width * 0.16, 0.0001), 2.0) * 2.8);
+  float body = exp(-pow(distanceToAxis / max(width, 0.0001), 1.55) * 2.05);
+  float halo = exp(-distanceToAxis / max(width * 2.8, 0.0001));
+
+  float sourceGate = smoothstep(0.005, 0.055, h);
+  float targetGate = 1.0 - smoothstep(0.965, 1.0, h);
+  float axialGate = sourceGate * targetGate;
+
+  // Haze breakup moves slowly through the shaft; the beam aim itself is entirely
+  // mechanical/time-owned and never audio-driven.
+  float haze = 0.66 + 0.34 * noise2(vec2(
+    h * 8.0 + seed * 9.0,
+    p.y * 8.5 - uTime * 0.028 + seed * 3.1
+  ));
+
+  return vec3(
+    core * axialGate,
+    body * haze * axialGate,
+    halo * haze * axialGate
+  );
+}
+
+float ellipseSpot(vec2 p, vec2 center, vec2 radii) {
+  vec2 q = (p - center) / max(radii, vec2(0.0001));
+  return exp(-dot(q, q) * 2.6);
+}
+
+float ellipseRing(vec2 p, vec2 center, vec2 radii, float radius) {
+  vec2 q = (p - center) / max(radii, vec2(0.0001));
+  float d = abs(length(q) - radius);
+  return 1.0 - smoothstep(0.035, 0.11, d);
 }
 
 void main(void) {
@@ -102,161 +210,159 @@ void main(void) {
   float detail = clamp(uDetail / 3.0, 0.0, 1.0);
   float quality = mix(0.72, 1.0, uQuality);
   float power = max(0.0, uPower);
-
   vec3 color = uBackground;
 
-  // Deep club atmosphere: low-frequency fog gives the projected geometry air
-  // without becoming the identity layer itself.
-  float roomFog = noise2(
-    p * vec2(2.0, 3.2)
-    + vec2(uTime * 0.012, -uTime * 0.008)
-  );
-  float depthFog = exp(-abs(p.y + 0.02) * 2.4);
-  color += mix(uSurface, uMuted, 0.36)
-    * roomFog
-    * depthFog
-    * (0.035 + power * 0.012 + uEnergy * 0.010);
+  // Dense club haze: broad enough to reveal shafts, subtle enough to keep type
+  // readable. It is a medium, not the hero identity.
+  float hazeA = noise2(p * vec2(1.7, 2.6) + vec2(uTime * 0.010, -uTime * 0.007));
+  float hazeB = noise2(p * vec2(4.4, 6.2) + vec2(-uTime * 0.017, uTime * 0.011));
+  float roomHaze = mix(hazeA, hazeB, 0.28);
+  float lowerRoom = 1.0 - smoothstep(-0.18, 0.78, p.y);
+  color += mix(uSurface, uMuted, 0.30)
+    * roomHaze
+    * (0.040 + lowerRoom * 0.030 + power * 0.010);
 
-  // Perspective dance floor. This establishes real camera/depth coordinates
-  // before any laser is drawn.
-  for (int i = 0; i < 9; i++) {
-    float fi = float(i);
-    float z = 2.8 + fi * 1.55;
-    vec2 a = projectPoint(vec3(-4.2, -1.55, z));
-    vec2 b = projectPoint(vec3(4.2, -1.55, z));
-    float d = sdSegment(p, a, b);
-    float line = 1.0 - smoothstep(0.0012, 0.0032, d);
-    color += uSurface * line * (0.020 + (1.0 - fi / 9.0) * 0.010);
+  // Dark dance floor and a soft horizon create room depth without turning into
+  // another grid preset.
+  float horizon = exp(-abs(p.y - 0.055) * 9.5);
+  float floorField = smoothstep(0.02, 0.82, p.y);
+  color += uSurface * floorField * 0.022;
+  color += mix(uSurface, uGlow, 0.08) * horizon * 0.026;
+
+  // Ceiling truss rails carry the fixtures. They stay subordinate to the moving
+  // shafts, but make every source feel physically mounted in the room.
+  for (int rowIndex = 0; rowIndex < 2; rowIndex++) {
+    float row = float(rowIndex);
+    vec3 left3 = fixtureWorld(row * 4.0);
+    vec3 right3 = fixtureWorld(row * 4.0 + 3.0);
+    left3.x -= 0.32;
+    right3.x += 0.32;
+    vec2 left = projectPoint(left3);
+    vec2 right = projectPoint(right3);
+    float trussDistance = lineDistance(p, left, right);
+    float truss = 1.0 - smoothstep(0.0030, 0.0105, trussDistance);
+    color += uSurface * truss * (0.16 + row * 0.035);
   }
 
-  for (int i = 0; i < 9; i++) {
-    float fi = float(i);
-    float x = mix(-4.0, 4.0, fi / 8.0);
-    vec2 a = projectPoint(vec3(x, -1.55, 2.7));
-    vec2 b = projectPoint(vec3(x, -1.55, 15.5));
-    float d = sdSegment(p, a, b);
-    float line = 1.0 - smoothstep(0.0009, 0.0025, d);
-    color += uMuted * line * 0.018;
-  }
+  float lightResponse = (0.72 + uEnergy * 0.17 + uTreble * 0.08 + uTransient * 0.10)
+    * (0.60 + power * 0.27);
+  float activeBeamCount = mix(18.0, 32.0, detail);
 
-  // Ceiling truss rails and depth slices frame the canopy in an actual room.
-  for (int i = 0; i < 7; i++) {
-    float fi = float(i);
-    float z = 3.0 + fi * 1.85;
-    vec2 a = projectPoint(vec3(-4.0, 1.72, z));
-    vec2 b = projectPoint(vec3(4.0, 1.72, z));
-    float d = sdSegment(p, a, b);
-    float line = 1.0 - smoothstep(0.0016, 0.0037, d);
-    color += uSurface * line * (0.055 + (1.0 - fi / 7.0) * 0.025);
-  }
+  // Eight moving heads × four independently aimed shafts. The source and target
+  // are real projected room coordinates; animation happens by moving floor targets,
+  // not by scaling/rotating a static screen-space line bundle.
+  for (int beamLoop = 0; beamLoop < 32; beamLoop++) {
+    float beamId = float(beamLoop);
+    float enabled = step(beamId + 0.5, activeBeamCount);
+    float fixtureIndex = floor(beamId / 4.0);
+    float beamIndex = mod(beamId, 4.0);
 
-  for (int side = 0; side < 2; side++) {
-    float x = side == 0 ? -3.95 : 3.95;
-    vec2 a = projectPoint(vec3(x, 1.72, 2.7));
-    vec2 b = projectPoint(vec3(x, 1.72, 15.5));
-    float d = sdSegment(p, a, b);
-    float line = 1.0 - smoothstep(0.0017, 0.0043, d);
-    color += uSurface * line * 0.075;
-  }
+    vec3 source3 = fixtureWorld(fixtureIndex);
+    vec3 target3 = movingTarget(fixtureIndex, beamIndex, uTime);
+    vec2 source = projectPoint(source3);
+    vec2 target = projectPoint(target3);
 
-  // The hero: a true projected 3D canopy. Endpoints live at different X/Y/Z
-  // coordinates across the room, so beams cross above and through one another
-  // instead of sharing one 2D rig line.
-  float activeBeams = mix(18.0, 32.0, detail);
-  for (int i = 0; i < 32; i++) {
-    float fi = float(i);
-    float enabled = step(fi + 0.5, activeBeams);
-    float seed = hash11(fi * 17.31 + 4.7);
-    float seed2 = hash11(fi * 31.73 + 8.9);
-    float family = mod(fi, 4.0);
-
-    float zA = 3.1 + seed * 10.4;
-    float zB = 3.1 + seed2 * 10.4;
-    float scan = sin(uTime * (0.105 + seed * 0.055) + seed * 12.0);
-    float scan2 = cos(uTime * (0.083 + seed2 * 0.049) + seed2 * 15.0);
-
-    vec3 a3;
-    vec3 b3;
-
-    if (family < 0.5) {
-      // Transverse canopy rib: wall-to-wall at one depth slice.
-      float y = 1.02 + 0.34 * scan;
-      a3 = vec3(-3.85, y, zA);
-      b3 = vec3(3.85, 1.16 - 0.22 * scan2, zA + 0.18 * scan2);
-    } else if (family < 1.5) {
-      // Deep diagonal: connects opposite wall rails at different depths.
-      a3 = vec3(-3.85, 1.52, zA);
-      b3 = vec3(3.85, 0.70 + 0.30 * scan, zB);
-    } else if (family < 2.5) {
-      // Longitudinal canopy strand: runs with the room depth.
-      float x = mix(-3.0, 3.0, seed);
-      a3 = vec3(x, 1.58, 2.9);
-      b3 = vec3(x + scan * 1.45, 0.82 + seed2 * 0.42, 15.2);
-    } else {
-      // Reverse diagonal for the characteristic woven canopy lattice.
-      a3 = vec3(3.85, 1.48, zA);
-      b3 = vec3(-3.85, 0.72 + 0.32 * scan2, zB);
-    }
-
-    vec2 a = projectPoint(a3);
-    vec2 b = projectPoint(b3);
-    float depth = max(2.0, (a3.z + b3.z) * 0.5);
-    float d = sdSegment(p, a, b);
-
-    float nearScale = clamp(7.5 / depth, 0.42, 1.35);
-    float coreWidth = mix(0.0011, 0.0018, quality) * nearScale;
-    float glowWidth = coreWidth * mix(5.2, 7.4, detail);
-    float veilWidth = glowWidth * 2.8;
-
-    float core = 1.0 - smoothstep(coreWidth, coreWidth * 2.0, d);
-    float glow = 1.0 - smoothstep(glowWidth, glowWidth * 2.2, d);
-    float veil = 1.0 - smoothstep(veilWidth, veilWidth * 2.5, d);
-
-    vec3 laser = canopyColor(seed);
-    float lightResponse = (0.74 + uEnergy * 0.16 + uTreble * 0.08 + uTransient * 0.10)
-      * (0.58 + power * 0.26);
-
-    // Haze breaks up the broad light volume, but does not move beam geometry.
-    float breakup = 0.72 + 0.28 * noise2(
-      p * vec2(7.0, 11.0) + vec2(seed * 17.0, uTime * 0.045)
+    float seed = hash11(beamId * 13.7 + fixtureIndex * 5.9);
+    vec3 volume = beamVolume(
+      p,
+      source,
+      target,
+      source3.z,
+      target3.z,
+      seed
     );
 
-    color += laser * veil * breakup * enabled * lightResponse * 0.030;
-    color += laser * glow * enabled * lightResponse * 0.20;
-    color += mix(laser, uGlow, 0.52) * core * enabled * lightResponse * 0.88;
+    vec3 laser = beamColor(fixtureIndex, beamIndex);
+
+    // A wide volumetric body plus a hot center gives the beam physical thickness.
+    // This deliberately avoids the old thin-ray / line-art look.
+    color += laser * volume.z * enabled * lightResponse * 0.050;
+    color += laser * volume.y * enabled * lightResponse * 0.31;
+    color += mix(laser, uGlow, 0.42) * volume.x * enabled * lightResponse * 0.82;
+
+    // Every beam lands visibly on the floor. Hits bloom and selected channels draw
+    // elliptical scan rings like real laser projection patterns.
+    float depthScale = clamp(6.4 / target3.z, 0.42, 1.25);
+    vec2 hitRadii = vec2(0.040, 0.013) * depthScale;
+    float hit = ellipseSpot(p, target, hitRadii);
+    color += mix(laser, uGlow, 0.35)
+      * hit
+      * enabled
+      * lightResponse
+      * (0.28 + uTransient * 0.18);
+
+    float ringEnable = 1.0 - step(0.5, beamIndex);
+    float ringPhase = 0.72 + 0.12 * sin(uTime * 0.24 + fixtureIndex * 0.8);
+    float ring = ellipseRing(
+      p,
+      target,
+      vec2(0.105, 0.030) * depthScale,
+      ringPhase
+    );
+    color += laser * ring * ringEnable * enabled * lightResponse * 0.085;
   }
 
-  // Projected fixture pods live on both ceiling rails at different depths.
-  for (int i = 0; i < 12; i++) {
-    float fi = float(i);
-    float side = mod(fi, 2.0) < 1.0 ? -1.0 : 1.0;
-    float row = floor(fi * 0.5);
-    vec3 fixture3 = vec3(side * 3.82, 1.68, 3.0 + row * 2.15);
+  // Moving-head housings and lenses are intentionally visible. Each fixture has
+  // a dark body, a metallic shoulder and a hot aperture, matching real club rigs.
+  for (int fixtureLoop = 0; fixtureLoop < 8; fixtureLoop++) {
+    float fixtureIndex = float(fixtureLoop);
+    vec3 fixture3 = fixtureWorld(fixtureIndex);
     vec2 fixture = projectPoint(fixture3);
-    float depth = fixture3.z;
-    float radius = 0.010 * clamp(5.8 / depth, 0.45, 1.25);
-    float d = length(p - fixture);
-    float body = 1.0 - smoothstep(radius * 0.9, radius * 1.6, d);
-    float aperture = 1.0 - smoothstep(radius * 0.16, radius * 0.52, d);
-    color = mix(color, uSurface, body * 0.48);
-    color += canopyColor(hash11(fi * 7.7 + 2.0)) * aperture * (0.18 + uTreble * 0.14);
+    float depthScale = clamp(5.4 / fixture3.z, 0.52, 1.32);
+
+    vec2 local = p - fixture;
+    float bodyRadius = 0.030 * depthScale;
+    float body = 1.0 - smoothstep(bodyRadius, bodyRadius * 1.45, length(local));
+    float shoulder = 1.0 - smoothstep(
+      bodyRadius * 0.58,
+      bodyRadius * 0.95,
+      length(local - vec2(0.0, bodyRadius * 0.42))
+    );
+    float aperture = 1.0 - smoothstep(
+      bodyRadius * 0.12,
+      bodyRadius * 0.36,
+      length(local - vec2(0.0, bodyRadius * 0.14))
+    );
+    float lensBloom = exp(
+      -length(local - vec2(0.0, bodyRadius * 0.14))
+      / max(bodyRadius * 1.9, 0.0001)
+    );
+
+    vec3 lens = beamColor(fixtureIndex, 1.0);
+    color = mix(color, uSurface * 0.42, body * 0.76);
+    color += uMuted * shoulder * 0.12;
+    color += lens * lensBloom * lightResponse * 0.10;
+    color += mix(lens, uGlow, 0.55) * aperture * lightResponse * 0.72;
   }
 
-  // Volumetric dust gives near/far separation without turning into a particle
-  // background. It is only visible where the room haze exists.
-  vec2 dustCell = floor((p + vec2(3.0)) * mix(42.0, 72.0, detail));
-  vec2 dustLocal = fract((p + vec2(3.0)) * mix(42.0, 72.0, detail)) - 0.5;
-  float dust = step(0.991, hash21(dustCell))
-    * (1.0 - smoothstep(0.0, 0.055, length(dustLocal)));
-  color += uGlow * dust * depthFog * (0.018 + uTreble * 0.018) * quality;
+  // Near-camera haze catches a few shafts as soft colored wash. This is what gives
+  // real disco lighting its saturated atmosphere instead of empty black between rays.
+  float washA = exp(-pow((p.x + 0.52 + sin(uTime * 0.13) * 0.18) / 0.42, 2.0))
+    * smoothstep(-0.72, 0.34, p.y)
+    * (1.0 - smoothstep(0.34, 0.86, p.y));
+  float washB = exp(-pow((p.x - 0.44 + cos(uTime * 0.11) * 0.16) / 0.48, 2.0))
+    * smoothstep(-0.66, 0.38, p.y)
+    * (1.0 - smoothstep(0.38, 0.90, p.y));
+  color += uAccentA * washA * roomHaze * lightResponse * 0.018;
+  color += uAccentB * washB * roomHaze * lightResponse * 0.016;
+
+  // Fine suspended particles light up only inside the hazy room.
+  vec2 dustCell = floor((p + vec2(3.0)) * mix(46.0, 82.0, detail));
+  vec2 dustLocal = fract((p + vec2(3.0)) * mix(46.0, 82.0, detail)) - 0.5;
+  float dust = step(0.993 - detail * 0.002, hash21(dustCell))
+    * (1.0 - smoothstep(0.0, 0.050, length(dustLocal)));
+  color += uGlow * dust * roomHaze * quality * (0.015 + uTreble * 0.020);
 
   float vignette = 1.0 - smoothstep(
     0.46,
-    1.14,
-    length(p * vec2(0.64, 1.0))
+    1.16,
+    length(p * vec2(0.66, 1.0))
   );
   color *= 0.78 + vignette * 0.24;
-  color = vec3(1.0) - exp(-max(color, vec3(0.0)) * (1.05 + power * 0.36));
+
+  // Filmic shoulder: preserve saturated laser color instead of clipping all beam
+  // intersections to flat white.
+  color = vec3(1.0) - exp(-max(color, vec3(0.0)) * (1.02 + power * 0.32));
   color = pow(color, vec3(0.94));
 
   gl_FragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
@@ -310,10 +416,10 @@ export class LaserCanopyGridWorld {
           uQuality: { value: 1, type: "f32" },
           uBackground: { value: new Float32Array([0.003, 0.006, 0.010]), type: "vec3<f32>" },
           uSurface: { value: new Float32Array([0.028, 0.040, 0.060]), type: "vec3<f32>" },
-          uAccentA: { value: new Float32Array([0.98, 0.12, 0.30]), type: "vec3<f32>" },
-          uAccentB: { value: new Float32Array([0.12, 0.90, 1.0]), type: "vec3<f32>" },
-          uGlow: { value: new Float32Array([0.94, 0.98, 1.0]), type: "vec3<f32>" },
-          uMuted: { value: new Float32Array([0.16, 0.22, 0.28]), type: "vec3<f32>" },
+          uAccentA: { value: new Float32Array([0.10, 0.96, 0.42]), type: "vec3<f32>" },
+          uAccentB: { value: new Float32Array([0.98, 0.10, 0.52]), type: "vec3<f32>" },
+          uGlow: { value: new Float32Array([0.90, 0.98, 1.0]), type: "vec3<f32>" },
+          uMuted: { value: new Float32Array([0.15, 0.20, 0.25]), type: "vec3<f32>" },
         },
       },
     });
