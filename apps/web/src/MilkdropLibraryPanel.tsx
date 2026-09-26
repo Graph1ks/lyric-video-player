@@ -31,7 +31,7 @@ export function MilkdropLibraryPanel() {
 
   const libraryQuery = useQuery({
     queryKey: ["milkdrop-library"],
-    queryFn: fetchMilkdropLibrary,
+    queryFn: () => fetchMilkdropLibrary(),
     staleTime: 5_000,
   });
   const library = libraryQuery.data;
