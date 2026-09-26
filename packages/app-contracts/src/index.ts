@@ -66,7 +66,15 @@ export type ProjectBackgroundPreset =
   | "editorial"
   | "print"
   | "architecture"
-  | "aurora";
+  | "aurora"
+  | "prism-stage-beams"
+  | "laser-canopy-grid"
+  | "disco-mirrorball-room"
+  | "neon-energy-burst-tunnel"
+  | "fractal-hex-spiral-mosaic"
+  | "soft-hex-cell-field"
+  | "particle-spiral-vortex"
+  | "minimal-rainbow-waveform";
 
 export interface EmoProjectDefaults {
   visualMode?: ProjectVisualMode;
@@ -130,7 +138,41 @@ export interface RuntimeInfo {
   capabilities: RuntimeCapabilities;
 }
 
+export interface MilkdropPresetDescriptor {
+  id: string;
+  name: string;
+  relativePath: string;
+  folders: string[];
+  size: number;
+  modifiedMs: number;
+}
+
+export interface MilkdropTextureDescriptor {
+  id: string;
+  name: string;
+  fileName: string;
+  relativePath: string;
+  size: number;
+  modifiedMs: number;
+}
+
+export interface MilkdropLibraryResponse {
+  configured: boolean;
+  rootLabel: string | null;
+  textureRootLabel: string | null;
+  presets: MilkdropPresetDescriptor[];
+  textures: MilkdropTextureDescriptor[];
+}
+
+export interface MilkdropPresetSourceResponse {
+  id: string;
+  source: string;
+  modifiedMs: number;
+}
+
 export interface DesktopBridge {
   chooseProjectRoot(): Promise<ProjectListResponse | null>;
+  chooseMilkdropPresetRoot(): Promise<MilkdropLibraryResponse | null>;
+  chooseMilkdropTextureRoot(): Promise<MilkdropLibraryResponse | null>;
   openDirectorWindow(): Promise<boolean>;
 }
