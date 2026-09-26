@@ -1,0 +1,101 @@
+.milkdrop-library {
+  margin: 18px 0 24px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 16px;
+  background: rgba(4,5,9,.76);
+  overflow: hidden;
+}
+.milkdrop-library__head,
+.milkdrop-library__toolbar,
+.milkdrop-library__settings,
+.milkdrop-library__foot {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.milkdrop-library__head { justify-content: space-between; padding: 16px; border-bottom: 1px solid rgba(255,255,255,.08); }
+.milkdrop-library__head > div:first-child { display: grid; gap: 3px; }
+.milkdrop-library__head span,
+.milkdrop-library__settings span { font-size: 10px; letter-spacing: .12em; opacity: .7; }
+.milkdrop-library__head b { font-size: 15px; }
+.milkdrop-library__head small { opacity: .62; }
+.milkdrop-library__actions { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.milkdrop-library button,
+.milkdrop-library input,
+.milkdrop-library select {
+  font: inherit;
+}
+.milkdrop-library button {
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.045);
+  color: inherit;
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+.milkdrop-library button.is-active,
+.milkdrop-library button.is-selected { border-color: rgba(116,234,255,.7); background: rgba(93,213,255,.12); }
+.milkdrop-library__toolbar { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,.08); }
+.milkdrop-library__toolbar input { flex: 1; min-width: 140px; }
+.milkdrop-library__toolbar input,
+.milkdrop-library__toolbar select {
+  border: 1px solid rgba(255,255,255,.12);
+  background: #0a0c12;
+  color: inherit;
+  border-radius: 8px;
+  padding: 9px 10px;
+}
+.milkdrop-library__browser { display: grid; grid-template-columns: minmax(150px, 26%) 1fr; height: 370px; }
+.milkdrop-library__browser aside {
+  overflow: auto;
+  padding: 8px;
+  border-right: 1px solid rgba(255,255,255,.08);
+}
+.milkdrop-library__browser aside button {
+  width: 100%;
+  display: block;
+  margin: 0 0 4px;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.milkdrop-library__list { overflow: auto; position: relative; }
+.milkdrop-library__virtual { position: relative; width: 100%; }
+.milkdrop-preset-row {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(100% - 12px);
+  height: 52px;
+  margin: 3px 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: left;
+}
+.milkdrop-preset-row > span { min-width: 0; display: grid; gap: 2px; }
+.milkdrop-preset-row b,
+.milkdrop-preset-row small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.milkdrop-preset-row small { opacity: .55; }
+.milkdrop-preset-row em { font-size: 9px; text-transform: uppercase; font-style: normal; opacity: .65; }
+.milkdrop-preset-row em[data-status="ready"] { opacity: 1; }
+.milkdrop-preset-row em[data-status="missing-textures"],
+.milkdrop-preset-row em[data-status="conversion-error"],
+.milkdrop-preset-row em[data-status="runtime-error"] { opacity: 1; text-decoration: underline; }
+.milkdrop-library__settings { flex-wrap: wrap; padding: 12px; border-top: 1px solid rgba(255,255,255,.08); }
+.milkdrop-library__settings > label { flex: 1 1 180px; display: grid; gap: 6px; }
+.milkdrop-library__settings > div { display: grid; gap: 6px; }
+.milkdrop-library__settings label > span { display: flex; justify-content: space-between; }
+.milkdrop-segmented { display: flex; gap: 4px; }
+.milkdrop-library__foot { justify-content: space-between; padding: 10px 12px; font-size: 10px; opacity: .65; border-top: 1px solid rgba(255,255,255,.06); }
+.milkdrop-library__empty { padding: 28px 16px; text-align: center; opacity: .65; }
+.director-font-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); gap: 8px; margin-bottom: 20px; }
+.director-font-card { display: grid; gap: 4px; min-height: 74px; align-content: center; text-align: left; }
+.director-font-card b { font-size: 20px; }
+.director-font-card small { font-family: system-ui,sans-serif; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; opacity: .55; }
+@media (max-width: 760px) {
+  .milkdrop-library__head, .milkdrop-library__foot { align-items: flex-start; flex-direction: column; }
+  .milkdrop-library__browser { grid-template-columns: 1fr; height: 460px; }
+  .milkdrop-library__browser aside { max-height: 110px; border-right: 0; border-bottom: 1px solid rgba(255,255,255,.08); }
+}
