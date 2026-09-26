@@ -62,6 +62,40 @@ export class EmoServer {
     return this.projectRoot;
   }
 
+  setMilkdropPresetRoot(root?: string) {
+    this.milkdropPresetRoot = root ? resolve(root) : undefined;
+    this.milkdropLibraryCache = undefined;
+  }
+
+  setMilkdropTextureRoot(root?: string) {
+    this.milkdropTextureRoot = root ? resolve(root) : undefined;
+    this.milkdropLibraryCache = undefined;
+  }
+
+  async getMilkdropLibrary(refresh = false) {
+    if (refresh) this.milkdropLibraryCache = undefined;
+    if (!this.milkdropLibraryCache) {
+      this.milkdropLibraryCache = await this.buildMilkdropLibrary();
+    }
+    return this.milkdropLibraryCache;
+  }
+
+  private async buildMilkdropLibrary(): Promise<MilkdropLibraryResponse> {
+    const presets = this.milkdropPresetRoot
+      ? await discoverMilkdropPresets(this.milkdropPresetRoot)
+      : [];
+    const textures = this.milkdropTextureRoot
+      ? await discoverMilkdropTextures(this.milkdropTextureRoot)
+      : [];
+    return {
+      configured: Boolean(this.milkdropPresetRoot),
+      rootLabel: this.milkdropPresetRoot ? basename(this.milkdropPresetRoot) : null,
+      textureRootLabel: this.milkdropTextureRoot ? basename(this.milkdropTextureRoot) : null,
+      presets,
+      textures,
+    };
+  }
+
   async listProjects(): Promise<ProjectListResponse> {
     return {
       rootLabel: basename(this.projectRoot),
