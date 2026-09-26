@@ -1,8 +1,8 @@
 # Handover
 
 **Last updated:** 2026-09-26  
-**Merged baseline:** `e08d40119d55c28fe50ad8d010f2f9e0b05246e6`  
-**Active candidate:** `feat/world-color-context-typography` — draft PR #80
+**Merged baseline:** `9d9c062e88d156a1e4e8ce3251299f72278d99c9`  
+**Active candidate:** `feat/rebuild-laser-canopy-moving-heads` — draft PR #81
 **Current phase/milestone:** legacy world/background rehabilitation
 
 ## Current objective
@@ -64,7 +64,7 @@ The Color Director remains the art-direction source of truth:
 6. full palette/readability acceptance across 0–300% World Power;
 7. only then resume WORLD_09/10.
 
-### Legacy rehabilitation implementation state — PR #74–#78 merged; Laser/Sparks rejection rebuild active
+### Legacy rehabilitation implementation state — PR #74–#80 merged; Laser moving-head rebuild active
 
 - Phase A audit is durable in `docs/LEGACY_WORLD_MOTION_AUDIT.md` and classifies all 15 legacy presets before further rebuilds.
 - `WorldAudioReactivity` is now the allocation-light legacy adapter: attack/release-smoothed bands, rising-edge transient event, positive decay envelope, long-energy envelope and seek/discontinuity reset.
@@ -85,8 +85,9 @@ The Color Director remains the art-direction source of truth:
 - PR #78 completed the remaining four legacy visual identities as dedicated specialized worlds: `editorial`, `print`, `architecture` and `aurora`; the old `ArtDirectionWorlds` Graphics collection is no longer active runtime ownership for those IDs.
 - Real-display review then rejected two other world identities: WORLD_02 `laser-canopy-grid` was still a flat 2D beam fan rather than a spatial disco canopy, and legacy `sparks` still read as four repeating fountain/firework sources.
 - Draft PR #79 rebuilds both from first principles: Laser Canopy uses explicit projected 3D room coordinates, perspective floor/truss depth and woven transverse/longitudinal/diagonal beams; Sparks uses a fullscreen procedural multi-direction flow field with no fixed emitters, no ballistic fountain grammar and transient response restricted to hot emission.
-- PR #79 is merged and supersedes the rejected flat Laser Canopy / four-fountain Sparks identities.
-- Draft PR #80 implements the remaining two-way readability architecture: analytical world context → 220 ms metric smoothing → polarity hysteresis → shared `WorldTypographyTreatment` for ordinary and persistent lyrics.
+- PR #79 is merged and permanently supersedes the rejected four-fountain Sparks identity. Its Laser Canopy rewrite was still rejected on real display because it read as thin projected rays rather than real animated disco lighting.
+- Draft PR #81 replaces WORLD_02 with an explicit moving-head rig: eight visible ceiling fixtures, four independently aimed shafts per fixture, continuous fan/cross/orbit choreography, broad volumetric haze bodies, floor-hit blooms/scan rings and room wash. Audio remains light-only.
+- PR #80 is merged and implements the two-way readability architecture: analytical world context → 220 ms metric smoothing → polarity hysteresis → shared `WorldTypographyTreatment` for ordinary and persistent lyrics.
 - Mid-tone worlds activate discrete opposite-polarity glyph support when the requested direct solid-fill contrast is mathematically impossible; the treatment is quantized so text textures are not rebuilt every animation frame.
 - After PR #80, the remaining gate before WORLD_09/10 is real-display acceptance of the full world/readability matrix.
 
