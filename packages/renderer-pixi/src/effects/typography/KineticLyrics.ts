@@ -112,10 +112,13 @@ export class KineticLyrics {
   private worldTreatment?: WorldTypographyTreatment;
   private wordHitListeners = new Set<(index: number, audio: AudioBands) => void>();
 
+  private fontFamily = '"Inter Variable", "Arial Black", Impact, "Helvetica Neue", Arial, sans-serif';
+  private fontWeight = "900";
+
   private mainStyle = new TextStyle({
-    fontFamily: "Arial Black, Impact, Helvetica Neue, Arial, sans-serif",
+    fontFamily: this.fontFamily,
     fontSize: 84,
-    fontWeight: "900",
+    fontWeight: this.fontWeight,
     fill: 0xffffff,
     align: "center",
     letterSpacing: -2,
@@ -242,6 +245,18 @@ export class KineticLyrics {
     this.resolveLayout();
     this.resolveMotion();
     if (this.line) this.rebuild(false);
+  }
+
+  setFont(family: string, weight = "900") {
+    if (this.fontFamily === family && this.fontWeight === weight) return;
+    this.fontFamily = family;
+    this.fontWeight = weight;
+    this.configureStyle();
+    this.remeasureWords();
+    if (this.line) {
+      this.rebuildEchoLayers();
+      this.resolveLayout();
+    }
   }
 
   setPalette(palette: VisualPalette, refreshStatic = true) {
@@ -916,8 +931,8 @@ export class KineticLyrics {
     if (this.mode === "neon" || this.resolvedPreset === "glitch") {
       for (let i = 0; i < 2; i++) {
         const style = new TextStyle({
-          fontFamily: "Arial Black, Impact, Helvetica Neue, Arial, sans-serif",
-          fontWeight: "900",
+          fontFamily: this.fontFamily,
+          fontWeight: this.fontWeight,
           fontSize: this.fontSize * 1.02,
           fill: i === 0
             ? (this.worldTreatment?.accent ?? this.palette?.accentA ?? 0x36fff0)
@@ -942,8 +957,8 @@ export class KineticLyrics {
 
     if (this.resolvedPreset === "outline") {
       return new TextStyle({
-        fontFamily: "Arial Black, Impact, Helvetica Neue, Arial, sans-serif",
-        fontWeight: "900",
+        fontFamily: this.fontFamily,
+        fontWeight: this.fontWeight,
         fontSize: this.fontSize * (1 + index * 0.003),
         fill: background,
         stroke: {
@@ -956,8 +971,8 @@ export class KineticLyrics {
 
     if (this.resolvedPreset === "tunnel") {
       return new TextStyle({
-        fontFamily: "Arial Black, Impact, Helvetica Neue, Arial, sans-serif",
-        fontWeight: "900",
+        fontFamily: this.fontFamily,
+        fontWeight: this.fontWeight,
         fontSize: this.fontSize * 1.14,
         fill: background,
         stroke: {
@@ -970,8 +985,8 @@ export class KineticLyrics {
 
     if (this.mode === "poster") {
       return new TextStyle({
-        fontFamily: "Arial Black, Impact, Helvetica Neue, Arial, sans-serif",
-        fontWeight: "900",
+        fontFamily: this.fontFamily,
+        fontWeight: this.fontWeight,
         fontSize: this.fontSize * 1.02,
         fill: background,
         stroke: { color: index === 3 ? textPrimary : accentA, width: index === 3 ? 3 : 1.2 },
@@ -981,8 +996,8 @@ export class KineticLyrics {
 
     if (this.mode === "vortex") {
       return new TextStyle({
-        fontFamily: "Arial Black, Impact, Helvetica Neue, Arial, sans-serif",
-        fontWeight: "900",
+        fontFamily: this.fontFamily,
+        fontWeight: this.fontWeight,
         fontSize: this.fontSize * 1.18,
         fill: 0x050304,
         stroke: { color: index % 2 ? accentA : accentB, width: 1.6 },
@@ -991,8 +1006,8 @@ export class KineticLyrics {
     }
 
     return new TextStyle({
-      fontFamily: "Arial Black, Impact, Helvetica Neue, Arial, sans-serif",
-      fontWeight: "900",
+      fontFamily: this.fontFamily,
+      fontWeight: this.fontWeight,
       fontSize: this.fontSize * 1.04,
       fill: accentA,
       letterSpacing: -2,
@@ -1091,8 +1106,8 @@ export class KineticLyrics {
   }
 
   private configureStyle() {
-    this.mainStyle.fontFamily = "Arial Black, Impact, Helvetica Neue, Arial, sans-serif";
-    this.mainStyle.fontWeight = "900";
+    this.mainStyle.fontFamily = this.fontFamily;
+    this.mainStyle.fontWeight = this.fontWeight;
     this.mainStyle.letterSpacing = this.resolvedPreset === "outline"
       ? -1
       : this.mode === "poster"
