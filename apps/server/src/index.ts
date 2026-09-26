@@ -7,10 +7,22 @@ const port = Number.parseInt(process.env.EMO_PORT || "3040", 10);
 const configuredRoot = readArg("--root") || process.env.EMO_PROJECT_ROOT;
 const projectRoot = resolve(configuredRoot || resolve(process.cwd(), "projects"));
 const webDist = resolve(process.env.EMO_WEB_DIST || resolve(process.cwd(), "apps/web/dist"));
+const milkdropPresetRoot = process.env.EMO_MILKDROP_PRESET_ROOT
+  ? resolve(process.env.EMO_MILKDROP_PRESET_ROOT)
+  : undefined;
+const milkdropTextureRoot = process.env.EMO_MILKDROP_TEXTURE_ROOT
+  ? resolve(process.env.EMO_MILKDROP_TEXTURE_ROOT)
+  : undefined;
 
 if (!configuredRoot) await mkdir(projectRoot, { recursive: true });
 
-const server = createEmoServer({ projectRoot, webDist, mode: "server" });
+const server = createEmoServer({
+  projectRoot,
+  webDist,
+  mode: "server",
+  milkdropPresetRoot,
+  milkdropTextureRoot,
+});
 const listening = await server.listen(port, host);
 console.log(`E-MO-Engine server: ${listening.url}`);
 console.log(`Project root: ${projectRoot}`);
