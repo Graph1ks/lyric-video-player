@@ -35,6 +35,7 @@ export class EmoServer {
   private readonly capabilities: RuntimeCapabilities;
   private milkdropPresetRoot?: string;
   private milkdropTextureRoot?: string;
+  private milkdropLibraryCache?: Awaited<ReturnType<EmoServer["buildMilkdropLibrary"]>>;
 
   constructor(options: EmoServerOptions) {
     this.projectRoot = resolve(options.projectRoot);
@@ -111,14 +112,14 @@ export class EmoServer {
       if (url.pathname === "/api/projects") return json(res, 200, await this.listProjects());
 
       if (url.pathname === "/api/milkdrop/library") {
-        return json(res, 200, await this.getMilkdropLibrary());
+        return json(res, 200, await this.getMilkdropLibrary(url.searchParams.get("refresh") === "1"));
       }
 
       const milkdropPresetMatch = url.pathname.match(/^\/api\/milkdrop\/presets\/([a-f0-9]{16})\/source$/);
       if (milkdropPresetMatch) {
         if (!this.milkdropPresetRoot) return json(res, 404, { error: "milkdrop_library_not_configured" });
-        const presets = await discoverMilkdropPresets(this.milkdropPresetRoot);
-        const preset = findMilkdropPreset(presets, milkdropPresetMatch[1]);
+        const library = await this.getMilkdropLibrary();
+        const preset = findMilkdropPreset(library.presets, milkdropPresetMatch[1]);
         if (!preset) return json(res, 404, { error: "milkdrop_preset_not_found" });
         const fullPath = resolveInsideRoot(
           this.milkdropPresetRoot,
@@ -131,8 +132,8 @@ export class EmoServer {
       const milkdropTextureMatch = url.pathname.match(/^\/api\/milkdrop\/textures\/([a-f0-9]{16})$/);
       if (milkdropTextureMatch) {
         if (!this.milkdropTextureRoot) return json(res, 404, { error: "milkdrop_texture_library_not_configured" });
-        const textures = await discoverMilkdropTextures(this.milkdropTextureRoot);
-        const texture = findMilkdropTexture(textures, milkdropTextureMatch[1]);
+        const library = await this.getMilkdropLibrary();
+        const texture = findMilkdropTexture(library.textures, milkdropTextureMatch[1]);
         if (!texture) return json(res, 404, { error: "milkdrop_texture_not_found" });
         const fullPath = resolveInsideRoot(
           this.milkdropTextureRoot,
