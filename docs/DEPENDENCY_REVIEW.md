@@ -12,6 +12,30 @@ Current dependency decisions for E-MO-Engine. Version authority is the applicabl
 **License:** MIT.  
 **Decision:** approved as the frame-critical renderer.
 
+### Butterchurn 3.0.0-beta.5 — approved, pinned beta
+
+**Purpose:** WebGL2 MilkDrop rendering for user-selected external `.milk` libraries.  
+**Boundary:** no `butterchurn-presets` dependency and no preset/texture pack is bundled or fetched by E-MO. Butterchurn is a background source beneath lyric typography.  
+**Why the beta:** the pinned 3.0 beta exposes the render-scale/output-AA/image-loading APIs used by the integration. The exact version remains pinned until a reviewed stable release provides the same contract.  
+**Cost:** no required service/account.  
+**License:** MIT.  
+**Decision:** approved.
+
+### milkdrop-preset-converter 0.1.2 — approved
+
+**Purpose:** on-demand conversion of user-selected MilkDrop `.milk` source into Butterchurn preset objects.  
+**Boundary:** conversion is local/session-cached; the product does not ship or acquire a preset corpus.  
+**Cost:** no required service/account.  
+**License:** MIT.  
+**Decision:** approved.
+
+### Fontsource 5.3.0 font packages — approved
+
+**Purpose:** self-host a curated typography set without a Google Fonts runtime request.  
+**Packages:** Inter Variable, Space Grotesk Variable, Oswald Variable, Playfair Display Variable, IBM Plex Mono, Caveat Variable and Bangers.  
+**License:** the selected fonts are distributed under their upstream open-font licenses (principally OFL-1.1); Fontsource package metadata remains authoritative.  
+**Decision:** approved for bundled lyric typography.
+
 ### Web platform APIs — approved
 
 HTMLAudioElement, Web Audio, File/Blob URLs, requestAnimationFrame and standard browser APIs provide playback, analysis and local-file ingestion without a paid runtime dependency.
