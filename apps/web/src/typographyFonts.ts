@@ -21,7 +21,7 @@ export interface TypographyFontProfile {
   label: string;
   category: TypographyFontCategory;
   family: string;
-  weight: string;
+  weight: "400" | "700" | "800" | "900";
 }
 
 export const TYPOGRAPHY_FONTS: TypographyFontProfile[] = [
