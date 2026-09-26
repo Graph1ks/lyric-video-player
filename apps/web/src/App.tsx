@@ -160,8 +160,8 @@ export function App() {
     const loadToken = ++milkdropLoadTokenRef.current;
     setMilkdropPresetStatus(presetId, { compatibility: "converting" });
 
-    let library;
-    let sourceResponse;
+    let library: Awaited<ReturnType<typeof fetchMilkdropLibrary>>;
+    let sourceResponse: Awaited<ReturnType<typeof fetchMilkdropPresetSource>>;
     try {
       [library, sourceResponse] = await Promise.all([
         fetchMilkdropLibrary(),
@@ -191,9 +191,12 @@ export function App() {
       converted = await convertMilkdropPreset(preset, sourceResponse.source);
     } catch (error) {
       if (loadToken !== milkdropLoadTokenRef.current) return;
+      const message = error instanceof Error ? error.message : String(error);
       setMilkdropPresetStatus(presetId, {
-        compatibility: "conversion-error",
-        message: error instanceof Error ? error.message : String(error),
+        compatibility: /unsupported|not supported|shader version/i.test(message)
+          ? "unsupported"
+          : "conversion-error",
+        message,
       });
       return;
     }
